@@ -1,0 +1,89 @@
+pyscheme2
+========================
+
+This is an reimplimentation of pyscheme using various supportted C scheme
+libraries for speed. If no C scheme libraries are avaliable it will fall back to
+the much slower pyscheme library. 
+
+It was designed to offer faster parsing of Thousand Parsec TPCL programs such
+as:
+	- tpserver-py
+	- tpclient-py*
+	- tpruledev
+
+It is written in pure python using the python-ctypes library. This library comes
+with python2.5 (it can be downloaded for earlier versions of python).
+
+Supported C scheme libraries:
+	http://community.schemewiki.org/?scheme-faq-standards#implementations
+
+	guile 1.6 and 1.8 	
+	mzscheme 			
+	STklos 				http://www.stklos.org/
+	Chicken 			
+	Elk 				http://sam.zoy.org/elk/
+	
+API
+=========================	
+
+import pyscheme2 as scheme
+
+# Create a new scheme parser
+# A parser converts text strings into an internal format, this allows you to
+# parse something once and then evaluate it multiple times in different
+# enviroments. 
+# This is more efficent as parsing the text takes up the most significant amount
+# of time.
+p = scheme.Parser()
+
+<internal scheme structure> = p(<string>)
+
+# Calling the parser can throw a scheme.ParserException, these have the
+# following attributes,
+#  e.lineno   - the line on which the error occured
+#  e.position - the position the error was detected at
+#  e.message  - a human readable message why this is not valid
+
+# Create a new scheme empty interpreter
+i = scheme.Interpreter()
+
+# You can then install new functions into the interpreter using the following
+#
+# Functions must take <internal scheme structure> arguments and return a
+# <internal scheme structure>.
+#
+# The function MUST NOT store any of the given structures.
+i.install_function(<name>, <python callable>)
+
+# You can then do something like
+#
+# def myadd(a, b):
+#   a = scheme.topython(a)
+#   b = scheme.topython(b)
+#
+#   return scheme.toscheme(a+b)
+
+
+# To evaluate scheme code just use the eval function. It must have been
+# previously parsed by the scheme parser.
+<internal scheme structure> = i.eval(<internal scheme structure>)
+
+# You can also call functions in the scheme enviroment directly
+<internal scheme structure> = i.pair.cdr(<internal scheme structure>)
+<internal scheme structure> = i.pair.car(<internal scheme structure>)
+
+# The scheme library also provides some convience functions.
+
+# These two functions allow you to convert from the internal scheme structures
+# to python types.
+# The functions will automatically map the following types,
+#  - bool
+#  - int
+#  - float
+#  - complex
+#  - list
+#  - dictionary
+<internal scheme object> = scheme.toscheme(<python object>)
+<python object> = scheme.topython(<internal scheme object>)
+
+
