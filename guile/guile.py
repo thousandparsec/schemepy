@@ -36,8 +36,6 @@ class SCM(c_void_p):
 		"""
 		return c_void_p.__str__(self)
 
-
-
 # Python function wrapper
 #  Takes the SCM  arguments and splits them into bits for the function.
 #  Checks the return type is a SCM too.
@@ -45,6 +43,11 @@ class SCM(c_void_p):
 guile.scm_c_eval_string.argtypes = [c_char_p]
 guile.scm_c_eval_string.restype  = SCM
 guile.scm_c_lookup.restype = SCM
+
+guile.scm_c_define_gsubr.argtypes = [c_char_p, c_int, c_int, c_int, c_void_p]
+guile.scm_c_define_gsubr.restype  = SCM
+
+import inspect
 
 class Inter(object):
 	__slots__ = ['module']
@@ -55,6 +58,22 @@ class Inter(object):
 	def eval(self, s):
 		guile.scm_set_current_module(self.module)
 		return guile.scm_c_eval_string(s)
+
+	def register(self, name, func):
+		if not callable(func):
+			raise TypeError('The thing you register must be callable')
+
+		args, varargs, varkw, defaults = inspect.getargspec(func)
+		if not (varargs is None and varkw is None and defaults is None):
+			raise TypeError("Don't know how to deal with this type of function yet..")
+	
+		guile.scm_set_current_module(self.module)
+
+		WRAPPERFUNC = CFUNCTYPE(SCM, *([SCM]*len(args)))
+		guile.scm_c_define_gsubr(name, len(args), 0, 0, WRAPPERFUNC(func))
+
+def test():
+	print "Hello 1 2 3"
 
 if __name__ == '__main__':
 	# Initlise guile
@@ -85,6 +104,9 @@ if __name__ == '__main__':
 """)
 	m2.eval('(do-hello)')
 
+
+	m1.register('test', test)
+	m1.eval('(test)')
 
 
 	#func_symbol = guile.scm_c_lookup("do-hello")
