@@ -42,23 +42,19 @@ class SCM(c_void_p):
 #  Takes the SCM  arguments and splits them into bits for the function.
 #  Checks the return type is a SCM too.
 
+guile.scm_c_eval_string.argtypes = [c_char_p]
+guile.scm_c_eval_string.restype  = SCM
+guile.scm_c_lookup.restype = SCM
 
-INITMODULE = CFUNCTYPE(None, c_void_ptr)
-def py_initmodule(ptr):
-	print "Init Module..."
-
-	return
-initmodule=INITMODULE(py_initmodule)
-
-guile.scm_c_define_module.restype = SCM
-
-class Inter:
-	__slots__ = ['modulename']
+class Inter(object):
+	__slots__ = ['module']
 
 	def __init__(self, modules=[]):
-		self.modulename = str(id(self))
-		self.module     = guile.scm_c_define_module(self.modulename, initmodule, None)
+		self.module = guile.scm_c_eval_string('(make-scope)')
 
+	def eval(self, s):
+		guile.scm_set_current_module(self.module)
+		return guile.scm_c_eval_string(s)
 
 if __name__ == '__main__':
 	# Initlise guile
@@ -69,6 +65,26 @@ if __name__ == '__main__':
 
 	m1 = Inter()
 	m2 = Inter()
+
+	print m1.module
+	print m2.module
+
+	m1.eval("""
+(define do-hello
+  (lambda ()
+    (display "Hello world from 1.") 
+     (newline)))
+""")
+	m1.eval('(do-hello)')
+
+	m2.eval("""
+(define do-hello
+  (lambda ()
+    (display "Hello world from 2.") 
+     (newline)))
+""")
+	m2.eval('(do-hello)')
+
 
 
 	#func_symbol = guile.scm_c_lookup("do-hello")
