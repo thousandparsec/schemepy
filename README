@@ -68,6 +68,12 @@ i.install_function(<name>, <python callable>)
 # previously parsed by the scheme parser.
 <internal scheme structure> = i.eval(<internal scheme structure>)
 
+# Get the python type
+<internal scheme structure>.type()
+
+# Convert to a python object - with complex objects this is only does one level.
+<internal scheme structure>.topython()
+
 # You can also call functions in the scheme enviroment directly
 <internal scheme structure> = i.pair.cdr(<internal scheme structure>)
 <internal scheme structure> = i.pair.car(<internal scheme structure>)
@@ -85,5 +91,4 @@ i.install_function(<name>, <python callable>)
 #  - dictionary
 <internal scheme object> = scheme.toscheme(<python object>)
 <python object> = scheme.topython(<internal scheme object>)
-
 
