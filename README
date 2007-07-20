@@ -1,4 +1,4 @@
-pyscheme2
+schemepy (pronounced Skimpy)
 ========================
 
 This is an reimplimentation of pyscheme using various supportted C scheme
@@ -26,7 +26,7 @@ Supported C scheme libraries:
 API
 =========================	
 
-import pyscheme2 as scheme
+import schemepy as scheme
 
 # Create a new scheme parser
 # A parser converts text strings into an internal format, this allows you to
