@@ -90,9 +90,10 @@ class SCM(c_void_p):
 #			if guile.scm_is_rational(self):
 #				return guile.scm_to_double(self)
 		if guile.scm_is_string(self):
+			# FIXME: This is probably leaking memory
 			return guile.scm_to_locale_string(self)
 		if guile.scm_is_symbol(self):
-			return guile.scm_symbol_to_string(self)
+			return guile.scm_symbol_to_string(self).topython()
 		raise TypeError("Don't know how to convert this type yet.")
 		
 # is Functions
@@ -126,7 +127,7 @@ guile.scm_to_locale_string.argstype = [SCM]
 guile.scm_to_locale_string.restype = c_char_p
 
 guile.scm_symbol_to_string.argstype = [SCM]
-guile.scm_symbol_to_string.restype  = c_char_p
+guile.scm_symbol_to_string.restype  = SCM
 
 # Evaluation functions
 guile.scm_c_eval_string.argtypes = [c_char_p]
