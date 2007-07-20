@@ -21,7 +21,6 @@ if lib is None:
 
 guile = cdll.LoadLibrary(lib)
 
-
 class SCM(c_void_p):
 	"""
 	SCM is the base type used by Guile, for our purposes we don't care what
@@ -108,9 +107,4 @@ if __name__ == '__main__':
 	m1.register('test', test)
 	m1.eval('(test)')
 
-
-	#func_symbol = guile.scm_c_lookup("do-hello")
-	#func        = guile.scm_variable_ref(func_symbol)
-	
-	#guile.scm_call_0(func)
 
