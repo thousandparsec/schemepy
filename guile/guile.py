@@ -46,6 +46,7 @@ else:
 #	guile.scm_is_integer = _guilehelper._scm_is_integer
 #	guile.scm_is_pair    = _guilehelper._scm_is_pair
 	guile.scm_is_symbol  = _guilehelper._scm_is_symbol
+	guile.scm_is_true    = _guilehelper._scm_is_true
 
 
 class SCM(c_void_p):
@@ -59,12 +60,16 @@ class SCM(c_void_p):
 
 		(pretty-print (lambda (x) x))
 		"""
-		return c_void_p.__str__(self)
+		port = guile.scm_open_output_string()
+		guile.scm_call_2(prettyprint, self, port)
+		return "<SCM %s>" % guile.scm_get_output_string(port).topython().strip()
 
 	def __repr__(self):
 		return c_void_p.__repr__(self)
 
 	def type(self):
+		if guile.scm_unbndp(self):
+			return type(None)
 		if guile.scm_is_bool(self):
 			return bool
 		if guile.scm_is_number(self):
@@ -139,6 +144,31 @@ guile.scm_c_define_gsubr.restype  = SCM
 
 guile.scm_bool_t.restype = SCM
 
+guile.scm_list_p.argtypes = [SCM]
+guile.scm_list_p.restype  = SCM
+
+guile.scm_is_true.argtypes = [SCM]
+guile.scm_is_true.restype = int
+
+
+guile.scm_c_lookup.argtypes = [c_char_p]
+guile.scm_c_lookup.restype  = SCM
+guile.scm_variable_ref.argtypes = [SCM]
+guile.scm_variable_ref.restype  = SCM
+
+# Quick call functions
+guile.scm_call_0.argtypes = [SCM]
+guile.scm_call_0.restype  = SCM
+guile.scm_call_1.argtypes = [SCM, SCM]
+guile.scm_call_1.restype  = SCM
+guile.scm_call_2.argtypes = [SCM, SCM, SCM]
+guile.scm_call_2.restype  = SCM
+
+guile.scm_open_output_string.argtypes = []
+guile.scm_open_output_string.restype  = SCM
+guile.scm_get_output_string.argtypes = [SCM]
+guile.scm_get_output_string.restype  = SCM
+
 # Conversion from python types to the "SCM" type
 def toscm(a):
 	try:
@@ -193,32 +223,33 @@ class wrapper(object):
 
 		# Split out the optional and "rest" bits
 		if self.varargs:
-			opt, rst = args[len(req):-1], args[-1]
+			optargs, rstarg = args[len(req):-1], args[-1]
 		else:
-			opt, rst = args[len(req):],   []
+			optargs, rstarg = args[len(req):],   None
 			
 		# Check the optional bits
-		for arg in opt:
+		opt = []
+		for arg in optargs:
 			# Is the optional arg undefined
 			if guile.scm_unbndp(arg):
 				break
-			a.append(arg)
+			opt.append(arg)
 
 		# Check if the rest part is defined
-		if rst != []:
-			if not guile.scm_unbndp(rst):
-				# Check the rest argument is a list...
-				if guile.scm_list_p(rst):
-					print "Rest was a list.."
-				else:
-					print "Rest wasn't a list.."
-
-				# Unpack the list shallowly
-				rst = [] #topython(rst, shallow=True)
+		rst = []
+		if rstarg and not guile.scm_unbndp(rstarg):
+			# Check the rest argument is a list...
+			if guile.scm_is_true(guile.scm_list_p(rstarg)):
+				print "Rest was a list.."
 			else:
-				rst = []
+				print "Rest wasn't a list.."
+
+			# Unpack the list shallowly
+			rst = [] #topython(rst, shallow=True)
 
 		r = self.f(*(req+opt+rst))
+		if not r is None and not isinstance(r, SCM):
+			raise TypeError("Return type was not a SCM!")
 		return r
 
 	def cfunctype(self):
@@ -237,8 +268,9 @@ def exception_handler(trash, key, args):
 
 	print key.type(), args.type()
 	print key.topython()
+	print 
 
-	raise Exception(key, args)
+	raise Exception(key.topython(), args)
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, SCM, SCM)
 exception_handler   = exception_handler_t(exception_handler)
 guile.scm_internal_catch.argtypes = [SCM, exception_body_t, c_char_p, exception_handler_t, c_void_p]
@@ -276,27 +308,35 @@ class Inter(object):
 
 def testfunc1():
 	print "Hello 1 2 3"
+	print
 
 def testfunc2(a):
 	print a
+	print
 
 def testfunc3(a, *args):
 	print a, args
+	print
 
 def testfunc4(a, v='test'):
 	print a, v
+	print
 
 def testfunc5(a, **kw):
 	print a, kw
+	print
 
 def testfunc6(a, v='test', *args):
 	print a, v, args
+	print
 
 def testfunc7(a, v='test', **kw):
 	print a, v, kw
+	print
 
 def testfunc8(a, v='test', *args, **kw):
 	print a, v, args, kw
+	print
 
 if __name__ == '__main__':
 	# Initlise guile
@@ -304,6 +344,11 @@ if __name__ == '__main__':
 
 	# Create a "scope" for this class
 	guile.scm_c_primitive_load ("profiles/scope.scm")
+	# Load the pretty-print module..
+	guile.scm_c_eval_string("(use-modules (ice-9 pretty-print))")
+
+	prettyprint_symbol = guile.scm_c_lookup("pretty-print")
+	prettyprint        = guile.scm_variable_ref(prettyprint_symbol)
 
 	m1 = Inter()
 	m2 = Inter()
@@ -352,5 +397,6 @@ if __name__ == '__main__':
 
 	print 'test4'
 	m1.register('test4', testfunc4)
-	m1.eval('(test4)')
+	m1.eval('(test4 test1)')
+	m1.eval('(test4 test1 test2)')
 

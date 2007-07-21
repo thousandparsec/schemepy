@@ -22,6 +22,7 @@ int scm_is_integer(SCM x) {
 int scm_is_pair(SCM x) {
 	return SCM_CONSP (x);
 }
+
 #else
 
 /* Damn inline functions :/ */
@@ -31,6 +32,10 @@ SCM _scm_from_bool(int x) {
 
 int _scm_is_symbol(SCM x) {
 	return scm_is_symbol(x);
+}
+
+int _scm_is_true(SCM x) {
+	return scm_is_true(x);
 }
 
 #endif
