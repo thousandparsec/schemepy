@@ -51,3 +51,21 @@ SCM scm_bool_t() {
 SCM scm_bool_f() {
 	return SCM_BOOL_F;
 }
+
+int scm_c_symbol_exists(const char *name) { 
+	SCM sym; 
+	SCM var;
+	
+	sym = scm_str2symbol(name);
+
+	/* Check to see if the symbol exists */
+	var = scm_sym2var (sym, 
+					   scm_current_module_lookup_closure(), 
+					   SCM_BOOL_F
+					  );
+
+	if (var != SCM_BOOL_F)
+			return 1;
+	return 0;
+}
+

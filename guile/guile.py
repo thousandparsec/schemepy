@@ -29,6 +29,7 @@ _guilehelper = cdll.LoadLibrary(path)
 guile.scm_unbndp = _guilehelper.scm_unbndp
 guile.scm_bool_t = _guilehelper.scm_bool_t
 guile.scm_bool_f = _guilehelper.scm_bool_f
+guile.scm_c_symbol_exists = _guilehelper.scm_c_symbol_exists
 
 # These are guile 1.8 functions
 if hasattr(_guilehelper, 'scm_from_bool'):
@@ -87,6 +88,8 @@ class SCM(c_void_p):
 			return 'Symbol'
 
 	def topython(self):
+		if guile.scm_unbndp(self):
+			return None
 		if guile.scm_is_bool(self):
 			return guile.scm_to_bool(self)
 		if guile.scm_is_number(self):
@@ -100,7 +103,10 @@ class SCM(c_void_p):
 		if guile.scm_is_symbol(self):
 			return guile.scm_symbol_to_string(self).topython()
 		raise TypeError("Don't know how to convert this type yet.")
-		
+
+guile.scm_c_symbol_exists.argstype = [c_char_p]
+guile.scm_c_symbol_exists.restype  = bool
+
 # is Functions
 guile.scm_is_bool.argstype     = [SCM]
 guile.scm_is_bool.restype      = bool
@@ -306,6 +312,13 @@ class Inter(object):
 		guile.scm_set_current_module(self.module)
 		guile.scm_c_define_gsubr(name, w.unamed, len(w.defaults), w.varargs, w.cfunctype())
 
+	def __getattr__(self, key):
+		guile.scm_set_current_module(self.module)
+		if not guile.scm_c_symbol_exists(key):
+			raise KeyError('No such %s exists in the environment.' % key)
+
+		return guile.scm_variable_ref(guile.scm_c_lookup(key))
+
 def testfunc1():
 	print "Hello 1 2 3"
 	print
@@ -384,6 +397,12 @@ if __name__ == '__main__':
 	print 'test1'
 	m1.register('test1', testfunc1)
 	m1.eval('(test1)')
+
+	print m1.test1
+	try:
+		m1.test2
+	except KeyError, e:
+		print e
 
 	print 'test2'
 	m1.register('test2', testfunc2)
