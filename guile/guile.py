@@ -238,6 +238,16 @@ guile.scm_car.restype   = SCM
 guile.scm_cdr.argtypes  = [SCM]
 guile.scm_cdr.restype   = SCM
 
+# Conversion functions
+guile.scm_from_bool.argtypes   = [c_int]
+guile.scm_from_bool.restype    = SCM
+guile.scm_from_int32.argtypes  = [c_int]
+guile.scm_from_int32.restype   = SCM
+guile.scm_from_double.argtypes = [c_double]
+guile.scm_from_double.restype  = SCM
+guile.scm_from_locale_stringn.argtypes = [c_char_p, c_int]
+guile.scm_from_locale_stringn.restype  = SCM
+
 # Conversion from python types to the "SCM" type
 def toscm(a):
 	try:
@@ -254,14 +264,21 @@ def list2scm(l):
 		scm = guile.scm_cons(toscm(item), scm)
 	return scm
 
+def dict2scm(d):
+	scm = guile.scm_eol()
+	for key, value in d.iteritems():
+		scm = guile.scm_cons(guile.scm_cons(toscm(key), toscm(value)), scm)
+	return scm
+
+
+
 scmmapping = {
 	bool: 	guile.scm_from_bool,
 	int: 	guile.scm_from_int32,
-#	float: 	guile.scm_from_double,
+	float: 	guile.scm_from_double,
 #	ComplexType: 	guile.
 	long: 	None,
-	None: 	None,
-	dict: 	None,
+	dict: 	dict2scm,
 	list: 	list2scm,
 	str: 	string2scm, }
 
@@ -440,22 +457,18 @@ if __name__ == '__main__':
 	prettyprint_symbol = guile.scm_c_lookup("pretty-print")
 	prettyprint        = guile.scm_variable_ref(prettyprint_symbol)
 
-	m1 = Inter()
-	m2 = Inter()
+	# Conversion to Scheme objects..
+	print "Converting Python objects into Scheme objects...."
+	print True, toscm(True)
+	print False, toscm(False)
+	print 1, toscm(1)
+	print 2, toscm(2)
+	print 'Test', toscm('Test')
+	print [10,5, 10], toscm([10, 5, 10])
+	print {1:'test', 2:'hello'}, toscm({1:'test', 2:'hello'})
+	print
 
-	print m1.module
-	print m2.module
-
-	a = m1.eval("""'(1 2 3 4 5)""")
-	print a
-	print a.type()
-	print a.topython()
-
-	a = m1.eval("""'(("New York" . "Albany") ("Oregon"   . "Salem") ("Florida"  . "Miami"))""")
-	print a
-	print a.type()
-	print a.topython()
-
+	# Test scopes
 	m1.eval("""
 (define do-hello
   (lambda ()
@@ -472,15 +485,26 @@ if __name__ == '__main__':
 """)
 	m2.eval('(do-hello)')
 
-	print inspect.getargspec(testfunc1)
-	print inspect.getargspec(testfunc2)
-	print inspect.getargspec(testfunc3)
-	print inspect.getargspec(testfunc4)
-	print inspect.getargspec(testfunc5)
-	print inspect.getargspec(testfunc6)
-	print inspect.getargspec(testfunc7)
-	print inspect.getargspec(testfunc8)
+	m1 = Inter()
+	m2 = Inter()
 
+	print m1.module
+	print m2.module
+
+	# Conversion from Scheme objects..
+	# List
+	a = m1.eval("""'(1 2 3 4 5)""")
+	print a
+	print a.type()
+	print a.topython()
+
+	# Dictionary
+	a = m1.eval("""'(("New York" . "Albany") ("Oregon"   . "Salem") ("Florida"  . "Miami"))""")
+	print a
+	print a.type()
+	print a.topython()
+
+	# Function registration
 	print 'test1'
 	m1.register('test1', testfunc1)
 	m1.eval('(test1)')
