@@ -1,0 +1,8 @@
+This is a test suit which makes sure all the scheme implimentations work
+the same way. This is important so that people can be confident that their
+code will work no matter which scheme library schemepy ends up choosing.
+
+1. Check conversion to scheme and then back.
+2. Check scope pollution.
+3. Check exception handling.
+
