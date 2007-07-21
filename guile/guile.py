@@ -1,9 +1,14 @@
+# TODO: Add a "python" SMOB which lets a python object parse through the scheme environment
+# TODO: List and Dictionary conversion
+# TODO: Rational/Bignum and complex
+# TODO: Add the autoconversion
+# TODO: Add deep autoconversion
 
 from ctypes.util import find_library
 from ctypes import *
 pythonapi.PyFile_AsFile.restype = c_void_p
 
-# Try and find a libc library and libmng
+# Try and find a libc library and libguile
 import sys
 import os.path
 if sys.platform == 'win32':
@@ -29,7 +34,11 @@ _guilehelper = cdll.LoadLibrary(path)
 guile.scm_unbndp = _guilehelper.scm_unbndp
 guile.scm_bool_t = _guilehelper.scm_bool_t
 guile.scm_bool_f = _guilehelper.scm_bool_f
+guile.scm_eol    = _guilehelper.scm_eol
 guile.scm_c_symbol_exists = _guilehelper.scm_c_symbol_exists
+
+guile.scm_is_list  = _guilehelper.scm_is_list
+guile.scm_is_alist = _guilehelper.scm_is_alist
 
 # These are guile 1.8 functions
 if hasattr(_guilehelper, 'scm_from_bool'):
@@ -48,6 +57,7 @@ else:
 #	guile.scm_is_pair    = _guilehelper._scm_is_pair
 	guile.scm_is_symbol  = _guilehelper._scm_is_symbol
 	guile.scm_is_true    = _guilehelper._scm_is_true
+	guile.scm_is_null    = _guilehelper._scm_is_null
 
 
 class SCM(c_void_p):
@@ -83,11 +93,15 @@ class SCM(c_void_p):
 		if guile.scm_is_string(self):
 			return str
 		if guile.scm_is_pair(self):
-			return list
+			if guile.scm_is_list(self):
+				if guile.scm_is_alist(self):
+					return dict
+				return list
+			return 'Pair'
 		if guile.scm_is_symbol(self):
 			return 'Symbol'
 
-	def topython(self):
+	def topython(self, shallow=False):
 		if guile.scm_unbndp(self):
 			return None
 		if guile.scm_is_bool(self):
@@ -102,6 +116,38 @@ class SCM(c_void_p):
 			return guile.scm_to_locale_string(self)
 		if guile.scm_is_symbol(self):
 			return guile.scm_symbol_to_string(self).topython()
+		if guile.scm_is_pair(self):
+			if guile.scm_is_list(self):
+				if guile.scm_is_alist(self):
+					d = {}
+
+					scm = self
+					while not guile.scm_is_null(scm):
+						item = guile.scm_car(scm)
+
+						key   = guile.scm_car(item).topython()
+						value = guile.scm_cdr(item)
+
+						if not shallow:
+							d[key] = value.topython()
+						else:
+							d[key] = value
+						scm = guile.scm_cdr(scm)
+
+					return d
+
+				l = []
+
+				scm = self
+				while not guile.scm_is_null(scm):
+					item = guile.scm_car(scm)
+					if not shallow:
+						l.append(item.topython())
+					else:
+						l.append(item)
+					scm = guile.scm_cdr(scm)
+
+				return l
 		raise TypeError("Don't know how to convert this type yet.")
 
 guile.scm_c_symbol_exists.argstype = [c_char_p]
@@ -175,6 +221,23 @@ guile.scm_open_output_string.restype  = SCM
 guile.scm_get_output_string.argtypes = [SCM]
 guile.scm_get_output_string.restype  = SCM
 
+# List functions
+guile.scm_is_list.argtypes  = [SCM]
+guile.scm_is_list.restype   = bool
+guile.scm_is_alist.argtypes = [SCM]
+guile.scm_is_alist.restype  = bool
+guile.scm_is_null.argtypes  = [SCM]
+guile.scm_is_null.restype   = bool
+
+guile.scm_eol.argtypes  = []
+guile.scm_eol.restype   = SCM
+guile.scm_cons.argtypes = [SCM, SCM]
+guile.scm_cons.restype  = SCM
+guile.scm_car.argtypes  = [SCM]
+guile.scm_car.restype   = SCM
+guile.scm_cdr.argtypes  = [SCM]
+guile.scm_cdr.restype   = SCM
+
 # Conversion from python types to the "SCM" type
 def toscm(a):
 	try:
@@ -186,7 +249,10 @@ def string2scm(s):
 	return guile.scm_from_locale_stringn(s, len(s))
 
 def list2scm(l):
-	return None
+	scm = guile.scm_eol()
+	for item in reversed(l):
+		scm = guile.scm_cons(toscm(item), scm)
+	return scm
 
 scmmapping = {
 	bool: 	guile.scm_from_bool,
@@ -201,7 +267,20 @@ scmmapping = {
 
 import inspect
 class wrapper(object):
+	"""\
+	This class wraps a callable so that the scheme enviroment can call a 
+	Python callable.
+
+	It can also automatically convert scheme values into their Python
+	equivalents.
+	"""
+
 	def __init__(self, f):
+		"""
+		Wrapper(f) 
+
+		f is the callable you want to wrap.
+		"""
 		self.f = f
 
 		self.args, self.varargs, trash, self.defaults = inspect.getargspec(f)
@@ -245,13 +324,12 @@ class wrapper(object):
 		rst = []
 		if rstarg and not guile.scm_unbndp(rstarg):
 			# Check the rest argument is a list...
-			if guile.scm_is_true(guile.scm_list_p(rstarg)):
-				print "Rest was a list.."
+			if rstarg.type() == list:
+				# Unpack the list shallowly
+				rst = rstarg.topython(shallow=True)
 			else:
+				# WTF?
 				print "Rest wasn't a list.."
-
-			# Unpack the list shallowly
-			rst = [] #topython(rst, shallow=True)
 
 		r = self.f(*(req+opt+rst))
 		if not r is None and not isinstance(r, SCM):
@@ -263,6 +341,9 @@ class wrapper(object):
 		return CFUNCTYPE(SCM, *([SCM]*arguments))(self)
 
 # Stuff for Exception catching
+#
+# These to functions are needed to 
+#
 def exception_body(code):
 	s = guile.scm_c_eval_string(code)
 	return s.value
@@ -270,16 +351,12 @@ exception_body_t = CFUNCTYPE(SCM, c_char_p)
 exception_body   = exception_body_t(exception_body)
 
 def exception_handler(trash, key, args):
-	print "Exception handler!", trash, key, args
-
-	print key.type(), args.type()
-	print key.topython()
-	print 
-
-	raise Exception(key.topython(), args)
+	raise Exception(key.topython(), args.topython())
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, SCM, SCM)
 exception_handler   = exception_handler_t(exception_handler)
+
 guile.scm_internal_catch.argtypes = [SCM, exception_body_t, c_char_p, exception_handler_t, c_void_p]
+guile.scm_internal_catch.restype  = SCM
 
 class Inter(object):
 	__slots__ = ['module']
@@ -368,6 +445,16 @@ if __name__ == '__main__':
 
 	print m1.module
 	print m2.module
+
+	a = m1.eval("""'(1 2 3 4 5)""")
+	print a
+	print a.type()
+	print a.topython()
+
+	a = m1.eval("""'(("New York" . "Albany") ("Oregon"   . "Salem") ("Florida"  . "Miami"))""")
+	print a
+	print a.type()
+	print a.topython()
 
 	m1.eval("""
 (define do-hello
