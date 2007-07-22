@@ -6,3 +6,5 @@ MANIFEST
 build-stamp
 html
 tp
+*.o
+*.so

@@ -63,6 +63,12 @@ i.install_function(<name>, <python callable>)
 #
 #   return scheme.toscheme(a+b)
 
+# You can also have autoconversion by doing the following, then the above
+# function could read
+#
+# def myadd(a, b):
+#    return a+b
+i.install_function(<name>, <python callable>, autoconvert=True)
 
 # To evaluate scheme code just use the eval function. It must have been
 # previously parsed by the scheme parser.
@@ -75,8 +81,8 @@ i.install_function(<name>, <python callable>)
 <internal scheme structure>.topython()
 
 # You can also call functions in the scheme enviroment directly
-<internal scheme structure> = i.pair.cdr(<internal scheme structure>)
-<internal scheme structure> = i.pair.car(<internal scheme structure>)
+<internal scheme structure> = i.environment.cdr(<internal scheme structure>)
+<internal scheme structure> = i.environment.car(<internal scheme structure>)
 
 # The scheme library also provides some convience functions.
 
