@@ -113,3 +113,19 @@ int scm_c_symbol_exists(const char *name) {
 	return 0;
 }
 
+/* SMOB Helper functions */
+void scm_set_smob_data(SCM x, void* p) {
+	SCM_SET_SMOB_DATA(x, p);
+}
+
+void* scm_smob_data(SCM x) {
+	return (void*)SCM_SMOB_DATA(x);
+}
+
+SCM scm_return_newsmob(scm_t_bits tag, void* data) {
+	SCM_RETURN_NEWSMOB (tag, data);
+}
+
+int scm_smob_predicate(scm_t_bits tag, SCM exp) {
+	return SCM_SMOB_PREDICATE (tag, exp);
+}

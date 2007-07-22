@@ -4,9 +4,13 @@
 # TODO: Add the autoconversion
 # TODO: Add deep autoconversion
 
+import gc
+gc.set_debug(gc.DEBUG_LEAK)
+
+import sys
+
 from ctypes.util import find_library
 from ctypes import *
-pythonapi.PyFile_AsFile.restype = c_void_p
 
 # Try and find a libc library and libguile
 import sys
@@ -37,6 +41,11 @@ guile.scm_bool_f = _guilehelper.scm_bool_f
 guile.scm_eol    = _guilehelper.scm_eol
 guile.scm_c_symbol_exists = _guilehelper.scm_c_symbol_exists
 
+guile.scm_smob_data      = _guilehelper.scm_smob_data
+guile.scm_set_smob_data  = _guilehelper.scm_set_smob_data
+guile.scm_return_newsmob = _guilehelper.scm_return_newsmob
+guile.scm_smob_predicate = _guilehelper.scm_smob_predicate
+
 guile.scm_is_list  = _guilehelper.scm_is_list
 guile.scm_is_alist = _guilehelper.scm_is_alist
 
@@ -60,19 +69,60 @@ else:
 	guile.scm_is_null    = _guilehelper._scm_is_null
 
 
+def SCMc(address):
+	return SCM(address)
+
+import weakref
+
 class SCM(c_void_p):
 	"""
 	SCM is the base type used by Guile, for our purposes we don't care what
 	it actually is so we are going to use a void pointer.
 	"""
-	def __str__(self):
-		"""
-		(use-modules (ice-9 pretty-print))
+	
 
-		(pretty-print (lambda (x) x))
-		"""
+#	__cache = weakref.WeakValueDictionary()
+#
+#	def __new__(cls, address):
+#		try:
+#			return cls.__cache[address]
+#		except KeyError:
+#			c = c_void_p.__new__(cls)
+#			return c
+
+	def __init__(self, address=None):
+		c_void_p.__init__(self)
+		self.value = address
+
+#		# Cache this object
+#		self.__cache[address] = self
+
+	def value_set(self, v):
+		oldv = getattr(self, 'value', None)
+		if not oldv is None:
+			#print hex(id(oldv)), "Unprotecting"
+			if getattr(self, 'protected', False):
+				guile.scm_gc_unprotect_object(oldv)
+			else:
+				print "WTF! tried to unprotect an object!"
+			self.protected = False
+
+		if not v is None:
+			#print hex(id(v)), "Protecting"
+			guile.scm_gc_protect_object(v)
+			self.protected = True
+
+		return c_void_p.value.__set__(self, v)
+	def value_get(self):
+		return c_void_p.value.__get__(self)
+	value = property(value_get, value_set)
+
+	def __del__(self):
+		self.value = None
+
+	def __str__(self):
 		port = guile.scm_open_output_string()
-		guile.scm_call_2(prettyprint, self, port)
+		a = guile.scm_call_2(prettyprint, self, port)
 		return "<SCM %s>" % guile.scm_get_output_string(port).topython().strip()
 
 	def __repr__(self):
@@ -100,6 +150,8 @@ class SCM(c_void_p):
 			return 'Pair'
 		if guile.scm_is_symbol(self):
 			return 'Symbol'
+		if guile.scm_smob_predicate(PythonSMOB.tag, self):
+			return object
 
 	def topython(self, shallow=False):
 		if guile.scm_unbndp(self):
@@ -148,12 +200,110 @@ class SCM(c_void_p):
 					scm = guile.scm_cdr(scm)
 
 				return l
+		if guile.scm_smob_predicate(PythonSMOB.tag, self):
+			return PythonSMOB.get(self)
 		raise TypeError("Don't know how to convert this type yet.")
 
+# Garbage collection routines
+# It is important these return a c_void_p rather then a SCM otherwise we get
+# a loop from SCM's __init__ and __del__
+#guile.scm_gc_protect_object.argtypes   = [c_void_p]
+#guile.scm_gc_protect_object.restype    = c_void_p
+#guile.scm_gc_unprotect_object.argtypes = [c_void_p]
+#guile.scm_gc_unprotect_object.restype  = c_void_p
+
+from _ctypes import Py_INCREF, Py_DECREF, PyObj_FromPtr
+
+class SCMtbits(c_void_p):
+	pass
+
+class PythonSMOB(c_void_p):
+	"""
+	Functions for dealing with a Python "pass-thru" object.
+	"""
+	def register():
+		# Create the SMOB type
+		PythonSMOB.tag = guile.scm_make_smob_type("PythonSMOB", 0)
+		guile.scm_set_smob_free( PythonSMOB.tag, PythonSMOB.free)
+		guile.scm_set_smob_print(PythonSMOB.tag, PythonSMOB.str)
+	register = staticmethod(register)	
+
+	def new(pyobj):
+		"""
+		Create a new PythonSMOB which wraps the given object.
+		"""
+		pypointer = id(pyobj)	
+
+		# Increase the reference count to the object	
+		Py_INCREF(pyobj)
+
+		# Create the new smbo
+		return guile.scm_return_newsmob(PythonSMOB.tag, pypointer)
+	new = staticmethod(new)
+
+	def free(smob):
+		"""
+		When the guile garbage collector frees the smob, remove the 
+		extra reference so Python can garbage collect the object.
+		"""
+		#print "PythonSMOB.free"
+
+		# Get the python object we are pointing too
+		pypointer = guile.scm_smob_data(smob)
+
+		# Decrease the reference to the pypointer
+		Py_DECREF(PyObj_FromPtr(pypointer))
+
+		return 0
+	free_cfunc = CFUNCTYPE(c_int, c_void_p)
+	free = staticmethod(free)
+
+	def str(smob, port, pstate):
+		smob, port = SCM(smob), SCM(port)
+
+		# Get the python object we are pointing too
+		pypointer = guile.scm_smob_data(smob)
+
+		pyobj = PyObj_FromPtr(pypointer)
+		guile.scm_display(toscm(repr(pyobj)), port)
+		guile.scm_newline(port)
+
+	str_cfunc = CFUNCTYPE(None, c_void_p, c_void_p, c_void_p)
+	str = staticmethod(str)
+
+	def get(smob):
+		pypointer = guile.scm_smob_data(smob)
+		return PyObj_FromPtr(pypointer)
+	get = staticmethod(get)
+
+PythonSMOB.free = PythonSMOB.free_cfunc(PythonSMOB.free)
+PythonSMOB.str  = PythonSMOB.str_cfunc(PythonSMOB.str)
+
+# Display functions
+guile.scm_display.argtypes = [SCM, SCM]
+guile.scm_display.restype  = None
+guile.scm_newline.argtypes = [SCM]
+guile.scm_display.restype  = None
+
+# SMOB functions
+guile.scm_make_smob_type.argtypes = [c_char_p, c_int]
+guile.scm_make_smob_type.restype  = SCMtbits
+guile.scm_set_smob_free.argtypes  = [SCMtbits, PythonSMOB.free_cfunc]
+guile.scm_set_smob_free.restype   = None
+guile.scm_set_smob_print.argtypes = [SCMtbits, PythonSMOB.str_cfunc]
+guile.scm_set_smob_print.restype  = None
+guile.scm_return_newsmob.argtypes = [SCMtbits, c_void_p]
+guile.scm_return_newsmob.restype  = SCMc
+guile.scm_smob_predicate.argtypes = [SCMtbits, SCM]
+guile.scm_smob_predicate.restype  = bool
+
+# is Functions
 guile.scm_c_symbol_exists.argstype = [c_char_p]
 guile.scm_c_symbol_exists.restype  = bool
 
-# is Functions
+guile.scm_unbndp.argstype      = [SCM]
+guile.scm_unbndp.restype       = bool
+
 guile.scm_is_bool.argstype     = [SCM]
 guile.scm_is_bool.restype      = bool
 guile.scm_is_number.argstype   = [SCM]
@@ -181,45 +331,45 @@ guile.scm_to_double.argstype   = [SCM]
 guile.scm_to_double.restype    = float
 
 guile.scm_to_locale_string.argstype = [SCM]
-guile.scm_to_locale_string.restype = c_char_p
+guile.scm_to_locale_string.restype  = c_char_p
 
 guile.scm_symbol_to_string.argstype = [SCM]
-guile.scm_symbol_to_string.restype  = SCM
+guile.scm_symbol_to_string.restype  = SCMc
 
 # Evaluation functions
 guile.scm_c_eval_string.argtypes = [c_char_p]
-guile.scm_c_eval_string.restype  = SCM
-guile.scm_c_lookup.restype = SCM
+guile.scm_c_eval_string.restype  = SCMc
+guile.scm_c_lookup.restype = SCMc
 
 guile.scm_c_define_gsubr.argtypes = [c_char_p, c_int, c_int, c_int, c_void_p]
-guile.scm_c_define_gsubr.restype  = SCM
+guile.scm_c_define_gsubr.restype  = SCMc
 
-guile.scm_bool_t.restype = SCM
+guile.scm_bool_t.restype = SCMc
 
 guile.scm_list_p.argtypes = [SCM]
-guile.scm_list_p.restype  = SCM
+guile.scm_list_p.restype  = SCMc
 
 guile.scm_is_true.argtypes = [SCM]
-guile.scm_is_true.restype = int
+guile.scm_is_true.restype  = int
 
 
 guile.scm_c_lookup.argtypes = [c_char_p]
-guile.scm_c_lookup.restype  = SCM
+guile.scm_c_lookup.restype  = SCMc
 guile.scm_variable_ref.argtypes = [SCM]
-guile.scm_variable_ref.restype  = SCM
+guile.scm_variable_ref.restype  = SCMc
 
 # Quick call functions
 guile.scm_call_0.argtypes = [SCM]
-guile.scm_call_0.restype  = SCM
+guile.scm_call_0.restype  = SCMc
 guile.scm_call_1.argtypes = [SCM, SCM]
-guile.scm_call_1.restype  = SCM
+guile.scm_call_1.restype  = SCMc
 guile.scm_call_2.argtypes = [SCM, SCM, SCM]
-guile.scm_call_2.restype  = SCM
+guile.scm_call_2.restype  = SCMc
 
 guile.scm_open_output_string.argtypes = []
-guile.scm_open_output_string.restype  = SCM
+guile.scm_open_output_string.restype  = SCMc
 guile.scm_get_output_string.argtypes = [SCM]
-guile.scm_get_output_string.restype  = SCM
+guile.scm_get_output_string.restype  = SCMc
 
 # List functions
 guile.scm_is_list.argtypes  = [SCM]
@@ -230,23 +380,23 @@ guile.scm_is_null.argtypes  = [SCM]
 guile.scm_is_null.restype   = bool
 
 guile.scm_eol.argtypes  = []
-guile.scm_eol.restype   = SCM
+guile.scm_eol.restype   = SCMc
 guile.scm_cons.argtypes = [SCM, SCM]
-guile.scm_cons.restype  = SCM
+guile.scm_cons.restype  = SCMc
 guile.scm_car.argtypes  = [SCM]
-guile.scm_car.restype   = SCM
+guile.scm_car.restype   = SCMc
 guile.scm_cdr.argtypes  = [SCM]
-guile.scm_cdr.restype   = SCM
+guile.scm_cdr.restype   = SCMc
 
 # Conversion functions
 guile.scm_from_bool.argtypes   = [c_int]
-guile.scm_from_bool.restype    = SCM
+guile.scm_from_bool.restype    = SCMc
 guile.scm_from_int32.argtypes  = [c_int]
-guile.scm_from_int32.restype   = SCM
+guile.scm_from_int32.restype   = SCMc
 guile.scm_from_double.argtypes = [c_double]
-guile.scm_from_double.restype  = SCM
+guile.scm_from_double.restype  = SCMc
 guile.scm_from_locale_stringn.argtypes = [c_char_p, c_int]
-guile.scm_from_locale_stringn.restype  = SCM
+guile.scm_from_locale_stringn.restype  = SCMc
 
 # Conversion from python types to the "SCM" type
 def toscm(a):
@@ -270,8 +420,6 @@ def dict2scm(d):
 		scm = guile.scm_cons(guile.scm_cons(toscm(key), toscm(value)), scm)
 	return scm
 
-
-
 scmmapping = {
 	bool: 	guile.scm_from_bool,
 	int: 	guile.scm_from_int32,
@@ -280,7 +428,8 @@ scmmapping = {
 	long: 	None,
 	dict: 	dict2scm,
 	list: 	list2scm,
-	str: 	string2scm, }
+	str: 	string2scm, 
+}
 
 import inspect
 class wrapper(object):
@@ -306,6 +455,9 @@ class wrapper(object):
 
 		if not trash is None:
 			raise TypeError("Don't know how to deal with this type of function yet..")
+
+		arguments = len(self.args)+(self.varargs)
+		self.cfunctype = CFUNCTYPE(SCM, *([c_void_p]*arguments))(self)
 	
 	def varargs_get(self):
 		return self.__varargs
@@ -318,7 +470,7 @@ class wrapper(object):
 	unamed = property(unamed)
 
 	def __call__(self, *args):
-		args = list(args)
+		args = [SCM(x) for x in args]
 
 		# Get out the required arguments
 		req = args[:self.unamed]
@@ -353,9 +505,6 @@ class wrapper(object):
 			raise TypeError("Return type was not a SCM!")
 		return r
 
-	def cfunctype(self):
-		arguments = len(self.args)+(self.varargs)
-		return CFUNCTYPE(SCM, *([SCM]*arguments))(self)
 
 # Stuff for Exception catching
 #
@@ -385,13 +534,14 @@ exception_handler_t = CFUNCTYPE(SCM, c_void_p, SCM, SCM)
 exception_handler   = exception_handler_t(exception_handler)
 
 guile.scm_internal_catch.argtypes = [SCM, exception_body_t, c_char_p, exception_handler_t, c_void_p]
-guile.scm_internal_catch.restype  = SCM
+guile.scm_internal_catch.restype  = SCMc
 
 class Inter(object):
-	__slots__ = ['module']
+	__slots__ = ['module', 'pythonfuncs']
 
 	def __init__(self, modules=[]):
 		self.module = guile.scm_c_eval_string('(make-scope)')
+		self.pythonfuncs = {}
 
 	def eval(self, s):
 		"""
@@ -414,9 +564,11 @@ class Inter(object):
 			raise TypeError('The thing you register must be callable')
 
 		w = wrapper(func)
+		# Store a copy of the function so it doesn't get garbage collected
+		self.pythonfuncs[name] = w
 
 		guile.scm_set_current_module(self.module)
-		guile.scm_c_define_gsubr(name, w.unamed, len(w.defaults), w.varargs, w.cfunctype())
+		guile.scm_c_define_gsubr(name, w.unamed, len(w.defaults), w.varargs, w.cfunctype)
 
 	def __getattr__(self, key):
 		guile.scm_set_current_module(self.module)
@@ -458,19 +610,81 @@ def testfunc8(a, v='test', *args, **kw):
 	print
 
 if __name__ == '__main__':
+
 	# Initlise guile
 	guile.scm_init_guile()
 
 	# Create a "scope" for this class
 	guile.scm_c_primitive_load ("profiles/scope.scm")
+
 	# Load the pretty-print module..
 	guile.scm_c_eval_string("(use-modules (ice-9 pretty-print))")
-
 	prettyprint_symbol = guile.scm_c_lookup("pretty-print")
 	prettyprint        = guile.scm_variable_ref(prettyprint_symbol)
 
+	# Register the python SMOB
+	PythonSMOB.register()
+
+	m1 = Inter()
+
+	# Create a PythonSMOB
+	import gc # We need to check that everything still works...
+
+	class A(object):
+		def __del__(self):
+			print "DEL!!", self
+
+	a = A()
+	print 0, id(a), 'refs', sys.getrefcount(a)
+	scm = PythonSMOB.new(a)
+	print 1, scm,   'refs', sys.getrefcount(a)
+	print 2, scm.type()
+	b = scm.topython()
+
+	print 3, b
+	print 4, a is b
+
+	print 5, 'refs', sys.getrefcount(a)
+	del b
+	gc.collect()
+
+	print 6, 'refs', sys.getrefcount(a)
+	del a
+	gc.collect()
+
+	print 7
+	print scm
+
+	b = scm.topython()
+
+	print 8
+	del scm
+	guile.scm_gc()
+	guile.scm_gc()
+
+	print 9, 'refs', sys.getrefcount(b)
+	gc.collect()
+
+	del b
+
+	# Check the guile GC isn't getting my objects...
+	print "---------------------"
+	a = A()
+	scm = PythonSMOB.new(a)
+	print scm
+	guile.scm_gc()
+	guile.scm_gc()
+	guile.scm_gc()
+	guile.scm_gc()
+	guile.scm_gc()
+	guile.scm_gc()
+	print scm
+	del scm
+
+	print "---------------------"
+
 	# Conversion to Scheme objects..
-	print "Converting Python objects into Scheme objects...."
+	print "\nConverting Python objects into Scheme objects...."
 	print True, toscm(True)
 	print False, toscm(False)
 	print 1, toscm(1)
@@ -542,4 +756,5 @@ if __name__ == '__main__':
 	m1.register('test4', testfunc4)
 	m1.eval('(test4 test1)')
 	m1.eval('(test4 test1 test2)')
+
 
