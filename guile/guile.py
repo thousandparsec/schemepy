@@ -1,8 +1,5 @@
-# TODO: Add a "python" SMOB which lets a python object parse through the scheme environment
-# TODO: List and Dictionary conversion
 # TODO: Rational/Bignum and complex
 # TODO: Add the autoconversion
-# TODO: Add deep autoconversion
 
 import gc
 gc.set_debug(gc.DEBUG_LEAK)
@@ -79,8 +76,6 @@ class SCM(c_void_p):
 	SCM is the base type used by Guile, for our purposes we don't care what
 	it actually is so we are going to use a void pointer.
 	"""
-	
-
 #	__cache = weakref.WeakValueDictionary()
 #
 #	def __new__(cls, address):
