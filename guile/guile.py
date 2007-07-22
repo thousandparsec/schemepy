@@ -230,7 +230,7 @@ class PythonSMOB(c_void_p):
 		# Increase the reference count to the object	
 		Py_INCREF(pyobj)
 
-		# Create the new smbo
+		# Create the new smob
 		return guile.scm_return_newsmob(PythonSMOB.tag, pypointer)
 	new = staticmethod(new)
 
@@ -511,11 +511,9 @@ class wrapper(object):
 			raise TypeError("Return type was not a SCM!")
 		return r
 
-
 # Stuff for Exception catching
 #
 # These to functions are needed to 
-#
 def exception_body(code):
 	s = guile.scm_c_eval_string(code)
 	return s.value
