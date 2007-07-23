@@ -135,8 +135,8 @@ class SCM(c_void_p):
 				if guile.scm_is_exact(self):
 					return int
 				return float
-#			if guile.scm_is_complex(self):
-#				return complex
+			if guile.scm_is_complex(self):
+				return complex
 		if guile.scm_is_string(self):
 			return str
 		if guile.scm_is_pair(self):
@@ -160,6 +160,8 @@ class SCM(c_void_p):
 				if guile.scm_is_exact(self):
 					return guile.scm_to_int32(self)
 				return guile.scm_to_double(self)
+			if guile.scm_is_complex(self):
+				return complex(guile.scm_c_real_part(self), guile.scm_c_imag_part(self))
 		if guile.scm_is_string(self):
 			# FIXME: This is probably leaking memory
 			return guile.scm_to_locale_string(self)
@@ -314,8 +316,8 @@ guile.scm_is_integer.argstype  = [SCM]
 guile.scm_is_integer.restype   = bool
 guile.scm_is_rational.argstype = [SCM]
 guile.scm_is_rational.restype  = bool
-#guile.scm_is_complex.argstype  = [SCM]
-#guile.scm_is_complex.restype   = bool
+guile.scm_is_complex.argstype  = [SCM]
+guile.scm_is_complex.restype   = bool
 guile.scm_is_string.argstype   = [SCM]
 guile.scm_is_string.restype    = bool
 guile.scm_is_pair.argstype     = [SCM]
@@ -338,6 +340,11 @@ guile.scm_to_locale_string.restype  = c_char_p
 
 guile.scm_symbol_to_string.argstype = [SCM]
 guile.scm_symbol_to_string.restype  = SCMc
+
+guile.scm_c_real_part.argstype = [SCM]
+guile.scm_c_real_part.restype  = c_double
+guile.scm_c_imag_part.argstype = [SCM]
+guile.scm_c_imag_part.restype  = c_double
 
 # List functions
 guile.scm_is_list.argtypes  = [SCM]
@@ -371,6 +378,8 @@ guile.scm_from_locale_keywordn.argtypes = [c_char_p, c_int]
 guile.scm_from_locale_keywordn.restype  = SCMc
 guile.scm_keyword_to_symbol.argtypes = [SCM]
 guile.scm_keyword_to_symbol.restype = SCMc
+guile.scm_make_complex.argtypes = [c_double, c_double]
+guile.scm_make_complex.restype  = SCMc
 
 # Evaluation functions
 guile.scm_c_eval_string.argtypes = [c_char_p]
@@ -424,11 +433,14 @@ def dict2scm(d):
 		scm = guile.scm_cons(guile.scm_cons(toscm(key), toscm(value)), scm)
 	return scm
 
+def complex2scm(c):
+	return guile.scm_make_complex(c.real, c.imag)
+
 scmmapping = {
 	bool: 	guile.scm_from_bool,
 	int: 	guile.scm_from_int32, 	# FIXME: This won't probably work on 64bit machine...
 	float: 	guile.scm_from_double,
-#	ComplexType: 	guile.
+	complex:complex2scm,
 	long: 	None,
 	dict: 	dict2scm,
 	list: 	list2scm,
@@ -665,6 +677,7 @@ if __name__ == '__main__':
 	print 'Test', toscm('Test')
 	print [10,5, 10], toscm([10, 5, 10])
 	print {1:'test', 2:'hello'}, toscm({1:'test', 2:'hello'})
+	print complex(10.0, 1.2), toscm(complex(10.0, 1.2))
 	print
 
 	# Test scopes
@@ -704,6 +717,11 @@ if __name__ == '__main__':
 	print a.topython()
 
 	a = m1.eval("1.0")
+	print a
+	print a.type()
+	print a.topython()
+
+	a = m1.eval("3.2+4.0i")
 	print a
 	print a.type()
 	print a.topython()
