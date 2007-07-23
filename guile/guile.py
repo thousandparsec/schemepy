@@ -45,6 +45,7 @@ guile.scm_smob_predicate = _guilehelper.scm_smob_predicate
 
 guile.scm_is_list  = _guilehelper.scm_is_list
 guile.scm_is_alist = _guilehelper.scm_is_alist
+guile.scm_is_exact = _guilehelper.scm_is_exact
 
 # These are guile 1.8 functions
 if hasattr(_guilehelper, 'scm_from_bool'):
@@ -130,10 +131,10 @@ class SCM(c_void_p):
 		if guile.scm_is_bool(self):
 			return bool
 		if guile.scm_is_number(self):
-			if guile.scm_is_integer(self):
-				return int
-#			if guile.scm_is_rational(self):
-#				return float
+			if guile.scm_is_rational(self):
+				if guile.scm_is_exact(self):
+					return int
+				return float
 #			if guile.scm_is_complex(self):
 #				return complex
 		if guile.scm_is_string(self):
@@ -155,10 +156,10 @@ class SCM(c_void_p):
 		if guile.scm_is_bool(self):
 			return guile.scm_to_bool(self)
 		if guile.scm_is_number(self):
-			if guile.scm_is_integer(self):
-				return guile.scm_to_int32(self)
-#			if guile.scm_is_rational(self):
-#				return guile.scm_to_double(self)
+			if guile.scm_is_rational(self):
+				if guile.scm_is_exact(self):
+					return guile.scm_to_int32(self)
+				return guile.scm_to_double(self)
 		if guile.scm_is_string(self):
 			# FIXME: This is probably leaking memory
 			return guile.scm_to_locale_string(self)
@@ -311,8 +312,8 @@ guile.scm_is_number.argstype   = [SCM]
 guile.scm_is_number.restype    = bool
 guile.scm_is_integer.argstype  = [SCM]
 guile.scm_is_integer.restype   = bool
-#guile.scm_is_rational.argstype = [SCM]
-#guile.scm_is_rational.restype  = bool
+guile.scm_is_rational.argstype = [SCM]
+guile.scm_is_rational.restype  = bool
 #guile.scm_is_complex.argstype  = [SCM]
 #guile.scm_is_complex.restype   = bool
 guile.scm_is_string.argstype   = [SCM]
@@ -321,6 +322,8 @@ guile.scm_is_pair.argstype     = [SCM]
 guile.scm_is_pair.restype      = bool
 guile.scm_is_symbol.argstype   = [SCM]
 guile.scm_is_symbol.restype    = bool
+guile.scm_is_signed_integer.argstype = [SCM, c_int, c_int]
+guile.scm_is_signed_integer.restype  = bool
 
 # to Functions
 guile.scm_to_bool.argstype     = [SCM]
@@ -328,7 +331,7 @@ guile.scm_to_bool.restype      = bool
 guile.scm_to_int32.argstype    = [SCM]
 guile.scm_to_int32.restype     = int
 guile.scm_to_double.argstype   = [SCM]
-guile.scm_to_double.restype    = float
+guile.scm_to_double.restype    = c_double
 
 guile.scm_to_locale_string.argstype = [SCM]
 guile.scm_to_locale_string.restype  = c_char_p
@@ -423,7 +426,7 @@ def dict2scm(d):
 
 scmmapping = {
 	bool: 	guile.scm_from_bool,
-	int: 	guile.scm_from_int32,
+	int: 	guile.scm_from_int32, 	# FIXME: This won't probably work on 64bit machine...
 	float: 	guile.scm_from_double,
 #	ComplexType: 	guile.
 	long: 	None,
@@ -658,6 +661,7 @@ if __name__ == '__main__':
 	print False, toscm(False)
 	print 1, toscm(1)
 	print 2, toscm(2)
+	print 1.0, toscm(1.0)
 	print 'Test', toscm('Test')
 	print [10,5, 10], toscm([10, 5, 10])
 	print {1:'test', 2:'hello'}, toscm({1:'test', 2:'hello'})
@@ -688,6 +692,24 @@ if __name__ == '__main__':
 
 
 	# Conversion from Scheme objects..
+	# Numbers
+	a = m1.eval("1")
+	print a
+	print a.type()
+	print a.topython()
+
+	a = m1.eval("2")
+	print a
+	print a.type()
+	print a.topython()
+
+	a = m1.eval("1.0")
+	print a
+	print a.type()
+	print a.topython()
+
+	# String
+
 	# List
 	a = m1.eval("""'(1 2 3 4 5)""")
 	print a

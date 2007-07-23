@@ -63,6 +63,10 @@ int scm_is_alist(SCM x) {
 	return 1;
 }
 
+int scm_is_exact(SCM x) {
+	return scm_exact_p(x) == SCM_BOOL_T;
+}
+
 /*
 Recursive version from j85wilson
 
