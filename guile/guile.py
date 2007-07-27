@@ -54,6 +54,9 @@ if hasattr(_guilehelper, 'scm_from_bool'):
 	guile.scm_is_number  = _guilehelper.scm_is_number
 	guile.scm_is_integer = _guilehelper.scm_is_integer
 	guile.scm_is_pair    = _guilehelper.scm_is_pair
+	guile.scm_is_symbol  = _guilehelper.scm_is_symbol
+	guile.scm_is_null    = _guilehelper.scm_is_null
+	guile.scm_is_true    = _guilehelper.scm_is_true
 
 	guile.scm_from_signed_integer = guile.scm_int2num
 else:

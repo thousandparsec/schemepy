@@ -1,7 +1,8 @@
 
 #include <libguile.h>
 
-#if SCM_MINOR_VERSION < 7
+#if SCM_MAJOR_VERSION == 1 && SCM_MINOR_VERSION == 6
+
 /* Good source of help http://www.koders.com/cpp/fid8730873A7BB794602B8181A514C194DFD919CB41.aspx */
 SCM scm_from_bool(x) {
 	return (x ? SCM_BOOL_T : SCM_BOOL_F);
@@ -21,6 +22,18 @@ int scm_is_integer(SCM x) {
 
 int scm_is_pair(SCM x) {
 	return SCM_CONSP (x);
+}
+
+int scm_is_null(SCM x) {
+	return SCM_NULLP (x);
+}
+
+int scm_is_true(SCM x) {
+	return SCM_NFALSEP (x);
+}
+
+int scm_is_symbol(SCM x) {
+	return SCM_SYMBOLP (x);
 }
 
 #else
