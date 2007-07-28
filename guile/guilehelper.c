@@ -3,9 +3,16 @@
 
 #if SCM_MAJOR_VERSION == 1 && SCM_MINOR_VERSION == 6
 
+#include <guile/gh.h>
+#include <string.h>
+
 /* Good source of help http://www.koders.com/cpp/fid8730873A7BB794602B8181A514C194DFD919CB41.aspx */
-SCM scm_from_bool(x) {
+SCM scm_from_bool(int x) {
 	return (x ? SCM_BOOL_T : SCM_BOOL_F);
+}
+
+int scm_to_bool(SCM x) {
+	return SCM_NFALSEP(x);
 }
 
 int scm_is_bool(SCM x) { 
@@ -18,6 +25,16 @@ int scm_is_number(SCM x) {
 
 int scm_is_integer(SCM x) {
 	return SCM_INUMP (x);
+}
+
+/* FIXME: Is this right? */
+int scm_is_rational(SCM x) {
+	return scm_real_p(x) == SCM_BOOL_T;
+}
+
+/* FIXME: Is this right? */
+int scm_is_complex(SCM x) {
+	return scm_number_p(x) == SCM_BOOL_T;
 }
 
 int scm_is_pair(SCM x) {
@@ -34,6 +51,70 @@ int scm_is_true(SCM x) {
 
 int scm_is_symbol(SCM x) {
 	return SCM_SYMBOLP (x);
+}
+
+int scm_is_string(SCM x) {
+	return SCM_ROSTRINGP(x);
+}
+
+int scm_to_int32(SCM x) {
+	return gh_scm2long(x);
+}
+
+SCM scm_from_int32 (int n) {
+	return scm_int2num (n);
+}
+
+double scm_to_double(SCM x) {
+	return gh_scm2double(x);
+}
+
+SCM scm_from_double(double x) {
+	return gh_double2scm(x);
+}
+
+/* same as in Guile 1.8 */
+char* scm_to_locale_stringn (SCM str, size_t* lenp) {
+	return gh_scm2newstr(str, lenp);
+}
+
+char* scm_to_locale_string (SCM obj) {
+	return scm_to_locale_stringn(obj, NULL);
+}
+
+SCM scm_from_locale_string(char* s) {
+	return scm_makfrom0str(s);
+}
+
+SCM scm_from_locale_stringn(char* s, int len) {
+	return scm_mem2string(s,len);
+}
+
+
+
+/*
+SCM scm_take_locale_string(char* s) {
+	return scm_take0str(s);
+}
+
+SCM scm_take_locale_stringn(char* s, int len) {
+	sgtk_take_locale_stringn(s,len);
+} */
+
+double scm_c_real_part(SCM x) {
+	return scm_to_double(scm_real_part(x));
+}
+
+double scm_c_imag_part(SCM x) {
+	return scm_to_double(scm_imag_part(x));
+}
+
+SCM scm_car(SCM x) {
+	return SCM_CAR(x);
+}
+
+SCM scm_cdr(SCM x) {
+	return SCM_CDR(x);
 }
 
 #else
@@ -56,6 +137,10 @@ int _scm_is_null(SCM x) {
 }
 
 #endif
+
+int scm_imp(SCM x) {
+	return SCM_IMP(x);
+}
 
 int scm_is_list(SCM x) {
 	return scm_list_p(x) == SCM_BOOL_T;

@@ -43,6 +43,7 @@ guile.scm_set_smob_data  = _guilehelper.scm_set_smob_data
 guile.scm_return_newsmob = _guilehelper.scm_return_newsmob
 guile.scm_smob_predicate = _guilehelper.scm_smob_predicate
 
+guile.scm_imp      = _guilehelper.scm_imp
 guile.scm_is_list  = _guilehelper.scm_is_list
 guile.scm_is_alist = _guilehelper.scm_is_alist
 guile.scm_is_exact = _guilehelper.scm_is_exact
@@ -50,15 +51,36 @@ guile.scm_is_exact = _guilehelper.scm_is_exact
 # These are guile 1.8 functions
 if hasattr(_guilehelper, 'scm_from_bool'):
 	guile.scm_from_bool  = _guilehelper.scm_from_bool
+	guile.scm_to_bool    = _guilehelper.scm_to_bool
+
 	guile.scm_is_bool    = _guilehelper.scm_is_bool
 	guile.scm_is_number  = _guilehelper.scm_is_number
 	guile.scm_is_integer = _guilehelper.scm_is_integer
+	guile.scm_is_rational= _guilehelper.scm_is_rational
+	guile.scm_is_complex = _guilehelper.scm_is_complex 
 	guile.scm_is_pair    = _guilehelper.scm_is_pair
 	guile.scm_is_symbol  = _guilehelper.scm_is_symbol
 	guile.scm_is_null    = _guilehelper.scm_is_null
+	guile.scm_is_string  = _guilehelper.scm_is_string
 	guile.scm_is_true    = _guilehelper.scm_is_true
 
+	guile.scm_to_int32    = _guilehelper.scm_to_int32
+	guile.scm_from_int32  = _guilehelper.scm_from_int32
+	guile.scm_to_double   = _guilehelper.scm_to_double
+	guile.scm_from_double = _guilehelper.scm_from_double
+
+	guile.scm_to_locale_string    = _guilehelper.scm_to_locale_string
+	guile.scm_from_locale_stringn = _guilehelper.scm_from_locale_stringn
+
+	guile.scm_c_real_part = _guilehelper.scm_c_real_part
+	guile.scm_c_imag_part = _guilehelper.scm_c_imag_part
+
+	guile.scm_car = _guilehelper.scm_car
+	guile.scm_cdr = _guilehelper.scm_cdr
+
 	guile.scm_from_signed_integer = guile.scm_int2num
+	guile.scm_from_locale_keyword = guile.scm_c_make_keyword
+
 else:
 	guile.scm_from_bool  = _guilehelper._scm_from_bool
 #	guile.scm_is_bool    = _guilehelper._scm_is_bool
@@ -98,18 +120,21 @@ class SCM(c_void_p):
 
 	def value_set(self, v):
 		oldv = getattr(self, 'value', None)
-		if not oldv is None:
-			#print hex(id(oldv)), "Unprotecting"
+		if not oldv is None and not guile.scm_imp(oldv):
+			#print hex(oldv), "Unprotecting", hex(id(self))
 			if getattr(self, 'protected', False):
 				guile.scm_gc_unprotect_object(oldv)
 			else:
 				print "WTF! tried to unprotect an object!"
 			self.protected = False
 
-		if not v is None:
-			#print hex(id(v)), "Protecting"
+		if not v is None and not guile.scm_imp(v):
+			#print hex(v), "Protecting", hex(id(self))
 			guile.scm_gc_protect_object(v)
 			self.protected = True
+
+#		if guile.scm_imp(v):
+#			print hex(v), " is actually an IMP!"
 
 		return c_void_p.value.__set__(self, v)
 	def value_get(self):
@@ -300,6 +325,9 @@ guile.scm_smob_predicate.argtypes = [SCMtbits, SCM]
 guile.scm_smob_predicate.restype  = bool
 
 # is Functions
+guile.scm_imp.argtypes  = [SCM]
+guile.scm_imp.restype   = bool
+
 guile.scm_c_symbol_exists.argstype = [c_char_p]
 guile.scm_c_symbol_exists.restype  = bool
 
@@ -327,8 +355,6 @@ guile.scm_is_pair.argstype     = [SCM]
 guile.scm_is_pair.restype      = bool
 guile.scm_is_symbol.argstype   = [SCM]
 guile.scm_is_symbol.restype    = bool
-guile.scm_is_signed_integer.argstype = [SCM, c_int, c_int]
-guile.scm_is_signed_integer.restype  = bool
 
 # to Functions
 guile.scm_to_bool.argstype     = [SCM]
@@ -377,10 +403,10 @@ guile.scm_from_locale_stringn.argtypes  = [c_char_p, c_int]
 guile.scm_from_locale_stringn.restype   = SCMc
 guile.scm_from_locale_keyword.argtypes = [c_char_p]
 guile.scm_from_locale_keyword.restype  = SCMc
-guile.scm_from_locale_keywordn.argtypes = [c_char_p, c_int]
-guile.scm_from_locale_keywordn.restype  = SCMc
-guile.scm_keyword_to_symbol.argtypes = [SCM]
-guile.scm_keyword_to_symbol.restype = SCMc
+#guile.scm_from_locale_keywordn.argtypes = [c_char_p, c_int]
+#guile.scm_from_locale_keywordn.restype  = SCMc
+#guile.scm_keyword_to_symbol.argtypes = [SCM]
+#guile.scm_keyword_to_symbol.restype = SCMc
 guile.scm_make_complex.argtypes = [c_double, c_double]
 guile.scm_make_complex.restype  = SCMc
 
@@ -708,6 +734,17 @@ if __name__ == '__main__':
 
 
 	# Conversion from Scheme objects..
+	# Bool
+	a = m1.eval("#t")
+	print a
+	print a.type()
+	print a.topython()
+
+	a = m1.eval("#f")
+	print a
+	print a.type()
+	print a.topython()
+
 	# Numbers
 	a = m1.eval("1")
 	print a
