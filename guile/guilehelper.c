@@ -1,6 +1,15 @@
 
 #include <libguile.h>
 
+
+int guile_major_version() {
+	return SCM_MAJOR_VERSION;
+}
+
+int guile_minor_version() {
+	return SCM_MINOR_VERSION;
+}
+
 #if SCM_MAJOR_VERSION == 1 && SCM_MINOR_VERSION == 6
 
 #include <guile/gh.h>
@@ -89,8 +98,6 @@ SCM scm_from_locale_string(char* s) {
 SCM scm_from_locale_stringn(char* s, int len) {
 	return scm_mem2string(s,len);
 }
-
-
 
 /*
 SCM scm_take_locale_string(char* s) {

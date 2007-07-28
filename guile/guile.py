@@ -12,6 +12,16 @@ from ctypes import *
 # Try and find a libc library and libguile
 import sys
 import os.path
+
+# Load the helper library which exports the macro's as C functions
+path = os.path.abspath(os.path.join(os.path.split(__file__)[0], "_guilehelper.so"))
+_guilehelper = cdll.LoadLibrary(path)
+
+ver_helper = (_guilehelper.guile_major_version(), _guilehelper.guile_minor_version())
+ver_lib    = {(1, 6): '12', (1, 8): '17'}[ver_helper]
+
+print ver_lib
+
 if sys.platform == 'win32':
 	# Find a libc like library
 	libc = cdll.msvcrt
@@ -25,11 +35,14 @@ else:
 if lib is None:
 	raise RuntimeError("Was not able to find a guile library which I can use.")
 
+if not lib.endswith(ver_lib):
+	raise RuntimeError("The found library %s does not match the library the helper was compiled with." % lib)
+
+print lib
+
 guile = cdll.LoadLibrary(lib)
 
-# Load the helper library which exports the macro's as C functions
-path = os.path.abspath(os.path.join(os.path.split(__file__)[0], "_guilehelper.so"))
-_guilehelper = cdll.LoadLibrary(path)
+print "-------------------"
 
 # Macros
 guile.scm_unbndp = _guilehelper.scm_unbndp
