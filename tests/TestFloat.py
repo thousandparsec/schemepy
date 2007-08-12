@@ -39,7 +39,7 @@ class TestFloat(object):
 	
 		assert scm.type() == float
 		# float('NaN') != float('NaN')
-		assert str(scm.topython()) == 'nan'
+		assert str(scm.topython()) == str(float('NaN'))
 
 	def test_floats(self):
 		floats = {
