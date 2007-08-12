@@ -12,9 +12,9 @@ class TestString(object):
 		print "eval", repr(value)
 
 		m1 = Inter()
-		a = m1.eval(repr(value)[1:-1])
+		a = m1.eval('"%s"' % value)
 
-		assert isinstance(value, a.type())
+		assert a.type() in (str, unicode)
 		assert a.topython() == value
 
 	def passthru_test(self, value):
@@ -23,7 +23,7 @@ class TestString(object):
 		m1 = Inter()
 		scm = m1.to_scheme(value)
 	
-		assert scm.type() == str
+		assert scm.type() in (str, unicode)
 		assert scm.topython() == value
 
 	def test_string(self):

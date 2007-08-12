@@ -19,7 +19,7 @@ class TestList(object):
 		assert a.type() == list
 		assert a.topython() == value
 
-	def passthru_test(self, value):
+	def passthru_test(self, s, value):
 		print "passthru", repr(value)
 
 		m1 = Inter()
