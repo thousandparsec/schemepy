@@ -33,11 +33,10 @@ class TestComplex(object):
 
 	def test_complexs(self):
 		complexs = {
+			# Complex with zero imaginary are auto converted to floats
 			'3.2+4i' : complex(3.2, 4),
 			'3+4i'   : complex(3, 4),
-			# FIXME: A zero for imaginary is kind of undefined...
-			'0+0i'   : complex(0, 0),
-			'1.0+0i' : complex(1.0, 0),
+			'0+1.0i' : complex(0, 1.0),
 		}
 		for s, value in complexs.items():
 			yield self.eval_test, s, value
