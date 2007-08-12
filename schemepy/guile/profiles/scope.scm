@@ -1,8 +1,6 @@
 (use-modules (ice-9 safe-r5rs))
 (define (make-scope)
   (let ((m (make-module)))
-    (module-define! m 'f1 (lambda (x)   "This function did something."))
-    (module-define! m 'f2 (lambda (x y) "This function did something else."))
     (module-define! m 'display display)
     (module-define! m 'newline newline)
     (module-use! m (null-environment 5))

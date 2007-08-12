@@ -84,10 +84,12 @@ SCM scm_from_double(double x) {
 
 /* same as in Guile 1.8 */
 char* scm_to_locale_stringn (SCM str, size_t* lenp) {
+	if SCM_UNBNDP(str) return NULL;
 	return gh_scm2newstr(str, lenp);
 }
 
 char* scm_to_locale_string (SCM obj) {
+	if SCM_UNBNDP(obj) return NULL;
 	return scm_to_locale_stringn(obj, NULL);
 }
 
@@ -188,6 +190,10 @@ int scm_is_alist(SCM x) {
 	else return (scm_is_pair(x) && scm_is_pair(SCM_CAR(x)) && scm_is_alist(SCM_CDR(x)));
 }
 */
+
+int scm_is_eol(SCM x) {
+	return x == SCM_EOL;
+}
 
 SCM scm_eol() {
 	return SCM_EOL;
