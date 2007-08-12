@@ -8,7 +8,9 @@ Inter = guile.Inter
 import py.test
 
 class TestString(object):
-	def string_test(self, value):
+	def eval_test(self, value):
+		print "eval", repr(value)
+
 		m1 = Inter()
 		a = m1.eval(repr(value)[1:-1])
 
@@ -16,6 +18,8 @@ class TestString(object):
 		assert a.topython() == value
 
 	def passthru_test(self, value):
+		print "passthru", repr(value)
+
 		m1 = Inter()
 		scm = m1.to_scheme(value)
 	

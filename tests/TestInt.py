@@ -16,6 +16,8 @@ class TestInt(object):
 		"""
 		Checks that the eval returns int for small integers.
 		"""
+		print "eval", str(value)
+
 		m1 = Inter()
 		a = m1.eval(str(value))
 
@@ -23,6 +25,8 @@ class TestInt(object):
 		assert a.topython() == value
 
 	def passthru_test(self, value):
+		print "passthru", repr(value)
+
 		m1 = Inter()
 		scm = m1.to_scheme(value)
 	
@@ -30,7 +34,7 @@ class TestInt(object):
 		assert scm.topython() == value
 
 	def test_ints(self):
-		ints = [1, 5, 1000, 2**31-1]
+		ints = [1, 5, 1000, int(2**31-1), int(-2**31)]
 		for value in ints:
 			yield self.eval_test, value
 			yield self.passthru_test, value

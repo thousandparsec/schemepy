@@ -9,6 +9,8 @@ import py.test
 
 class TestDict(object):
 	def eval_test(self, s, value):
+		print 'eval', s, value
+
 		m1 = Inter()
 		a = m1.eval(s)
 
@@ -16,6 +18,8 @@ class TestDict(object):
 		assert a.topython() == value
 
 	def passthru_test(self, s, value):
+		print "passthru", repr(value)
+
 		m1 = Inter()
 		scm = m1.to_scheme(value)
 	

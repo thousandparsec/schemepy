@@ -12,6 +12,8 @@ class TestLong(object):
 		"""
 		Checks that the eval returns long for large integers.
 		"""
+		print "eval", str(value)
+
 		m1 = Inter()
 		a = m1.eval(str(value))
 
@@ -19,6 +21,8 @@ class TestLong(object):
 		assert a.topython() == value
 
 	def passthru_test(self, value):
+		print "passthru", repr(value)
+
 		m1 = Inter()
 		scm = m1.to_scheme(value)
 	

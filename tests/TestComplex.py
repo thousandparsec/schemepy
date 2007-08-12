@@ -12,6 +12,8 @@ class TestComplex(object):
 		"""
 		Checks that the eval returns long for large integers.
 		"""
+		print 'eval', s, value
+
 		m1 = Inter()
 		a = m1.eval(s)
 
@@ -19,6 +21,8 @@ class TestComplex(object):
 		assert a.topython() == value
 
 	def passthru_test(self, s, value):
+		print 'passthru', value		
+
 		m1 = Inter()
 		scm = m1.to_scheme(value)
 
