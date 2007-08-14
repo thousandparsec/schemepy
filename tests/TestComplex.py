@@ -1,9 +1,6 @@
 
-import sys
-sys.path.append('..')
-
-from schemepy.guile import guile
-Inter = guile.Inter
+import common
+setup_module = common.setup_module
 
 import py.test
 
@@ -14,7 +11,7 @@ class TestComplex(object):
 		"""
 		print 'eval', s, value
 
-		m1 = Inter()
+		m1 = common.Inter()
 		a = m1.eval(s)
 
 		assert a.type() == complex
@@ -23,7 +20,7 @@ class TestComplex(object):
 	def passthru_test(self, s, value):
 		print 'passthru', value		
 
-		m1 = Inter()
+		m1 = common.Inter()
 		scm = m1.to_scheme(value)
 
 		# Check the type is correct

@@ -1,15 +1,8 @@
 
-import sys
-sys.path.append('..')
-
-from schemepy.guile import guile
-Inter = guile.Inter
+import common
+setup_module = common.setup_module
 
 import py.test
-
-def asset(a):
-	if not a:
-		raise SyntaxError('Error!')
 
 class TestInt(object):
 	def eval_test(self, value):
@@ -18,7 +11,7 @@ class TestInt(object):
 		"""
 		print "eval", str(value)
 
-		m1 = Inter()
+		m1 = common.Inter()
 		a = m1.eval(str(value))
 
 		assert a.type() == int
@@ -27,7 +20,7 @@ class TestInt(object):
 	def passthru_test(self, value):
 		print "passthru", repr(value)
 
-		m1 = Inter()
+		m1 = common.Inter()
 		scm = m1.to_scheme(value)
 	
 		assert scm.type() == int

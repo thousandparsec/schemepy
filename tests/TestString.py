@@ -1,9 +1,6 @@
 
-import sys
-sys.path.append('..')
-
-from schemepy.guile import guile
-Inter = guile.Inter
+import common
+setup_module = common.setup_module
 
 import py.test
 
@@ -11,7 +8,7 @@ class TestString(object):
 	def eval_test(self, value):
 		print "eval", repr(value)
 
-		m1 = Inter()
+		m1 = common.Inter()
 		a = m1.eval('"%s"' % value)
 
 		assert a.type() in (str, unicode)
@@ -20,7 +17,7 @@ class TestString(object):
 	def passthru_test(self, value):
 		print "passthru", repr(value)
 
-		m1 = Inter()
+		m1 = common.Inter()
 		scm = m1.to_scheme(value)
 	
 		assert scm.type() in (str, unicode)

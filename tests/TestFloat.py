@@ -1,9 +1,6 @@
 
-import sys
-sys.path.append('..')
-
-from schemepy.guile import guile
-Inter = guile.Inter
+import common
+setup_module = common.setup_module
 
 import py.test
 	
@@ -14,7 +11,7 @@ class TestFloat(object):
 		"""
 		print 'eval', s, value
 
-		m1 = Inter()
+		m1 = common.Inter()
 		a = m1.eval(s)
 
 		assert a.type() == float
@@ -23,7 +20,7 @@ class TestFloat(object):
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
 
-		m1 = Inter()
+		m1 = common.Inter()
 		scm = m1.to_scheme(value)
 	
 		assert scm.type() == float
@@ -34,7 +31,7 @@ class TestFloat(object):
 
 		value = float('NaN')
 
-		m1 = Inter()
+		m1 = common.Inter()
 		scm = m1.to_scheme(value)
 	
 		assert scm.type() == float

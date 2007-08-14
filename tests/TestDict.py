@@ -1,9 +1,6 @@
 
-import sys
-sys.path.append('..')
-
-from schemepy.guile import guile
-Inter = guile.Inter
+import common
+setup_module = common.setup_module
 
 import py.test
 
@@ -11,7 +8,7 @@ class TestDict(object):
 	def eval_test(self, s, value):
 		print 'eval', s, value
 
-		m1 = Inter()
+		m1 = common.Inter()
 		a = m1.eval(s)
 
 		assert a.type() == dict
@@ -20,7 +17,7 @@ class TestDict(object):
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
 
-		m1 = Inter()
+		m1 = common.Inter()
 		scm = m1.to_scheme(value)
 	
 		assert scm.type() == dict

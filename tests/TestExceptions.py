@@ -1,9 +1,6 @@
 
-import sys
-sys.path.append('..')
-
-from schemepy.guile import guile
-Inter = guile.Inter
+import common
+setup_module = common.setup_module
 
 import py.test
 
@@ -14,7 +11,7 @@ class TestExceptions(object):
 		Checks the interprator doesn't dies properly on crap...
 		"""
 
-		m1 = Inter()
+		m1 = common.Inter()
 		py.test.raises(Exception, m1.eval, 'asdasf')
 
 

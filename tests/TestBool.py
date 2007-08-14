@@ -1,32 +1,29 @@
 
-import sys
-sys.path.append('..')
-
-from schemepy.guile import guile
-Inter = guile.Inter
-
 import py.test
+
+import common
+setup_module = common.setup_module
 
 class TestBool(object):
 	def test_eval_true(self):
 		"""
 		Checks that the eval returns true '#t'.
 		"""
-		m1 = Inter()
+		m1 = common.Inter()
 		a = m1.eval('#t')
 
 		assert a.type() == bool
 		assert a.topython() is True
 
 	def test_eval_false(self):
-		m1 = Inter()
+		m1 = common.Inter()
 		a = m1.eval('#f')
 
 		assert a.type() == bool
 		assert a.topython() is False
 
 	def passthru_test(self, value):
-		m1 = Inter()
+		m1 = common.Inter()
 
 		scm = m1.to_scheme(value)
 
