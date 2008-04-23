@@ -5,6 +5,7 @@ dist
 MANIFEST
 build-stamp
 html
+!doc/html
 tp
 *.o
 *.so
