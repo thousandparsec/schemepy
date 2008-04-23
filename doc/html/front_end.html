@@ -133,7 +133,12 @@ objects (FIXME: really?):</p>
 
 vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, myadd)
 </pre></div>
-<p>Alternatively, you can add functions by calling <tt class="docutils literal"><span class="pre">install_function</span></tt>:</p>
+<p>If auto-convert is not enabled, you would have to call</p>
+<div class="highlight"><pre>vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, scheme<span style="color: #666666">.</span>toscheme(myadd))
+</pre></div>
+<p>Alternatively, you can add functions by calling <tt class="docutils literal"><span class="pre">install_function</span></tt>,
+which <strong>will</strong> do the convertion of the function object for you no
+matter you have globally auto-convert enabled or not:</p>
 <div class="highlight"><pre>vm<span style="color: #666666">.</span>install_function(<span style="color: #BA2121">&quot;myadd&quot;</span>, myadd)
 </pre></div>
 <p>The function parameters and return values can be converted to and from

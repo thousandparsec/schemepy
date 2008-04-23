@@ -116,8 +116,16 @@ objects (FIXME: really?):
     return scheme.toscheme(a+b)
 
   vm.define("myadd", myadd)
+
+If auto-convert is not enabled, you would have to call
+
+.. sourcecode:: python
   
-Alternatively, you can add functions by calling ``install_function``:
+  vm.define("myadd", scheme.toscheme(myadd))
+  
+Alternatively, you can add functions by calling ``install_function``,
+which **will** do the convertion of the function object for you no
+matter you have globally auto-convert enabled or not:
 
 .. sourcecode:: python
 
