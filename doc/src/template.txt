@@ -1,0 +1,29 @@
+%(head_prefix)s
+%(head)s
+%(stylesheet)s
+%(body_prefix)s
+<div id="header-region" class="clear-block"></div>
+<div id="wrapper">
+  <div id="container" class="clear-block">
+    <div id="header">
+    <div id="logo-floater">
+    %(html_title)s
+    </div>
+    <ul class="primary-links">
+      <li>
+        <a title="" href="index.html">Home</a>
+      </li>
+    </ul>
+    </div>
+    <div id="center">
+      <div id="squeeze">
+        <div class="right-corner">
+          <div class="left-corner">
+	  %(body)s
+	  </div>
+	</div>
+      </div>
+    </div>
+  </div>
+</div>
+%(body_suffix)s
