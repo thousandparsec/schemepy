@@ -54,7 +54,7 @@ description = ('Generates (X)HTML documents from standalone reStructuredText '
                'sources.  ' + default_description)
 overrides = {'stylesheet_path' : 'styles.css',
              'embed_stylesheet' : False,
-             'template' : 'src/template.txt'}
+             'template' : 'doc/src/template.txt'}
 
 publish_cmdline(writer_name='html',
                 description=description,
