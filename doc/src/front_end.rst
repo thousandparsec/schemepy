@@ -110,8 +110,8 @@ objects (FIXME: really?):
 .. sourcecode:: python
 
   def myadd(a, b):
-    a = scheme.fromscheme(a)
-    b = scheme.fromscheme(b)
+    a = scheme.topython(a)
+    b = scheme.topython(b)
 
     return scheme.toscheme(a+b)
 
