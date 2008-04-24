@@ -150,16 +150,56 @@ scheme automatically. The default behavior can be configured globally
 
 vm<span style="color: #666666">.</span>install_function(<span style="color: #BA2121">&quot;myadd&quot;</span>, myadd, autoconvert<span style="color: #666666">=</span><span style="color: #008000">True</span>)
 </pre></div>
-<p>The following types can be auto-converted:</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">bool</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">int</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">float</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">complex</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">list</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">dictionary</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">function</span></tt></li>
-</ul>
+<p>Here's the map between Scheme type and Python type:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="56%" />
+<col width="44%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Scheme Type</th>
+<th class="head">Python Type</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>bool</td>
+<td>bool</td>
+</tr>
+<tr><td>int</td>
+<td>int</td>
+</tr>
+<tr><td>float</td>
+<td>float</td>
+</tr>
+<tr><td>complex</td>
+<td>complex</td>
+</tr>
+<tr><td>symbol</td>
+<td>schemepy.symbol</td>
+</tr>
+<tr><td>cons</td>
+<td>schemepy.cons</td>
+</tr>
+<tr><td>vector</td>
+<td>list</td>
+</tr>
+<tr><td>hash</td>
+<td>dict</td>
+</tr>
+<tr><td>python data</td>
+<td>Normal Object</td>
+</tr>
+<tr><td>object</td>
+<td>Scheme Object</td>
+</tr>
+<tr><td>primitive function</td>
+<td>callable</td>
+</tr>
+<tr><td>lambda</td>
+<td>callable</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section" id="compile-and-run-the-scheme-program">

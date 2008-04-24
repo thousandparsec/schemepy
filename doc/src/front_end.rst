@@ -143,15 +143,24 @@ scheme automatically. The default behavior can be configured globally
 
   vm.install_function("myadd", myadd, autoconvert=True)
 
-The following types can be auto-converted:
+Here's the map between Scheme type and Python type:
 
-* ``bool``
-* ``int``
-* ``float``
-* ``complex``
-* ``list``
-* ``dictionary``
-* ``function``
+=================== ===============
+Scheme Type         Python Type
+=================== ===============
+bool                bool
+int                 int
+float               float
+complex             complex
+symbol              schemepy.symbol
+cons                schemepy.cons
+vector              list
+hash                dict
+python data         Normal Object
+object              Scheme Object
+primitive function  callable
+lambda              callable         
+=================== ===============
 
 Compile and run the Scheme program
 ==================================
