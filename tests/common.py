@@ -8,7 +8,8 @@ def setup_module(self):
 		raise Exception("You need to specify the TEST_MODULE environment varible!")
 
 	import sys
-	sys.path.append('..')
+	import os
+	sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 	try:
 		exec("from schemepy.%s import %s as totest" % (module, module))
