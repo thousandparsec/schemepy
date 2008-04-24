@@ -1,8 +1,8 @@
 # TODO: Rational/Bignum and complex
 # TODO: Add the autoconversion
 
-import gc
-gc.set_debug(gc.DEBUG_LEAK)
+# import gc
+# gc.set_debug(gc.DEBUG_LEAK)
 
 import sys
 
