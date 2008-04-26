@@ -1,5 +1,6 @@
 
-Inter = None
+VM = None
+Compiler = None
 def setup_module(self):
 	import os
 	try:
@@ -17,5 +18,7 @@ def setup_module(self):
 		print e
 		raise Exception("Module named %s doesn't exist!" % module)
 
-	global Inter
-	Inter = totest.Inter
+	global VM
+	global Compiler
+	VM = totest.VM
+	Compiler = totest.Compiler()

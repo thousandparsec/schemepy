@@ -33,10 +33,17 @@ class SCM(c_void_p):
     def __repr__(self):
         return self.__str__()
 
+    def type(self):
+        if guile.scm_is_bool(self):
+            return bool
+        return type(None)
+
     def topython(self):
         "Return a Python value corresponding to this SCM"
         if guile.scm_is_bool(self):
-            return guile.scm_to_bool(self)
+            if guile.scm_to_bool(self):
+                return True
+            return False
         return None
 
     def toscm(val):
@@ -124,6 +131,10 @@ class VM(object):
         if len(exceptions) != 0:
             raise exceptions[0]
         return r
+
+    def toscheme(val):
+        return SCM.toscm(val)
+    toscheme = staticmethod(toscheme)
 
 # Initialize guile
 guile.scm_init_guile()
