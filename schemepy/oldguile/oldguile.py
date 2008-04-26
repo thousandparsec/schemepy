@@ -608,7 +608,11 @@ guile.scm_internal_catch.restype  = SCMc
 
 guile.scm_current_module.restype = SCMc
 
-class Inter(object):
+class Compiler(object):
+    def __call__(self, code):
+        return code
+
+class VM(object):
 	__slots__ = ['module', 'pythonfuncs']
 
 	def __init__(self, modules=[]):
@@ -651,7 +655,7 @@ class Inter(object):
 		guile.scm_set_current_module(self.module)
 		guile.scm_c_define_gsubr(name, w.unamed, len(w.defaults), w.varargs, w.cfunctype)
 
-	def to_scheme(self, p):
+	def toscheme(self, p):
 		return toscm(p)
 
 	def __getattr__(self, key):
@@ -687,7 +691,7 @@ makescope        = guile.scm_variable_ref(makescope_symbol)
 PythonSMOB.register()
 
 if __name__ == '__main__':
-	m1 = Inter()
+	m1 = VM()
 
 	# Create a PythonSMOB
 	import gc # We need to check that everything still works...
@@ -762,8 +766,8 @@ if __name__ == '__main__':
 	print
 
 	# Test scopes
-	m1 = Inter()
-	m2 = Inter()
+	m1 = VM()
+	m2 = VM()
 
 	print m1.module
 	print m2.module

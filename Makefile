@@ -19,5 +19,7 @@ PYTEST = py.test --tb=short tests
 
 test_guile:
 	TEST_MODULE=guile $(PYTEST)
+test_oldguile:
+	TEST_MODULE=oldguile $(PYTEST)
 
 test: test_guile
