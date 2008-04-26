@@ -159,9 +159,9 @@ class VM(object):
 guile.scm_init_guile()
 
 # Helper functions
-guile.scm_c_real_part.argstype = [SCM]
+guile.scm_c_real_part.argstypes = [SCM]
 guile.scm_c_real_part.restype  = c_double
-guile.scm_c_imag_part.argstype = [SCM]
+guile.scm_c_imag_part.argstypes = [SCM]
 guile.scm_c_imag_part.restype  = c_double
 
 # Predict functions
@@ -169,13 +169,13 @@ guile.scm_exact_p.argtypes = [SCM]
 guile.scm_exact_p.restype = SCM
 
 # Conversion functions
-guile.scm_from_int32.argtype = [c_int]
+guile.scm_from_int32.argtypes = [c_int]
 guile.scm_from_int32.restype = SCM
 guile.scm_make_complex.argtypes = [c_double, c_double]
 guile.scm_make_complex.restype = SCM
 guile.scm_from_double.argtypes = [c_double]
 guile.scm_from_double.restype = SCM
-guile.scm_to_double.argstype   = [SCM]
+guile.scm_to_double.argstypes   = [SCM]
 guile.scm_to_double.restype    = c_double
 
 guile.scm_is_true = lambda b: b.value == SCM.constants[True].value
