@@ -171,7 +171,7 @@ guile.scm_exact_p.restype = SCM
 # Conversion functions
 guile.scm_from_int32.argtype = [c_int]
 guile.scm_from_int32.restype = SCM
-guile.scm_make_complex.argtype = [c_double, c_double]
+guile.scm_make_complex.argtypes = [c_double, c_double]
 guile.scm_make_complex.restype = SCM
 guile.scm_from_double.argtypes = [c_double]
 guile.scm_from_double.restype = SCM

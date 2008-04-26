@@ -11,8 +11,8 @@ class TestComplex(object):
 		"""
 		print 'eval', s, value
 
-		m1 = common.Inter()
-		a = m1.eval(s)
+		m1 = common.VM()
+		a = m1.eval(common.Compiler(s))
 
 		assert a.type() == complex
 		assert a.topython() == value
@@ -20,8 +20,8 @@ class TestComplex(object):
 	def passthru_test(self, s, value):
 		print 'passthru', value		
 
-		m1 = common.Inter()
-		scm = m1.to_scheme(value)
+		m1 = common.VM()
+		scm = m1.toscheme(value)
 
 		# Check the type is correct
 		assert scm.type() == complex
