@@ -36,6 +36,12 @@ class SCM(c_void_p):
     def type(self):
         if guile.scm_is_bool(self):
             return bool
+        if guile.scm_is_number(self):
+            if guile.scm_is_true(guile.scm_exact_p(self)):
+                return int
+            if guile.scm_c_imag_part(self) != 0:
+                return complex
+            return float
         return type(None)
 
     def topython(self):
@@ -44,14 +50,27 @@ class SCM(c_void_p):
             if guile.scm_to_bool(self):
                 return True
             return False
+        if guile.scm_is_number(self):
+            if guile.scm_is_true(guile.scm_exact_p(self)):
+                return guile.scm_to_int32(self)
+            if guile.scm_c_imag_part(self) != 0:
+                return complex(guile.scm_c_real_part(self),
+                               guile.scm_c_imag_part(self))
+            return guile.scm_to_double(self)
         return None
 
     def toscm(val):
         "Convert the Python value to a SCM"
         if type(val) is bool:
-            if val:             # FIXME: is those constants portable?
+            if val:             # FIXME: are those constants portable?
                 return SCM(260)
             return SCM(4)
+        if type(val) is int:
+            return guile.scm_from_int32(val)
+        if type(val) is complex:
+            return guile.scm_make_complex(val.real, val.imag)
+        if type(val) is float:
+            return guile.scm_from_double(val)
         return SCM(None)
     toscm = staticmethod(toscm)
 
@@ -138,3 +157,17 @@ class VM(object):
 
 # Initialize guile
 guile.scm_init_guile()
+
+# Predict functions
+guile.scm_exact_p.argtypes = [SCM]
+guile.scm_exact_p.restype = SCM
+
+# Conversion functions
+guile.scm_from_int32.argtype = [c_int]
+guile.scm_from_int32.restype = SCM
+guile.scm_make_complex.argtype = [c_double, c_double]
+guile.scm_make_complex.restype = SCM
+guile.scm_from_double.argtypes = [c_double]
+guile.scm_from_double.restype = SCM
+
+guile.scm_is_true = lambda b: b.value == SCM.constants[True].value

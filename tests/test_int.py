@@ -11,8 +11,8 @@ class TestInt(object):
 		"""
 		print "eval", str(value)
 
-		m1 = common.Inter()
-		a = m1.eval(str(value))
+		m1 = common.VM()
+		a = m1.eval(common.Compiler(str(value)))
 
 		assert a.type() == int
 		assert a.topython() == value
@@ -20,8 +20,8 @@ class TestInt(object):
 	def passthru_test(self, value):
 		print "passthru", repr(value)
 
-		m1 = common.Inter()
-		scm = m1.to_scheme(value)
+		m1 = common.VM()
+		scm = m1.toscheme(value)
 	
 		assert scm.type() == int
 		assert scm.topython() == value
