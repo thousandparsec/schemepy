@@ -28,32 +28,31 @@ API
 
 import schemepy as scheme
 
-# Create a new scheme parser
-# A parser converts text strings into an internal format, this allows you to
-# parse something once and then evaluate it multiple times in different
-# enviroments. 
-# This is more efficent as parsing the text takes up the most significant amount
-# of time.
-p = scheme.Parser()
+# Create a new scheme compiler A compiler converts text strings into
+# an internal format, this allows you to compile something once and
+# then evaluate it multiple times This is more efficent as parsing and
+# compiling the text takes up the most significant amount of time.
 
-<internal scheme structure> = p(<string>)
+c = scheme.Compiler()
 
-# Calling the parser can throw a scheme.ParserException, these have the
+<internal scheme structure> = c(<string>)
+
+# Calling the compiler can throw a scheme.CompilerException, these have the
 # following attributes,
 #  e.lineno   - the line on which the error occured
 #  e.position - the position the error was detected at
 #  e.message  - a human readable message why this is not valid
 
-# Create a new scheme empty interpreter
-i = scheme.Interpreter()
+# Create a new scheme empty vm
+vm = scheme.VM()
 
-# You can then install new functions into the interpreter using the following
+# You can then install new functions into the vm using the following
 #
 # Functions must take <internal scheme structure> arguments and return a
 # <internal scheme structure>.
 #
 # The function MUST NOT store any of the given structures.
-i.install_function(<name>, <python callable>)
+vm.install_function(<name>, <python callable>)
 
 # You can then do something like
 #
@@ -68,11 +67,11 @@ i.install_function(<name>, <python callable>)
 #
 # def myadd(a, b):
 #    return a+b
-i.install_function(<name>, <python callable>, autoconvert=True)
+vm.install_function(<name>, <python callable>, autoconvert=True)
 
 # To evaluate scheme code just use the eval function. It must have been
 # previously parsed by the scheme parser.
-<internal scheme structure> = i.eval(<internal scheme structure>)
+<internal scheme structure> = vm.eval(<internal scheme structure>)
 
 # Get the python type
 <internal scheme structure>.type()
@@ -98,3 +97,5 @@ i.install_function(<name>, <python callable>, autoconvert=True)
 <internal scheme object> = scheme.toscheme(<python object>)
 <python object> = scheme.topython(<internal scheme object>)
 
+For further and detailed information of the interface, see
+doc/html/front_end.html.
