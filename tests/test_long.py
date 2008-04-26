@@ -11,20 +11,20 @@ class TestLong(object):
 		"""
 		print "eval", str(value)
 
-		m1 = common.Inter()
+		m1 = common.VM()
 		a = m1.eval(str(value))
 
 		assert a.type() == long
-		assert a.topython() == value
+		assert a.fromscheme() == value
 
 	def passthru_test(self, value):
 		print "passthru", repr(value)
 
-		m1 = common.Inter()
-		scm = m1.to_scheme(value)
+		m1 = common.VM()
+		scm = m1.toscheme(value)
 	
 		assert scm.type() == long
-		assert scm.topython() == value
+		assert scm.fromscheme() == value
 
 	def test_longs(self):
 		longs = [2**31+1, 2**31+200, 2**63-1]

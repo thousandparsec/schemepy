@@ -10,20 +10,20 @@ class TestList(object):
 		"""
 		print 'eval', s, value
 
-		m1 = common.Inter()
+		m1 = common.VM()
 		a = m1.eval(s)
 
 		assert a.type() == list
-		assert a.topython() == value
+		assert a.fromscheme() == value
 
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
 
-		m1 = common.Inter()
-		scm = m1.to_scheme(value)
+		m1 = common.VM()
+		scm = m1.toscheme(value)
 	
 		assert scm.type() == list
-		assert scm.topython() == value
+		assert scm.fromscheme() == value
 
 	def test_list(self):
 		"""
