@@ -11,8 +11,8 @@ class TestFloat(object):
 		"""
 		print 'eval', s, value
 
-		m1 = common.Inter()
-		a = m1.eval(s)
+		m1 = common.VM()
+		a = m1.eval(common.Compiler(s))
 
 		assert a.type() == float
 		assert a.topython() == value
@@ -20,8 +20,8 @@ class TestFloat(object):
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
 
-		m1 = common.Inter()
-		scm = m1.to_scheme(value)
+		m1 = common.VM()
+		scm = m1.toscheme(value)
 	
 		assert scm.type() == float
 		assert scm.topython() == value
@@ -31,8 +31,8 @@ class TestFloat(object):
 
 		value = float('NaN')
 
-		m1 = common.Inter()
-		scm = m1.to_scheme(value)
+		m1 = common.VM()
+		scm = m1.toscheme(value)
 	
 		assert scm.type() == float
 		# float('NaN') != float('NaN')
