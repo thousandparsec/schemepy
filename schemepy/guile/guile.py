@@ -1,10 +1,21 @@
 from ctypes.util import find_library
 from ctypes import *
 from schemepy.types import *
+import os.path
+
+# Load the helper library which exports the macro's as C functions
+path = os.path.abspath(os.path.join(os.path.split(__file__)[0], "_guilehelper.so"))
+_guilehelper = cdll.LoadLibrary(path)
+
+ver_helper = (_guilehelper.guile_major_version(), _guilehelper.guile_minor_version())
+ver_lib    = {(1, 6): '12', (1, 8): '17'}[ver_helper]
 
 lib = find_library("guile")
 if lib is None:
     raise RuntimeError("Can't find a guile library to use.")
+if not lib.endswith(ver_lib):
+	raise RuntimeError("The found library %s does not match the library the helper was compiled with." % lib)
+
 guile = cdll.LoadLibrary(lib)
 
 
@@ -48,7 +59,7 @@ class SCM(c_void_p):
     def fromscheme(self):
         "Return a Python value corresponding to this SCM"
         if guile.scm_is_bool(self):
-            if guile.scm_to_bool(self):
+            if guile.scm_is_true(self):
                 return True
             return False
         if guile.scm_is_number(self):
@@ -63,9 +74,7 @@ class SCM(c_void_p):
     def toscm(val):
         "Convert the Python value to a SCM"
         if type(val) is bool:
-            if val:             # FIXME: are those constants portable?
-                return SCM(260)
-            return SCM(4)
+            return guile.scm_from_bool(val)
         if type(val) is int:
             return guile.scm_from_int32(val)
         if type(val) is complex:
@@ -74,9 +83,6 @@ class SCM(c_void_p):
             return guile.scm_from_double(val)
         return SCM(None)
     toscm = staticmethod(toscm)
-
-SCM.constants = dict([[v, SCM.toscm(v)] for v in \
-                          [True, False]])
 
 class Compiler(object):
     """Compiler for guile. Guile doesn't support bytecode yet. So the
@@ -127,7 +133,7 @@ def make_exception_handler(exceptions):
         key = SCM(key)
         args = SCM(args)
         exceptions.append(Exception(key.fromscheme(), args.fromscheme()))
-        return SCM.constants[True].value
+        return guile.scm_bool_t().value
     
     return exception_handler_t(exception_handle)
         
@@ -146,7 +152,7 @@ class VM(object):
    
     def eval(self, src):
         exceptions = []
-        r = guile.scm_internal_catch(SCM.constants[True], exception_body, src,
+        r = guile.scm_internal_catch(guile.scm_bool_t, exception_body, src,
                                      make_exception_handler(exceptions), None)
         if len(exceptions) != 0:
             raise exceptions[0]
@@ -159,15 +165,98 @@ class VM(object):
 # Initialize guile
 guile.scm_init_guile()
 
+# Macros
+guile.scm_unbndp = _guilehelper.scm_unbndp
+guile.scm_bool_t = _guilehelper.scm_bool_t
+guile.scm_bool_f = _guilehelper.scm_bool_f
+guile.scm_eol    = _guilehelper.scm_eol
+guile.scm_c_symbol_exists = _guilehelper.scm_c_symbol_exists
+
+guile.scm_smob_data      = _guilehelper.scm_smob_data
+guile.scm_set_smob_data  = _guilehelper.scm_set_smob_data
+guile.scm_return_newsmob = _guilehelper.scm_return_newsmob
+guile.scm_smob_predicate = _guilehelper.scm_smob_predicate
+
+guile.scm_imp      = _guilehelper.scm_imp
+guile.scm_is_eol   = _guilehelper.scm_is_eol 
+guile.scm_is_list  = _guilehelper.scm_is_list
+guile.scm_is_alist = _guilehelper.scm_is_alist
+guile.scm_is_exact = _guilehelper.scm_is_exact
+# These are guile 1.8 functions
+if hasattr(_guilehelper, 'scm_from_bool'):
+	guile.scm_from_bool  = _guilehelper.scm_from_bool
+	guile.scm_to_bool    = _guilehelper.scm_to_bool
+
+	guile.scm_is_bool    = _guilehelper.scm_is_bool
+	guile.scm_is_number  = _guilehelper.scm_is_number
+	guile.scm_is_integer = _guilehelper.scm_is_integer
+	guile.scm_is_rational= _guilehelper.scm_is_rational
+	guile.scm_is_complex = _guilehelper.scm_is_complex 
+	guile.scm_is_pair    = _guilehelper.scm_is_pair
+	guile.scm_is_symbol  = _guilehelper.scm_is_symbol
+	guile.scm_is_null    = _guilehelper.scm_is_null
+	guile.scm_is_string  = _guilehelper.scm_is_string
+	guile.scm_is_true    = _guilehelper.scm_is_true
+
+	guile.scm_to_int32    = _guilehelper.scm_to_int32
+	guile.scm_from_int32  = _guilehelper.scm_from_int32
+	guile.scm_to_double   = _guilehelper.scm_to_double
+	guile.scm_from_double = _guilehelper.scm_from_double
+
+	guile.scm_to_locale_string    = _guilehelper.scm_to_locale_string
+	guile.scm_from_locale_stringn = _guilehelper.scm_from_locale_stringn
+
+	guile.scm_c_real_part = _guilehelper.scm_c_real_part
+	guile.scm_c_imag_part = _guilehelper.scm_c_imag_part
+
+	guile.scm_car = _guilehelper.scm_car
+	guile.scm_cdr = _guilehelper.scm_cdr
+
+	guile.scm_from_signed_integer = guile.scm_int2num
+	guile.scm_from_locale_keyword = guile.scm_c_make_keyword
+
+else:
+	guile.scm_from_bool  = _guilehelper._scm_from_bool
+#	guile.scm_is_bool    = _guilehelper._scm_is_bool
+#	guile.scm_is_number  = _guilehelper._scm_is_number
+#	guile.scm_is_integer = _guilehelper._scm_is_integer
+#	guile.scm_is_pair    = _guilehelper._scm_is_pair
+	guile.scm_is_symbol  = _guilehelper._scm_is_symbol
+	guile.scm_is_true    = _guilehelper._scm_is_true
+	guile.scm_is_null    = _guilehelper._scm_is_null
+
+
 # Helper functions
 guile.scm_c_real_part.argstypes = [SCM]
 guile.scm_c_real_part.restype  = c_double
 guile.scm_c_imag_part.argstypes = [SCM]
 guile.scm_c_imag_part.restype  = c_double
+guile.scm_bool_t.argstype = []
+guile.scm_bool_t.restype  = SCM
+guile.scm_bool_f.argstype = []
+guile.scm_bool_f.restype  = SCM
 
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
 guile.scm_exact_p.restype = SCM
+guile.scm_is_true.argtypes     = [SCM]
+guile.scm_is_true.restype      = int
+guile.scm_is_bool.argstype     = [SCM]
+guile.scm_is_bool.restype      = bool
+guile.scm_is_number.argstype   = [SCM]
+guile.scm_is_number.restype    = bool
+guile.scm_is_integer.argstype  = [SCM]
+guile.scm_is_integer.restype   = bool
+guile.scm_is_rational.argstype = [SCM]
+guile.scm_is_rational.restype  = bool
+guile.scm_is_complex.argstype  = [SCM]
+guile.scm_is_complex.restype   = bool
+guile.scm_is_string.argstype   = [SCM]
+guile.scm_is_string.restype    = bool
+guile.scm_is_pair.argstype     = [SCM]
+guile.scm_is_pair.restype      = bool
+guile.scm_is_symbol.argstype   = [SCM]
+guile.scm_is_symbol.restype    = bool
 
 # Conversion functions
 guile.scm_from_int32.argtypes = [c_int]
@@ -178,5 +267,5 @@ guile.scm_from_double.argtypes = [c_double]
 guile.scm_from_double.restype = SCM
 guile.scm_to_double.argstypes   = [SCM]
 guile.scm_to_double.restype    = c_double
-
-guile.scm_is_true = lambda b: b.value == SCM.constants[True].value
+guile.scm_from_bool.argtypes   = [c_int]
+guile.scm_from_bool.restype    = SCM
