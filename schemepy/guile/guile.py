@@ -1,5 +1,6 @@
 from ctypes.util import find_library
 from ctypes import *
+from schemepy.types import *
 
 lib = find_library("guile")
 if lib is None:
