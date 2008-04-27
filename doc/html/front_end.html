@@ -125,8 +125,8 @@ calling <tt class="docutils literal"><span class="pre">scheme.toscheme(val)</spa
 <p>Functions can also be added to the VM by the same way as normal
 objects:</p>
 <div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">myadd</span>(a, b):
-  a <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>topython(a)
-  b <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>topython(b)
+  a <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>fromscheme(a)
+  b <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>fromscheme(b)
 
   <span style="color: #008000; font-weight: bold">return</span> scheme<span style="color: #666666">.</span>toscheme(a<span style="color: #666666">+</span>b)
 

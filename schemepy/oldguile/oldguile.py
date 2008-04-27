@@ -163,7 +163,7 @@ class SCM(c_void_p):
 		port = guile.scm_open_output_string()
 		key  = guile.scm_from_locale_keyword("per-line-prefix")
 		a = guile.scm_call_4(prettyprint, self, port, key, toscm("     "))
-		return "<SCM %s>" % guile.scm_get_output_string(port).topython().strip()
+		return "<SCM %s>" % guile.scm_get_output_string(port).fromscheme().strip()
 
 	def __repr__(self):
 		return SCM.__str__(self)
@@ -195,7 +195,7 @@ class SCM(c_void_p):
 		if guile.scm_smob_predicate(PythonSMOB.tag, self):
 			return object
 
-	def topython(self, shallow=False):
+	def fromscheme(self, shallow=False):
 		if guile.scm_unbndp(self):
 			return None
 		if guile.scm_is_bool(self):
@@ -220,11 +220,11 @@ class SCM(c_void_p):
 					while not guile.scm_is_null(scm):
 						item = guile.scm_car(scm)
 
-						key   = guile.scm_car(item).topython()
+						key   = guile.scm_car(item).fromscheme()
 						value = guile.scm_cdr(item)
 
 						if not shallow:
-							d[key] = value.topython()
+							d[key] = value.fromscheme()
 						else:
 							d[key] = value
 						scm = guile.scm_cdr(scm)
@@ -237,7 +237,7 @@ class SCM(c_void_p):
 				while not guile.scm_is_null(scm):
 					item = guile.scm_car(scm)
 					if not shallow:
-						l.append(item.topython())
+						l.append(item.fromscheme())
 					else:
 						l.append(item)
 					scm = guile.scm_cdr(scm)
@@ -560,7 +560,7 @@ class wrapper(object):
 			# Check the rest argument is a list...
 			if rstarg.type() == list:
 				# Unpack the list shallowly
-				rst = rstarg.topython(shallow=True)
+				rst = rstarg.fromscheme(shallow=True)
 			else:
 				# WTF?
 				print "Rest wasn't a list.."
@@ -598,7 +598,7 @@ def exception_handler(trash, key, args):
 
 	global exceptionis
 	# FIXME: I should be able to use the python passthru to return the exception..
-	exceptionis = Exception(key.topython(), args.topython())
+	exceptionis = Exception(key.fromscheme(), args.topython())
 	return toscm(True)
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, c_void_p, c_void_p)
 exception_handler   = exception_handler_t(exception_handler)
@@ -705,7 +705,7 @@ if __name__ == '__main__':
 	scm = PythonSMOB.new(a)
 	print 1, scm,   'refs', sys.getrefcount(a)
 	print 2, scm.type()
-	b = scm.topython()
+	b = scm.fromscheme()
 
 	print 3, b
 	print 4, a is b
@@ -721,7 +721,7 @@ if __name__ == '__main__':
 	print 7
 	print scm
 
-	b = scm.topython()
+	b = scm.fromscheme()
 
 	print 8
 	del scm
@@ -794,33 +794,33 @@ if __name__ == '__main__':
 	a = m1.eval("#t")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	a = m1.eval("#f")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	# Numbers
 	a = m1.eval("1")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	a = m1.eval("2")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	a = m1.eval("1.0")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	a = m1.eval("3.2+4.0i")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	# String
 
@@ -828,13 +828,13 @@ if __name__ == '__main__':
 	a = m1.eval("""'(1 2 3 4 5)""")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	# Dictionary
 	a = m1.eval("""'(("New York" . "Albany") ("Oregon"   . "Salem") ("Florida"  . "Miami"))""")
 	print a
 	print a.type()
-	print a.topython()
+	print a.fromscheme()
 
 	# Function registration
 	def testfunc1():

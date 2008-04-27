@@ -15,7 +15,7 @@ class TestComplex(object):
 		a = m1.eval(common.Compiler(s))
 
 		assert a.type() == complex
-		assert a.topython() == value
+		assert a.fromscheme() == value
 
 	def passthru_test(self, s, value):
 		print 'passthru', value		
@@ -26,7 +26,7 @@ class TestComplex(object):
 		# Check the type is correct
 		assert scm.type() == complex
 		# Check we can convert back
-		assert scm.topython() == value
+		assert scm.fromscheme() == value
 
 	def test_complexs(self):
 		complexs = {

@@ -15,7 +15,7 @@ class TestFloat(object):
 		a = m1.eval(common.Compiler(s))
 
 		assert a.type() == float
-		assert a.topython() == value
+		assert a.fromscheme() == value
 
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
@@ -24,7 +24,7 @@ class TestFloat(object):
 		scm = m1.toscheme(value)
 	
 		assert scm.type() == float
-		assert scm.topython() == value
+		assert scm.fromscheme() == value
 
 	def test_passthru_nan(self):
 		print "passthru_nan"
@@ -36,7 +36,7 @@ class TestFloat(object):
 	
 		assert scm.type() == float
 		# float('NaN') != float('NaN')
-		assert str(scm.topython()) == str(float('NaN'))
+		assert str(scm.fromscheme()) == str(float('NaN'))
 
 	def test_floats(self):
 		floats = {

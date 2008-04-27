@@ -57,8 +57,8 @@ vm.install_function(<name>, <python callable>)
 # You can then do something like
 #
 # def myadd(a, b):
-#   a = scheme.topython(a)
-#   b = scheme.topython(b)
+#   a = scheme.fromscheme(a)
+#   b = scheme.fromscheme(b)
 #
 #   return scheme.toscheme(a+b)
 

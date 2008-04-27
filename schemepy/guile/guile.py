@@ -44,7 +44,7 @@ class SCM(c_void_p):
             return float
         return type(None)
 
-    def topython(self):
+    def fromscheme(self):
         "Return a Python value corresponding to this SCM"
         if guile.scm_is_bool(self):
             if guile.scm_to_bool(self):
@@ -125,7 +125,7 @@ def make_exception_handler(exceptions):
     def exception_handle(trash, key, args):
         key = SCM(key)
         args = SCM(args)
-        exceptions.append(Exception(key.topython(), args.topython()))
+        exceptions.append(Exception(key.fromscheme(), args.fromscheme()))
         return SCM.constants[True].value
     
     return exception_handler_t(exception_handle)

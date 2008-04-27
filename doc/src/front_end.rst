@@ -109,8 +109,8 @@ objects:
 .. sourcecode:: python
 
   def myadd(a, b):
-    a = scheme.topython(a)
-    b = scheme.topython(b)
+    a = scheme.fromscheme(a)
+    b = scheme.fromscheme(b)
 
     return scheme.toscheme(a+b)
 

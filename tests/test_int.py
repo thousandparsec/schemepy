@@ -15,7 +15,7 @@ class TestInt(object):
 		a = m1.eval(common.Compiler(str(value)))
 
 		assert a.type() == int
-		assert a.topython() == value
+		assert a.fromscheme() == value
 
 	def passthru_test(self, value):
 		print "passthru", repr(value)
@@ -24,7 +24,7 @@ class TestInt(object):
 		scm = m1.toscheme(value)
 	
 		assert scm.type() == int
-		assert scm.topython() == value
+		assert scm.fromscheme() == value
 
 	def test_ints(self):
 		ints = [1, 5, 1000, int(2**31-1), int(-2**31)]

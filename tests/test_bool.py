@@ -13,14 +13,14 @@ class TestBool(object):
 		a = m1.eval(common.Compiler('#t'))
 
 		assert a.type() == bool
-		assert a.topython() is True
+		assert a.fromscheme() is True
 
 	def test_eval_false(self):
 		m1 = common.VM()
 		a = m1.eval(common.Compiler('#f'))
 
 		assert a.type() == bool
-		assert a.topython() is False
+		assert a.fromscheme() is False
 
 	def passthru_test(self, value):
 		m1 = common.VM()
@@ -30,7 +30,7 @@ class TestBool(object):
 		# Check the type is correct
 		assert scm.type() == bool
 		# Check we can convert back
-		assert scm.topython() is value
+		assert scm.fromscheme() is value
 
 	def test_passthru(self):
 		for value in [True, False]:
