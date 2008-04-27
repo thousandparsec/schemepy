@@ -207,7 +207,7 @@ class SCM(c_void_p):
 				return complex(guile.scm_c_real_part(self), guile.scm_c_imag_part(self))
 			return guile.scm_to_double(self)
 		if guile.scm_is_symbol(self):
-			return guile.scm_symbol_to_string(self).topython()
+			return guile.scm_symbol_to_string(self).fromscheme()
 		if guile.scm_is_string(self):
 			# FIXME: This is probably leaking memory
 			return guile.scm_to_locale_string(self)
@@ -598,7 +598,7 @@ def exception_handler(trash, key, args):
 
 	global exceptionis
 	# FIXME: I should be able to use the python passthru to return the exception..
-	exceptionis = Exception(key.fromscheme(), args.topython())
+	exceptionis = Exception(key.fromscheme(), args.fromscheme())
 	return toscm(True)
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, c_void_p, c_void_p)
 exception_handler   = exception_handler_t(exception_handler)
