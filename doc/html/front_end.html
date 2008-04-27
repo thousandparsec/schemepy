@@ -79,8 +79,7 @@ one back-end to the other.</p>
 </div>
 <div class="section" id="config-the-behavior-fo-the-front-end">
 <h2><a class="toc-backref" href="#id4">Config the behavior fo the front-end</a></h2>
-<p>FIXME: describe how it is customized. Something like default behavior
-of autoconvert for function installation can be customized here.</p>
+<p>FIXME: describe how it is customized.</p>
 </div>
 </div>
 <div class="section" id="create-a-compiler">
@@ -118,33 +117,29 @@ environment.</p>
 Scheme.</p>
 <div class="highlight"><pre>vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;var&quot;</span>, val)
 </pre></div>
-<p>The value will be automatically converted to Scheme representation by
-calling <tt class="docutils literal"><span class="pre">scheme.toscheme(val)</span></tt>.</p>
+<p>The value should be a Scheme value. One can get a Scheme value by
+calling <tt class="docutils literal"><span class="pre">scheme.toscheme(val)</span></tt> from a Python value <tt class="docutils literal"><span class="pre">val</span></tt>.</p>
 </div>
 <div class="section" id="functions">
 <h2><a class="toc-backref" href="#id9">Functions</a></h2>
 <p>Functions can also be added to the VM by the same way as normal
-objects (FIXME: really?):</p>
+objects:</p>
 <div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">myadd</span>(a, b):
   a <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>topython(a)
   b <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>topython(b)
 
   <span style="color: #008000; font-weight: bold">return</span> scheme<span style="color: #666666">.</span>toscheme(a<span style="color: #666666">+</span>b)
 
-vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, myadd)
-</pre></div>
-<p>If auto-convert is not enabled, you would have to call</p>
-<div class="highlight"><pre>vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, scheme<span style="color: #666666">.</span>toscheme(myadd))
+vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, scheme<span style="color: #666666">.</span>toscheme(myadd))
 </pre></div>
 <p>Alternatively, you can add functions by calling <tt class="docutils literal"><span class="pre">install_function</span></tt>,
-which <strong>will</strong> do the convertion of the function object for you no
-matter you have globally auto-convert enabled or not:</p>
+which will do the convertion of the function object for you
+automatically.</p>
 <div class="highlight"><pre>vm<span style="color: #666666">.</span>install_function(<span style="color: #BA2121">&quot;myadd&quot;</span>, myadd)
 </pre></div>
 <p>The function parameters and return values can be converted to and from
-scheme automatically. The default behavior can be configured globally
-(see <a class="reference internal" href="#config-the-behavior-fo-the-front-end">Config the behavior fo the front-end</a>). Or you can pass the
-<tt class="docutils literal"><span class="pre">autoconvert</span></tt> keyword parameter to specify the bahavior explicitly:</p>
+scheme automatically. You can pass the <tt class="docutils literal"><span class="pre">autoconvert</span></tt> keyword
+parameter to specify the bahavior:</p>
 <div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">myadd</span>(a, b):
   <span style="color: #008000; font-weight: bold">return</span> a<span style="color: #666666">+</span>b
 

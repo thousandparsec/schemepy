@@ -47,8 +47,7 @@ FIXME: describe how it is customized.
 Config the behavior fo the front-end
 ------------------------------------
 
-FIXME: describe how it is customized. Something like default behavior
-of autoconvert for function installation can be customized here.
+FIXME: describe how it is customized. 
 
 Create a compiler
 =================
@@ -98,14 +97,14 @@ Scheme.
 
   vm.define("var", val)
 
-The value will be automatically converted to Scheme representation by
-calling ``scheme.toscheme(val)``.
+The value should be a Scheme value. One can get a Scheme value by
+calling ``scheme.toscheme(val)`` from a Python value ``val``.
 
 Functions
 ---------
 
 Functions can also be added to the VM by the same way as normal
-objects (FIXME: really?):
+objects:
 
 .. sourcecode:: python
 
@@ -115,26 +114,19 @@ objects (FIXME: really?):
 
     return scheme.toscheme(a+b)
 
-  vm.define("myadd", myadd)
-
-If auto-convert is not enabled, you would have to call
-
-.. sourcecode:: python
-  
   vm.define("myadd", scheme.toscheme(myadd))
-  
+
 Alternatively, you can add functions by calling ``install_function``,
-which **will** do the convertion of the function object for you no
-matter you have globally auto-convert enabled or not:
+which will do the convertion of the function object for you
+automatically.
 
 .. sourcecode:: python
 
   vm.install_function("myadd", myadd)
 
 The function parameters and return values can be converted to and from
-scheme automatically. The default behavior can be configured globally
-(see `Config the behavior fo the front-end`_). Or you can pass the
-``autoconvert`` keyword parameter to specify the bahavior explicitly:
+scheme automatically. You can pass the ``autoconvert`` keyword
+parameter to specify the bahavior:
 
 .. sourcecode:: python
 
@@ -143,7 +135,9 @@ scheme automatically. The default behavior can be configured globally
 
   vm.install_function("myadd", myadd, autoconvert=True)
 
-Here's the map between Scheme type and Python type:
+Here's the map between Scheme type and Python type, more detailed
+description can be found in `the type mapping document
+<type-mapping.html>`_:
 
 =================== ===============
 Scheme Type         Python Type
