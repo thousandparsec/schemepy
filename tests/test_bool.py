@@ -10,14 +10,14 @@ class TestBool(object):
 		Checks that the eval returns true '#t'.
 		"""
 		m1 = common.VM()
-		a = m1.eval(common.Compiler('#t'))
+		a = m1.eval(common.compile('#t'))
 
 		assert a.type() == bool
 		assert a.fromscheme() is True
 
 	def test_eval_false(self):
 		m1 = common.VM()
-		a = m1.eval(common.Compiler('#f'))
+		a = m1.eval(common.compile('#f'))
 
 		assert a.type() == bool
 		assert a.fromscheme() is False

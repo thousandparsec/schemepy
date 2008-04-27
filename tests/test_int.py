@@ -12,7 +12,7 @@ class TestInt(object):
 		print "eval", str(value)
 
 		m1 = common.VM()
-		a = m1.eval(common.Compiler(str(value)))
+		a = m1.eval(common.compile(str(value)))
 
 		assert a.type() == int
 		assert a.fromscheme() == value

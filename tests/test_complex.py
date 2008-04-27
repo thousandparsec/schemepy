@@ -12,7 +12,7 @@ class TestComplex(object):
 		print 'eval', s, value
 
 		m1 = common.VM()
-		a = m1.eval(common.Compiler(s))
+		a = m1.eval(common.compile(s))
 
 		assert a.type() == complex
 		assert a.fromscheme() == value

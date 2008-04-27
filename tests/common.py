@@ -1,6 +1,7 @@
 
 VM = None
-Compiler = None
+compile = None
+types = None
 def setup_module(self):
 	import os
 	try:
@@ -14,11 +15,15 @@ def setup_module(self):
 
 	try:
 		exec("from schemepy.%s import %s as totest" % (module, module))
+		exec("import schemepy.types")
 	except ImportError, e:
 		print e
 		raise Exception("Module named %s doesn't exist!" % module)
 
 	global VM
-	global Compiler
+	global compile
 	VM = totest.VM
-	Compiler = totest.Compiler()
+	compile = totest.Compiler()
+
+	global types
+	types = schemepy.types

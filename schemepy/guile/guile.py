@@ -54,6 +54,10 @@ class SCM(c_void_p):
             if guile.scm_c_imag_part(self) != 0:
                 return complex
             return float
+        if guile.scm_is_pair(self):
+            return Cons
+        if guile.scm_is_eol(self):
+            return list
         return type(None)
 
     def fromscheme(self):
@@ -69,6 +73,10 @@ class SCM(c_void_p):
                 return complex(guile.scm_c_real_part(self),
                                guile.scm_c_imag_part(self))
             return guile.scm_to_double(self)
+        if guile.scm_is_pair(self):
+            return Cons(guile.scm_car(self), guile.scm_cdr(self))
+        if guile.scm_is_eol(self):
+            return []
         return None
 
     def toscm(val):
@@ -81,6 +89,11 @@ class SCM(c_void_p):
             return guile.scm_make_complex(val.real, val.imag)
         if type(val) is float:
             return guile.scm_from_double(val)
+        if isinstance(val, list):
+            scm = guile.scm_eol()
+            for item in reversed(val):
+                scm = guile.scm_cons(SCM.toscm(item), scm)
+            return scm
         return SCM(None)
     toscm = staticmethod(toscm)
 
@@ -235,6 +248,15 @@ guile.scm_bool_t.argstype = []
 guile.scm_bool_t.restype  = SCM
 guile.scm_bool_f.argstype = []
 guile.scm_bool_f.restype  = SCM
+guile.scm_eol.argtypes  = []
+guile.scm_eol.restype   = SCM
+guile.scm_cons.argtypes = [SCM, SCM]
+guile.scm_cons.restype  = SCM
+guile.scm_car.argtypes  = [SCM]
+guile.scm_car.restype   = SCM
+guile.scm_cdr.argtypes  = [SCM]
+guile.scm_cdr.restype   = SCM
+
 
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
