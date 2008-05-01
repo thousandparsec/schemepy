@@ -20,6 +20,9 @@ guile = cdll.LoadLibrary(lib)
 
 
 class SCM(c_void_p):
+    """
+    A SCM hold a Scheme value.
+    """
     def __init__(self, value=None):
         c_void_p.__init__(self)
         self.value = value
@@ -46,6 +49,15 @@ class SCM(c_void_p):
         return self.__str__()
 
     def type(self):
+        """\
+        Get the (Python) type of the value.
+
+        NOTE: the type is not necessarily the *real* type of
+              the converted Python value. In other words,
+              `scm.type() == type(scm.fromscheme())' might be
+              false. But `type(scm.fromscheme())' will be at
+              least a sub-type of `scm.type()'.
+        """
         if guile.scm_is_bool(self):
             return bool
         if guile.scm_is_number(self):
@@ -54,13 +66,21 @@ class SCM(c_void_p):
             if guile.scm_c_imag_part(self) != 0:
                 return complex
             return float
+        if guile.scm_is_eol(self):
+            return list
         if guile.scm_is_pair(self):
-            return Cons
+            if guile.scm_is_list(self):
+                if guile.scm_is_alist(self):
+                    return dict
+                else:
+                    return list
+            else:
+                return Cons
         if guile.scm_is_eol(self):
             return list
         return type(None)
 
-    def fromscheme(self):
+    def fromscheme(self, shallow=False):
         "Return a Python value corresponding to this SCM"
         if guile.scm_is_bool(self):
             if guile.scm_is_true(self):
@@ -73,8 +93,44 @@ class SCM(c_void_p):
                 return complex(guile.scm_c_real_part(self),
                                guile.scm_c_imag_part(self))
             return guile.scm_to_double(self)
+        if guile.scm_is_eol(self):
+            return []
         if guile.scm_is_pair(self):
-            return Cons(guile.scm_car(self), guile.scm_cdr(self))
+            if guile.scm_is_list(self):
+                if guile.scm_is_alist(self):
+                    d = {}
+                    scm = self
+                    while not guile.scm_is_null(scm):
+                        item  = guile.scm_car(scm)
+                        key   = guile.scm_car(item).fromscheme()
+                        value = guile.scm_cdr(item)
+                        if not shallow:
+                            d[key] = value.fromscheme()
+                        else:
+                            d[key] = value
+                        scm = guile.scm_cdr(scm)
+                    
+                    return d
+                
+                else:
+                    l = []
+                    scm = self
+                    while not guile.scm_is_null(scm):
+                        item = guile.scm_car(scm)
+                        if not shallow:
+                            l.append(item.fromscheme())
+                        else:
+                            l.append(item)
+                        scm = guile.scm_cdr(scm)
+
+                    return l
+            else:
+                car = guile.scm_car(self)
+                cdr = guile.scm_cdr(self)
+                if not shallow:
+                    return Cons(car.fromscheme(), cdr.fromscheme())
+                else:
+                    return Cons(car, cdr)
         if guile.scm_is_eol(self):
             return []
         return None
@@ -105,6 +161,10 @@ class Compiler(object):
 
 
 def exception_body(src):
+    """\
+    The method is used to evaluate a piece of Scheme code where exception
+    will be caught safely.
+    """
     return guile.scm_c_eval_string(src).value
 exception_body_t = CFUNCTYPE(SCM, c_char_p)
 exception_body = exception_body_t(exception_body)
@@ -143,6 +203,11 @@ def make_exception_handler(exceptions):
     * misc-error: other errors. 
     """
     def exception_handle(trash, key, args):
+        """\
+        The callback handler of Scheme exception. It was implemented as
+        a closure: the exception caught here will be append to the list
+        of the closure variable `exceptions'.
+        """
         key = SCM(key)
         args = SCM(args)
         exceptions.append(Exception(key.fromscheme(), args.fromscheme()))
@@ -279,6 +344,14 @@ guile.scm_is_pair.argstype     = [SCM]
 guile.scm_is_pair.restype      = bool
 guile.scm_is_symbol.argstype   = [SCM]
 guile.scm_is_symbol.restype    = bool
+guile.scm_is_list.argtypes  = [SCM]
+guile.scm_is_list.restype   = bool
+guile.scm_is_alist.argtypes = [SCM]
+guile.scm_is_alist.restype  = bool
+guile.scm_is_null.argtypes  = [SCM]
+guile.scm_is_null.restype   = bool
+guile.scm_is_eol.argtypes   = [SCM]
+guile.scm_is_eol.restype    = bool
 
 # Conversion functions
 guile.scm_from_int32.argtypes = [c_int]

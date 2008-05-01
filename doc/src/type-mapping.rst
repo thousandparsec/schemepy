@@ -17,7 +17,8 @@ is needed, it might be an instance of a sub-class of the Python
 dict/list.
 
 When converted to Python value, both car and cdr of a cons will be
-converted recursively.
+converted recursively. However, this behavior can be prohibited by
+passing ``shallow=True`` to the ``fromscheme`` converting method.
 
 alist
 -----
