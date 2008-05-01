@@ -1,0 +1,8 @@
+Symbol conversion between Python and Scheme
+----------------------------------------------------------------------
+                                                planned at: 2008-05-01
+
+Python has no symbol. Create a schemepy.types.Symbol class and maps
+the Scheme symbol to that. Two symbol with the same name should be
+the same object.
+

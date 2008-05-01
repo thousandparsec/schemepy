@@ -1,0 +1,7 @@
+Profile of the Guile VM
+----------------------------------------------------------------------
+                                                planned at: 2008-05-01
+
+VM should take a profile (or environment) as the sandboxing model.
+Implement this for the Guile VM.
+
