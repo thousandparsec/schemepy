@@ -155,6 +155,11 @@ class SCM(c_void_p):
             for item in reversed(val):
                 scm = guile.scm_cons(SCM.toscm(item), scm)
             return scm
+        if isinstance(val, dict):
+            scm = guile.scm_eol()
+            for key, value in val.iteritems():
+                scm = guile.scm_cons(guile.scm_cons(SCM.toscm(key), SCM.toscm(value)), scm)
+            return scm
         if type(val) is str:
             return guile.scm_from_locale_stringn(val, len(val))
         if type(val) is unicode:
@@ -163,7 +168,7 @@ class SCM(c_void_p):
                 return guile.scm_from_locale_stringn(s, len(s))
             except UnicodeEncodeError:
                 pass
-        return SCM(None)
+        return None
     toscm = staticmethod(toscm)
 
 class Compiler(object):

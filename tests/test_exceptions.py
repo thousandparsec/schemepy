@@ -11,7 +11,7 @@ class TestExceptions(object):
 		Checks the interprator doesn't dies properly on crap...
 		"""
 
-		m1 = common.Inter()
+		m1 = common.VM()
 		py.test.raises(Exception, m1.eval, 'asdasf')
 
 
