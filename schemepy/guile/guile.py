@@ -230,7 +230,7 @@ def make_exception_handler(exceptions):
         args = SCM(args)
         exceptions.append(Exception(key.fromscheme(), args.fromscheme()))
         return guile.scm_bool_t().value
-    
+
     return exception_handler_t(exception_handle)
         
 
@@ -248,7 +248,7 @@ class VM(object):
    
     def eval(self, src):
         exceptions = []
-        r = guile.scm_internal_catch(guile.scm_bool_t, exception_body, src,
+        r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, src,
                                      make_exception_handler(exceptions), None)
         if len(exceptions) != 0:
             raise exceptions[0]
