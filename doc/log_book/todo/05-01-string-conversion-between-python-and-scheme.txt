@@ -1,6 +1,0 @@
-String conversion between Python and Scheme
-----------------------------------------------------------------------
-                                                planned at: 2008-05-01
-
-Maps a Scheme string to a Python string and vice versa.
-

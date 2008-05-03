@@ -1,0 +1,18 @@
+String conversion between Python and Scheme
+----------------------------------------------------------------------
+                                                planned at: 2008-05-01
+
+Maps a Scheme string to a Python string and vice versa.
+
+
+----------------------------------------------------------------------
+                                               finished at: 2008-05-03
+
+A Python unicode is converted to str first before converting. When 
+converting back, it will be an str instance instead of a unicode 
+instance.
+
+But not all unicode sequence can be converted to a str. I'll catch the
+UnicodeEncodeError when converting failed and let it fall back to a
+normal Python object, which will be an object (e.g. smob in Guile)
+instead of a string in Scheme.

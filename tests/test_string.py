@@ -9,7 +9,7 @@ class TestString(object):
 		print "eval", repr(value)
 
 		m1 = common.VM()
-		a = m1.eval('"%s"' % value)
+		a = m1.eval(common.compile('"%s"' % value))
 
 		assert a.type() in (str, unicode)
 		assert a.fromscheme() == value
@@ -28,7 +28,7 @@ class TestString(object):
 		Checks that the eval returns strings for various input.
 		"""
 		strings = [ \
-			 "", u"abc", u"t\n\t\n\r",  "a\0\0tl;\0a",
+			 "", "abc", "t\n\t\n\r",  "a\0\0tl;\0a",
 			u"", u"abc", u"t\n\t\n\r", u"a\0\0tl;\0a",
 		]
 		for value in strings:

@@ -78,6 +78,8 @@ class SCM(c_void_p):
                 return Cons
         if guile.scm_is_eol(self):
             return list
+        if guile.scm_is_string(self):
+            return str
         return type(None)
 
     def fromscheme(self, shallow=False):
@@ -133,6 +135,9 @@ class SCM(c_void_p):
                     return Cons(car, cdr)
         if guile.scm_is_eol(self):
             return []
+        if guile.scm_is_string(self):
+            # FIXME: This is leaking memory
+            return guile.scm_to_locale_string(self)
         return None
 
     def toscm(val):
@@ -150,6 +155,14 @@ class SCM(c_void_p):
             for item in reversed(val):
                 scm = guile.scm_cons(SCM.toscm(item), scm)
             return scm
+        if type(val) is str:
+            return guile.scm_from_locale_stringn(val, len(val))
+        if type(val) is unicode:
+            try:
+                s = str(val)
+                return guile.scm_from_locale_stringn(s, len(s))
+            except UnicodeEncodeError:
+                pass
         return SCM(None)
     toscm = staticmethod(toscm)
 
@@ -364,3 +377,7 @@ guile.scm_to_double.argstypes   = [SCM]
 guile.scm_to_double.restype    = c_double
 guile.scm_from_bool.argtypes   = [c_int]
 guile.scm_from_bool.restype    = SCM
+guile.scm_to_locale_string.argstype = [SCM]
+guile.scm_to_locale_string.restype  = c_char_p
+guile.scm_from_locale_stringn.argtypes  = [c_char_p, c_int]
+guile.scm_from_locale_stringn.restype   = SCM

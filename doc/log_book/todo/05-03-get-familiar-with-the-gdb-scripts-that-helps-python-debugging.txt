@@ -1,0 +1,7 @@
+Get familiar with the gdb scripts that helps Python debugging
+----------------------------------------------------------------------
+                                                planned at: 2008-05-03
+
+Mithro has sent me some gdb scripts that can be used to help debugging
+with Python in gdb. Try to learn how to use them.
+
