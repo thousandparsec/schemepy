@@ -1,8 +1,0 @@
-Deal with nul character in string
-----------------------------------------------------------------------
-                                                planned at: 2008-05-03
-
-Both Scheme and Python allow nul char (\0) appear in string. But the
-conversion between those two need go through C, which doesn't allow
-nul char to appear inside a string.
-

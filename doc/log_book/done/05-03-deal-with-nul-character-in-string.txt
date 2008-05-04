@@ -1,0 +1,17 @@
+Deal with nul character in string
+----------------------------------------------------------------------
+                                                planned at: 2008-05-03
+
+Both Scheme and Python allow nul char (\0) appear in string. But the
+conversion between those two need go through C, which doesn't allow
+nul char to appear inside a string.
+
+
+----------------------------------------------------------------------
+                                               finished at: 2008-05-03
+
+The problem is solved by using scm_to_locale_stringn which can return
+the length of the string. However, evaluating a piece of code containing
+nul char. That's because scm_c_eval_string is used to evaluate the code,
+which takes a C nul-terminated string. That problem would be fixed in
+another task.

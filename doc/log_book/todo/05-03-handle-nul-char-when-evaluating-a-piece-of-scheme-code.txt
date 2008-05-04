@@ -1,0 +1,8 @@
+Handle nul char when evaluating a piece of Scheme code
+----------------------------------------------------------------------
+                                                planned at: 2008-05-03
+
+Using scm_c_eval_string is not safe when the code to be evaluated
+contains nul characters. Instead, a Guile string be built and passed
+to scm_eval_string is a better solution.
+
