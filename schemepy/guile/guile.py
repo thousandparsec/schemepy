@@ -137,7 +137,9 @@ class SCM(c_void_p):
             return []
         if guile.scm_is_string(self):
             # FIXME: This is leaking memory
-            return guile.scm_to_locale_string(self)
+            len = c_ulong(0)
+            mem = guile.scm_to_locale_stringn(self, pointer(len))
+            return string_at(mem, len.value)
         return None
 
     def toscm(val):
@@ -386,3 +388,5 @@ guile.scm_to_locale_string.argstype = [SCM]
 guile.scm_to_locale_string.restype  = c_char_p
 guile.scm_from_locale_stringn.argtypes  = [c_char_p, c_int]
 guile.scm_from_locale_stringn.restype   = SCM
+guile.scm_to_locale_stringn.argtype = [SCM, POINTER(c_ulong)]
+guile.scm_to_locale_stringn.restype = c_void_p
