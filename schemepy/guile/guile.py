@@ -185,8 +185,8 @@ def exception_body(src):
     The method is used to evaluate a piece of Scheme code where exception
     will be caught safely.
     """
-    return guile.scm_c_eval_string(src).value
-exception_body_t = CFUNCTYPE(SCM, c_char_p)
+    return guile.scm_eval_string(src).value
+exception_body_t = CFUNCTYPE(SCM, SCM)
 exception_body = exception_body_t(exception_body)
 
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, c_void_p, c_void_p)
@@ -236,10 +236,10 @@ def make_exception_handler(exceptions):
     return exception_handler_t(exception_handle)
         
 
-guile.scm_internal_catch.argtypes = [SCM, exception_body_t, c_char_p, exception_handler_t, c_void_p]
+guile.scm_internal_catch.argtypes = [SCM, exception_body_t, SCM, exception_handler_t, c_void_p]
 guile.scm_internal_catch.restype = SCM
-guile.scm_c_eval_string.argtypes = [c_char_p]
-guile.scm_c_eval_string.restype  = SCM
+guile.scm_eval_string.argtypes = [SCM]
+guile.scm_eval_string.restype  = SCM
 
 class VM(object):
     """VM for guile.
@@ -250,7 +250,7 @@ class VM(object):
    
     def eval(self, src):
         exceptions = []
-        r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, src,
+        r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, SCM.toscm(src),
                                      make_exception_handler(exceptions), None)
         if len(exceptions) != 0:
             raise exceptions[0]
