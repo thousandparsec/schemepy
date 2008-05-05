@@ -14,7 +14,7 @@ class TestInt(object):
 		m1 = common.VM()
 		a = m1.eval(common.compile(str(value)))
 
-		assert a.type() == int
+		assert a.type() in (int, long)
 		assert a.fromscheme() == value
 
 	def passthru_test(self, value):
@@ -23,7 +23,7 @@ class TestInt(object):
 		m1 = common.VM()
 		scm = m1.toscheme(value)
 	
-		assert scm.type() == int
+		assert scm.type() in (int, long)
 		assert scm.fromscheme() == value
 
 	def test_ints(self):

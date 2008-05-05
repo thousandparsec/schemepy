@@ -147,6 +147,10 @@ int _scm_is_null(SCM x) {
 
 #endif
 
+int scm_is_fixnum(SCM x) {
+        return SCM_I_INUMP(x);
+}
+
 int scm_imp(SCM x) {
 	return SCM_IMP(x);
 }

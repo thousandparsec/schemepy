@@ -62,7 +62,9 @@ class SCM(c_void_p):
             return bool
         if guile.scm_is_number(self):
             if guile.scm_is_true(guile.scm_exact_p(self)):
-                return int
+                if guile.scm_is_fixnum(self):
+                    return int
+                return long
             if guile.scm_c_imag_part(self) != 0:
                 return complex
             return float
@@ -90,7 +92,10 @@ class SCM(c_void_p):
             return False
         if guile.scm_is_number(self):
             if guile.scm_is_true(guile.scm_exact_p(self)):
-                return guile.scm_to_int32(self)
+                if guile.scm_is_fixnum(self):
+                    return guile.scm_to_int32(self)
+                s = guile.scm_number_to_string(self, SCM.toscm(10))
+                return eval(s.fromscheme())
             if guile.scm_c_imag_part(self) != 0:
                 return complex(guile.scm_c_real_part(self),
                                guile.scm_c_imag_part(self))
@@ -170,6 +175,9 @@ class SCM(c_void_p):
                 return guile.scm_from_locale_stringn(s, len(s))
             except UnicodeEncodeError:
                 pass
+        if type(val) is long:
+            s = str(val)
+            return guile.scm_c_eval_string(s)
         return None
     toscm = staticmethod(toscm)
 
@@ -240,6 +248,8 @@ guile.scm_internal_catch.argtypes = [SCM, exception_body_t, SCM, exception_handl
 guile.scm_internal_catch.restype = SCM
 guile.scm_eval_string.argtypes = [SCM]
 guile.scm_eval_string.restype  = SCM
+guile.scm_c_eval_string.argtypes = [c_char_p]
+guile.scm_c_eval_string.restype = SCM
 
 class VM(object):
     """VM for guile.
@@ -280,6 +290,7 @@ guile.scm_is_eol   = _guilehelper.scm_is_eol
 guile.scm_is_list  = _guilehelper.scm_is_list
 guile.scm_is_alist = _guilehelper.scm_is_alist
 guile.scm_is_exact = _guilehelper.scm_is_exact
+guile.scm_is_fixnum = _guilehelper.scm_is_fixnum
 # These are guile 1.8 functions
 if hasattr(_guilehelper, 'scm_from_bool'):
 	guile.scm_from_bool  = _guilehelper.scm_from_bool
@@ -352,6 +363,8 @@ guile.scm_is_bool.argstype     = [SCM]
 guile.scm_is_bool.restype      = bool
 guile.scm_is_number.argstype   = [SCM]
 guile.scm_is_number.restype    = bool
+guile.scm_is_fixnum.argstype   = [SCM]
+guile.scm_is_fixnum.restype    = bool
 guile.scm_is_integer.argstype  = [SCM]
 guile.scm_is_integer.restype   = bool
 guile.scm_is_rational.argstype = [SCM]
@@ -384,9 +397,11 @@ guile.scm_to_double.argstypes   = [SCM]
 guile.scm_to_double.restype    = c_double
 guile.scm_from_bool.argtypes   = [c_int]
 guile.scm_from_bool.restype    = SCM
-guile.scm_to_locale_string.argstype = [SCM]
+guile.scm_to_locale_string.argtypes = [SCM]
 guile.scm_to_locale_string.restype  = c_char_p
 guile.scm_from_locale_stringn.argtypes  = [c_char_p, c_int]
 guile.scm_from_locale_stringn.restype   = SCM
-guile.scm_to_locale_stringn.argtype = [SCM, POINTER(c_ulong)]
+guile.scm_to_locale_stringn.argtypes = [SCM, POINTER(c_ulong)]
 guile.scm_to_locale_stringn.restype = c_void_p
+guile.scm_number_to_string.argtypes = [SCM, SCM]
+guile.scm_number_to_string.restype = SCM
