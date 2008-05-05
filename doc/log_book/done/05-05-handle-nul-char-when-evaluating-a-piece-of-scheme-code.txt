@@ -6,3 +6,9 @@ Using scm_c_eval_string is not safe when the code to be evaluated
 contains nul characters. Instead, a Guile string be built and passed
 to scm_eval_string is a better solution.
 
+
+----------------------------------------------------------------------
+                                               finished at: 2008-05-05
+
+The problem get fixed by using scm_eval_string with a Guile string
+instead of a C nul-terminated string.
