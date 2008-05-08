@@ -14,22 +14,22 @@ class TestLambda(object):
         m1 = common.VM()
         lam = m1.eval(common.compile(code))
 
-        assert lam.type() is Lambda
+        assert m1.type(lam) is Lambda
 
-        func = lam.fromscheme(shallow=True)
+        func = m1.fromscheme(lam, shallow=True)
         func.vm = m1
         for case in cases:
             result = case[0]
             args = [m1.toscheme(arg) for arg in case[1:]]
-            assert func(*args).fromscheme() == result
+            assert m1.fromscheme(func(*args)) == result
 
     def call_in_python_test(self, code, cases):
         m1 = common.VM()
         lam = m1.eval(common.compile(code))
 
-        assert lam.type() is Lambda
+        assert m1.type(lam) is Lambda
 
-        func = lam.fromscheme()
+        func = m1.fromscheme(lam)
         func.vm = m1
         for case in cases:
             result = case[0]
@@ -44,19 +44,19 @@ class TestLambda(object):
             result = case[0]
             args = [m1.toscheme(arg) for arg in case[1:]]
             rlt = m1.apply(lam, args)
-            assert rlt.fromscheme() == result
+            assert m1.fromscheme(rlt) == result
 
     def passthru_test(self, code, cases):
         m1 = common.VM()
         lam = m1.eval(common.compile(code))
-        func = lam.fromscheme()
+        func = m1.fromscheme(lam)
         lam = m1.toscheme(func)
 
         for case in cases:
             result = case[0]
             args = [m1.toscheme(arg) for arg in case[1:]]
             rlt = m1.apply(lam, args)
-            assert rlt.fromscheme() == result
+            assert m1.fromscheme(rlt) == result
 
     def test_closure(self):
         code = """(let ((v 0))
@@ -66,7 +66,7 @@ class TestLambda(object):
         m1 = common.VM()
         lam = m1.eval(common.compile(code))
 
-        func = lam.fromscheme()
+        func = m1.fromscheme(lam)
         func.vm = m1
         assert func(1) == 1
         assert func(1) == 2

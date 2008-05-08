@@ -109,12 +109,12 @@ objects:
 .. sourcecode:: python
 
   def myadd(a, b):
-    a = scheme.fromscheme(a)
-    b = scheme.fromscheme(b)
+    a = vm.fromscheme(a)
+    b = vm.fromscheme(b)
 
-    return scheme.toscheme(a+b)
+    return vm.toscheme(a+b)
 
-  vm.define("myadd", scheme.toscheme(myadd))
+  vm.define("myadd", vm.toscheme(myadd))
 
 Alternatively, you can add functions by calling ``install_function``,
 which will do the convertion of the function object for you

@@ -12,15 +12,15 @@ class TestBool(object):
 		m1 = common.VM()
 		a = m1.eval(common.compile('#t'))
 
-		assert a.type() == bool
-		assert a.fromscheme() is True
+		assert m1.type(a) == bool
+		assert m1.fromscheme(a) is True
 
 	def test_eval_false(self):
 		m1 = common.VM()
 		a = m1.eval(common.compile('#f'))
 
-		assert a.type() == bool
-		assert a.fromscheme() is False
+		assert m1.type(a) == bool
+		assert m1.fromscheme(a) is False
 
 	def passthru_test(self, value):
 		m1 = common.VM()
@@ -28,9 +28,9 @@ class TestBool(object):
 		scm = m1.toscheme(value)
 
 		# Check the type is correct
-		assert scm.type() == bool
+		assert m1.type(scm) == bool
 		# Check we can convert back
-		assert scm.fromscheme() is value
+		assert m1.fromscheme(scm) is value
 
 	def test_passthru(self):
 		for value in [True, False]:

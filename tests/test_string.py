@@ -11,8 +11,8 @@ class TestString(object):
 		m1 = common.VM()
 		a = m1.eval(common.compile('"%s"' % value))
 
-		assert a.type() in (str, unicode)
-		assert a.fromscheme() == value
+		assert m1.type(a) in (str, unicode)
+		assert m1.fromscheme(a) == value
 
 	def passthru_test(self, value):
 		print "passthru", repr(value)
@@ -20,8 +20,8 @@ class TestString(object):
 		m1 = common.VM()
 		scm = m1.toscheme(value)
 	
-		assert scm.type() in (str, unicode)
-		assert scm.fromscheme() == value
+		assert m1.type(scm) in (str, unicode)
+		assert m1.fromscheme(scm) == value
 
 	def test_string(self):
 		"""

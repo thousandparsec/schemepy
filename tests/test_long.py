@@ -14,8 +14,8 @@ class TestLong(object):
 		m1 = common.VM()
 		a = m1.eval(str(value))
 
-		assert a.type() == long
-		assert a.fromscheme() == value
+		assert m1.type(a) == long
+		assert m1.fromscheme(a) == value
 
 	def passthru_test(self, value):
 		print "passthru", repr(value)
@@ -23,8 +23,8 @@ class TestLong(object):
 		m1 = common.VM()
 		scm = m1.toscheme(value)
 	
-		assert scm.type() == long
-		assert scm.fromscheme() == value
+		assert m1.type(scm) == long
+		assert m1.fromscheme(scm) == value
 
 	def test_longs(self):
 		longs = [2**31+1, 2**31+200, 2**63-1]

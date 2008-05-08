@@ -14,8 +14,8 @@ class TestFloat(object):
 		m1 = common.VM()
 		a = m1.eval(common.compile(s))
 
-		assert a.type() == float
-		assert a.fromscheme() == value
+		assert m1.type(a) == float
+		assert m1.fromscheme(a) == value
 
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
@@ -23,8 +23,8 @@ class TestFloat(object):
 		m1 = common.VM()
 		scm = m1.toscheme(value)
 	
-		assert scm.type() == float
-		assert scm.fromscheme() == value
+		assert m1.type(scm) == float
+		assert m1.fromscheme(scm) == value
 
 	def test_passthru_nan(self):
 		print "passthru_nan"
@@ -34,9 +34,9 @@ class TestFloat(object):
 		m1 = common.VM()
 		scm = m1.toscheme(value)
 	
-		assert scm.type() == float
+		assert m1.type(scm) == float
 		# float('NaN') != float('NaN')
-		assert str(scm.fromscheme()) == str(float('NaN'))
+		assert str(m1.fromscheme(scm)) == str(float('NaN'))
 
 	def test_floats(self):
 		floats = {

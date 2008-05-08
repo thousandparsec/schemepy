@@ -16,17 +16,17 @@ class TestCons(object):
         m1 = common.VM()
         a = m1.eval(common.compile(s))
 
-        assert a.type() is Cons
+        assert m1.type(a) is Cons
 
-        assert a.fromscheme() == value
+        assert m1.fromscheme(a) == value
 
     def passthru_test(self, value):
         m1 = common.VM()
 
         scm = m1.toscheme(value)
 
-        assert scm.type() is Cons
-        assert scm.fromscheme() == value
+        assert m1.type(scm) is Cons
+        assert m1.fromscheme(scm) == value
 
     def test_list(self):
         m1 = common.VM()
@@ -34,8 +34,8 @@ class TestCons(object):
         l = Cons(1, [])
         scm = m1.toscheme(l)
 
-        assert scm.type() == list
-        assert scm.fromscheme() == [1]
+        assert m1.type(scm) == list
+        assert m1.fromscheme(scm) == [1]
 
     def test_cons(self):
         for value, code in [(Cons(1, 2), "`(1 . 2)"),

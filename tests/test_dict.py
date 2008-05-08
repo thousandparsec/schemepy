@@ -11,8 +11,8 @@ class TestDict(object):
 		m1 = common.VM()
 		a = m1.eval(s)
 
-		assert a.type() == dict
-		assert a.fromscheme() == value
+		assert m1.type(a) == dict
+		assert m1.fromscheme(a) == value
 
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
@@ -20,8 +20,8 @@ class TestDict(object):
 		m1 = common.VM()
 		scm = m1.toscheme(value)
 	
-		assert scm.type() == dict
-		assert scm.fromscheme() == value
+		assert m1.type(scm) == dict
+		assert m1.fromscheme(scm) == value
 
 	def test_dict(self):
 		"""

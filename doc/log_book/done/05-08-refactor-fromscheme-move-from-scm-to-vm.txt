@@ -13,3 +13,9 @@ are two disadantages for this model.
     a Python callable. The callable should remember the VM where it is
     converted from to call the underlying lambda.
 
+
+----------------------------------------------------------------------
+                                               finished at: 2008-05-08
+
+Updated the doc, test cases and the implementation. All test cases
+passed. Also moved `type' function from SCM to VM.

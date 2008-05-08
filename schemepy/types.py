@@ -45,9 +45,9 @@ class Lambda(object):
 
     __slots__ = '_lambda', 'vm', 'shallow'
 
-    def __init__(self, lam, shallow):
+    def __init__(self, lam, vm, shallow):
         self._lambda = lam
-        self.vm = None
+        self.vm = vm
         self.shallow = shallow
 
     def __call__(self, *args, **options):
@@ -74,4 +74,4 @@ class Lambda(object):
 
         if self.shallow:
             return result
-        return result.fromscheme()
+        return self.vm.fromscheme(result)

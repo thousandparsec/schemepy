@@ -125,12 +125,12 @@ calling <tt class="docutils literal"><span class="pre">scheme.toscheme(val)</spa
 <p>Functions can also be added to the VM by the same way as normal
 objects:</p>
 <div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">myadd</span>(a, b):
-  a <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>fromscheme(a)
-  b <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>fromscheme(b)
+  a <span style="color: #666666">=</span> vm<span style="color: #666666">.</span>fromscheme(a)
+  b <span style="color: #666666">=</span> vm<span style="color: #666666">.</span>fromscheme(b)
 
-  <span style="color: #008000; font-weight: bold">return</span> scheme<span style="color: #666666">.</span>toscheme(a<span style="color: #666666">+</span>b)
+  <span style="color: #008000; font-weight: bold">return</span> vm<span style="color: #666666">.</span>toscheme(a<span style="color: #666666">+</span>b)
 
-vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, scheme<span style="color: #666666">.</span>toscheme(myadd))
+vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, vm<span style="color: #666666">.</span>toscheme(myadd))
 </pre></div>
 <p>Alternatively, you can add functions by calling <tt class="docutils literal"><span class="pre">install_function</span></tt>,
 which will do the convertion of the function object for you

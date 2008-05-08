@@ -48,113 +48,6 @@ class SCM(c_void_p):
     def __repr__(self):
         return self.__str__()
 
-    def type(self):
-        """\
-        Get the (Python) type of the value.
-
-        NOTE: the type is not necessarily the *real* type of
-              the converted Python value. In other words,
-              `scm.type() == type(scm.fromscheme())' might be
-              false. But `type(scm.fromscheme())' will be at
-              least a sub-type of `scm.type()'.
-        """
-        if guile.scm_is_bool(self):
-            return bool
-        if guile.scm_is_number(self):
-            if guile.scm_is_true(guile.scm_exact_p(self)):
-                if guile.scm_is_fixnum(self):
-                    return int
-                return long
-            if guile.scm_c_imag_part(self) != 0:
-                return complex
-            return float
-        if guile.scm_is_eol(self):
-            return list
-        if guile.scm_is_pair(self):
-            if guile.scm_is_list(self):
-                if guile.scm_is_alist(self):
-                    return dict
-                else:
-                    return list
-            else:
-                return Cons
-        if guile.scm_is_eol(self):
-            return list
-        if guile.scm_is_string(self):
-            return str
-        if guile.scm_is_symbol(self):
-            return Symbol
-        if guile.scm_is_true(guile.scm_procedure_p(self)):
-            return Lambda
-        return type(None)
-
-    def fromscheme(self, shallow=False):
-        "Return a Python value corresponding to this SCM"
-        if guile.scm_is_bool(self):
-            if guile.scm_is_true(self):
-                return True
-            return False
-        if guile.scm_is_number(self):
-            if guile.scm_is_true(guile.scm_exact_p(self)):
-                if guile.scm_is_fixnum(self):
-                    return guile.scm_to_int32(self)
-                s = guile.scm_number_to_string(self, SCM.toscm(10))
-                return eval(s.fromscheme())
-            if guile.scm_c_imag_part(self) != 0:
-                return complex(guile.scm_c_real_part(self),
-                               guile.scm_c_imag_part(self))
-            return guile.scm_to_double(self)
-        if guile.scm_is_eol(self):
-            return []
-        if guile.scm_is_pair(self):
-            if guile.scm_is_list(self):
-                if guile.scm_is_alist(self):
-                    d = {}
-                    scm = self
-                    while not guile.scm_is_null(scm):
-                        item  = guile.scm_car(scm)
-                        key   = guile.scm_car(item).fromscheme()
-                        value = guile.scm_cdr(item)
-                        if not shallow:
-                            d[key] = value.fromscheme()
-                        else:
-                            d[key] = value
-                        scm = guile.scm_cdr(scm)
-                    
-                    return d
-                
-                else:
-                    l = []
-                    scm = self
-                    while not guile.scm_is_null(scm):
-                        item = guile.scm_car(scm)
-                        if not shallow:
-                            l.append(item.fromscheme())
-                        else:
-                            l.append(item)
-                        scm = guile.scm_cdr(scm)
-
-                    return l
-            else:
-                car = guile.scm_car(self)
-                cdr = guile.scm_cdr(self)
-                if not shallow:
-                    return Cons(car.fromscheme(), cdr.fromscheme())
-                else:
-                    return Cons(car, cdr)
-        if guile.scm_is_eol(self):
-            return []
-        if guile.scm_is_string(self):
-            # FIXME: This is leaking memory
-            len = c_ulong(0)
-            mem = guile.scm_to_locale_stringn(self, pointer(len))
-            return string_at(mem, len.value)
-        if guile.scm_is_symbol(self):
-            return Symbol.intern(guile.scm_symbol_to_string(self).fromscheme())
-        if guile.scm_is_true(guile.scm_procedure_p(self)):
-            return Lambda(self, shallow)
-        return None
-
     def toscm(val):
         "Convert the Python value to a SCM"
         if type(val) is bool:
@@ -215,7 +108,7 @@ exception_body_t = CFUNCTYPE(SCM, SCM)
 exception_body = exception_body_t(exception_body)
 
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, c_void_p, c_void_p)
-def make_exception_handler(exceptions):
+def make_exception_handler(vm, exceptions):
     """\
     * error-signal: thrown after receiving an unhandled fatal
       signal such as SIGSEGV, SIGBUS, SIGFPE etc. The rest
@@ -255,7 +148,7 @@ def make_exception_handler(exceptions):
         """
         key = SCM(key)
         args = SCM(args)
-        exceptions.append(Exception(key.fromscheme(), args.fromscheme()))
+        exceptions.append(Exception(vm.fromscheme(key), vm.fromscheme(args)))
         return guile.scm_bool_t().value
 
     return exception_handler_t(exception_handle)
@@ -281,7 +174,7 @@ class VM(object):
         """
         exceptions = []
         r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, SCM.toscm(src),
-                                     make_exception_handler(exceptions), None)
+                                     make_exception_handler(self, exceptions), None)
         if len(exceptions) != 0:
             raise exceptions[0]
         return r
@@ -299,9 +192,121 @@ class VM(object):
             
         return guile.scm_apply_0(proc, arglist)
 
+    @staticmethod
     def toscheme(val):
+        "Convert a Python value to a Scheme value."
         return SCM.toscm(val)
-    toscheme = staticmethod(toscheme)
+
+    def fromscheme(self, val, shallow=False):
+        "Get a Python value from a Scheme value."
+        if not isinstance(val, SCM):
+            raise ArgumentError, "Expecting a Scheme value, but get a %s." % val
+        
+        if guile.scm_is_bool(val):
+            if guile.scm_is_true(val):
+                return True
+            return False
+        if guile.scm_is_number(val):
+            if guile.scm_is_true(guile.scm_exact_p(val)):
+                if guile.scm_is_fixnum(val):
+                    return guile.scm_to_int32(val)
+                s = guile.scm_number_to_string(val, SCM.toscm(10))
+                return long(self.fromscheme(s))
+            if guile.scm_c_imag_part(val) != 0:
+                return complex(guile.scm_c_real_part(val),
+                               guile.scm_c_imag_part(val))
+            return guile.scm_to_double(val)
+        if guile.scm_is_eol(val):
+            return []
+        if guile.scm_is_pair(val):
+            if guile.scm_is_list(val):
+                if guile.scm_is_alist(val):
+                    d = {}
+                    scm = val
+                    while not guile.scm_is_null(scm):
+                        item  = guile.scm_car(scm)
+                        key   = self.fromscheme(guile.scm_car(item))
+                        value = guile.scm_cdr(item)
+                        if not shallow:
+                            d[key] = self.fromscheme(value)
+                        else:
+                            d[key] = value
+                        scm = guile.scm_cdr(scm)
+                    
+                    return d
+                
+                else:
+                    l = []
+                    scm = val
+                    while not guile.scm_is_null(scm):
+                        item = guile.scm_car(scm)
+                        if not shallow:
+                            l.append(self.fromscheme(item))
+                        else:
+                            l.append(item)
+                        scm = guile.scm_cdr(scm)
+
+                    return l
+            else:
+                car = guile.scm_car(val)
+                cdr = guile.scm_cdr(val)
+                if not shallow:
+                    return Cons(self.fromscheme(car), self.fromscheme(cdr))
+                else:
+                    return Cons(car, cdr)
+        if guile.scm_is_eol(val):
+            return []
+        if guile.scm_is_string(val):
+            # FIXME: This is leaking memory
+            len = c_ulong(0)
+            mem = guile.scm_to_locale_stringn(val, pointer(len))
+            return string_at(mem, len.value)
+        if guile.scm_is_symbol(val):
+            return Symbol.intern(self.fromscheme(guile.scm_symbol_to_string(val)))
+        if guile.scm_is_true(guile.scm_procedure_p(val)):
+            return Lambda(val, self, shallow)
+        return None
+
+    def type(self, val):
+        """\
+        Get the (Python) type of the value.
+
+        NOTE: the type is not necessarily the *real* type of
+              the converted Python value. In other words,
+              `vm.type(scm) == vm.fromscheme(scm)' might be
+              false. But `type(vm.fromscheme(scm))' will be at
+              least a sub-type of `vm.type(scm)'.
+        """
+        if guile.scm_is_bool(val):
+            return bool
+        if guile.scm_is_number(val):
+            if guile.scm_is_true(guile.scm_exact_p(val)):
+                if guile.scm_is_fixnum(val):
+                    return int
+                return long
+            if guile.scm_c_imag_part(val) != 0:
+                return complex
+            return float
+        if guile.scm_is_eol(val):
+            return list
+        if guile.scm_is_pair(val):
+            if guile.scm_is_list(val):
+                if guile.scm_is_alist(val):
+                    return dict
+                else:
+                    return list
+            else:
+                return Cons
+        if guile.scm_is_eol(val):
+            return list
+        if guile.scm_is_string(val):
+            return str
+        if guile.scm_is_symbol(val):
+            return Symbol
+        if guile.scm_is_true(guile.scm_procedure_p(val)):
+            return Lambda
+        return type(None)
+
 
 # Initialize guile
 guile.scm_init_guile()

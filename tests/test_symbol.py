@@ -15,9 +15,9 @@ class TestSymbol(object):
         m1 = common.VM()
         a = m1.eval(common.compile(s))
 
-        assert a.type() is Symbol
+        assert m1.type(a) is Symbol
         # should be `is'
-        assert a.fromscheme() is value
+        assert m1.fromscheme(a) is value
         
     def passthru_test(self, value):
         m1 = common.VM()
@@ -25,9 +25,9 @@ class TestSymbol(object):
         scm = m1.toscheme(value)
 
         # Check the type is correct
-        assert scm.type() is Symbol
+        assert m1.type(scm) is Symbol
         # Check we can convert back, should be `is'
-        assert scm.fromscheme() is value
+        assert m1.fromscheme(scm) is value
 
     def test_symbol(self):
         for value in [Symbol.intern(""),

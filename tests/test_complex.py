@@ -14,8 +14,8 @@ class TestComplex(object):
 		m1 = common.VM()
 		a = m1.eval(common.compile(s))
 
-		assert a.type() == complex
-		assert a.fromscheme() == value
+		assert m1.type(a) == complex
+		assert m1.fromscheme(a) == value
 
 	def passthru_test(self, s, value):
 		print 'passthru', value		
@@ -24,9 +24,9 @@ class TestComplex(object):
 		scm = m1.toscheme(value)
 
 		# Check the type is correct
-		assert scm.type() == complex
+		assert m1.type(scm) == complex
 		# Check we can convert back
-		assert scm.fromscheme() == value
+		assert m1.fromscheme(scm) == value
 
 	def test_complexs(self):
 		complexs = {

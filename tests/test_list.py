@@ -13,8 +13,8 @@ class TestList(object):
 		m1 = common.VM()
 		a = m1.eval(common.compile(s))
 
-		assert a.type() == list
-		assert a.fromscheme() == value
+		assert m1.type(a) == list
+		assert m1.fromscheme(a) == value
 
 	def passthru_test(self, s, value):
 		print "passthru", repr(value)
@@ -22,18 +22,18 @@ class TestList(object):
 		m1 = common.VM()
 		scm = m1.toscheme(value)
 	
-		assert scm.type() == list
-		assert scm.fromscheme() == value
+		assert m1.type(scm) == list
+		assert m1.fromscheme(scm) == value
 
 	def test_empty_list(self):
 		m1 = common.VM()
 		a = m1.eval(common.compile("`()"))
-		assert a.type() == list
-		assert a.fromscheme() == []
+		assert m1.type(a) == list
+		assert m1.fromscheme(a) == []
 
 		scm = m1.toscheme([])
-		assert scm.type() == list
-		assert a.fromscheme() == []
+		assert m1.type(scm) == list
+		assert m1.fromscheme(scm) == []
 
 	def test_list(self):
 		"""

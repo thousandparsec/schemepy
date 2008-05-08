@@ -57,10 +57,10 @@ vm.install_function(<name>, <python callable>)
 # You can then do something like
 #
 # def myadd(a, b):
-#   a = scheme.fromscheme(a)
-#   b = scheme.fromscheme(b)
+#   a = vm.fromscheme(a)
+#   b = vm.fromscheme(b)
 #
-#   return scheme.toscheme(a+b)
+#   return vm.toscheme(a+b)
 
 # You can also have autoconversion by doing the following, then the above
 # function could read
