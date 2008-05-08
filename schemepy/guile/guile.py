@@ -161,8 +161,8 @@ class SCM(c_void_p):
             return guile.scm_make_complex(val.real, val.imag)
         if type(val) is float:
             return guile.scm_from_double(val)
-        if val is None:
-            return guile.scm_eol()
+#         if val is None:
+#             return guile.scm_eol()
         if type(val) is Cons:
             return guile.scm_cons(SCM.toscm(val.car), SCM.toscm(val.cdr))
         if isinstance(val, list):

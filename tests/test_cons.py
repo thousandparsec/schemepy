@@ -31,7 +31,7 @@ class TestCons(object):
     def test_list(self):
         m1 = common.VM()
 
-        l = Cons(1, None)
+        l = Cons(1, [])
         scm = m1.toscheme(l)
 
         assert scm.type() == list
