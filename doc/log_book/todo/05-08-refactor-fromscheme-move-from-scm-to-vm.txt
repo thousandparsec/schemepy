@@ -1,0 +1,15 @@
+Refactor fromscheme: move from SCM to VM
+----------------------------------------------------------------------
+                                                planned at: 2008-05-08
+
+Currently fromscheme method is in SCM class instead of VM class. There
+are two disadantages for this model.
+
+ 1. It is not persisitence because toscheme is in VM while fromscheme
+    is in SCM.
+
+ 2. A SCM doesn't know about the VM. But sometimes the converted value
+    want to know the VM. An example is converting a Scheme lambda to
+    a Python callable. The callable should remember the VM where it is
+    converted from to call the underlying lambda.
+
