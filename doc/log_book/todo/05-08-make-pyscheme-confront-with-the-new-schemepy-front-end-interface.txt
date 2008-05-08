@@ -1,0 +1,7 @@
+Make pyscheme confront with the new Schemepy front-end interface
+----------------------------------------------------------------------
+                                                planned at: 2008-05-08
+
+Then we could compare the performance between other back-ends and the
+fall-back back-end.
+
