@@ -42,8 +42,8 @@ class TestList(object):
                 lists = { \
                         "`(1 2 3)"          : [1, 2, 3],                # Simple list with integers
                         "`(1.0 2.0 3.0)"    : [1.0, 2.0, 3.0],          # Simple list with floats
-#                        '`("a" "aa" "aaa")' : ['a', 'aa', 'aaa'],       # Simple list with strings
-#                        '`(1 1.0 "a")'      : [1, 1.0, 'a'],            # List with a simpled mixed list
+                       '`("a" "aa" "aaa")' : ['a', 'aa', 'aaa'],       # Simple list with strings
+                       '`(1 1.0 "a")'      : [1, 1.0, 'a'],            # List with a simpled mixed list
                 }
 		for s, value in lists.items():
 			yield self.eval_test, s, value

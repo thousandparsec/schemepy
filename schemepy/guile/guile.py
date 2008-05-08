@@ -82,6 +82,8 @@ class SCM(c_void_p):
             return list
         if guile.scm_is_string(self):
             return str
+        if guile.scm_is_symbol(self):
+            return Symbol
         return type(None)
 
     def fromscheme(self, shallow=False):
@@ -145,6 +147,8 @@ class SCM(c_void_p):
             len = c_ulong(0)
             mem = guile.scm_to_locale_stringn(self, pointer(len))
             return string_at(mem, len.value)
+        if guile.scm_is_symbol(self):
+            return Symbol.intern(guile.scm_symbol_to_string(self).fromscheme())
         return None
 
     def toscm(val):
@@ -157,6 +161,10 @@ class SCM(c_void_p):
             return guile.scm_make_complex(val.real, val.imag)
         if type(val) is float:
             return guile.scm_from_double(val)
+        if val is None:
+            return guile.scm_eol()
+        if type(val) is Cons:
+            return guile.scm_cons(SCM.toscm(val.car), SCM.toscm(val.cdr))
         if isinstance(val, list):
             scm = guile.scm_eol()
             for item in reversed(val):
@@ -178,6 +186,9 @@ class SCM(c_void_p):
         if type(val) is long:
             s = str(val)
             return guile.scm_c_eval_string(s)
+        if type(val) is Symbol:
+            name = SCM.toscm(val.name)
+            return guile.scm_string_to_symbol(name)
         return None
     toscm = staticmethod(toscm)
 
@@ -405,3 +416,7 @@ guile.scm_to_locale_stringn.argtypes = [SCM, POINTER(c_ulong)]
 guile.scm_to_locale_stringn.restype = c_void_p
 guile.scm_number_to_string.argtypes = [SCM, SCM]
 guile.scm_number_to_string.restype = SCM
+guile.scm_symbol_to_string.argtypes = [SCM]
+guile.scm_symbol_to_string.restype = SCM
+guile.scm_string_to_symbol.argtypes = [SCM]
+guile.scm_string_to_symbol.restype = SCM
