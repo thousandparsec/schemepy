@@ -43,35 +43,37 @@ class Symbol(object):
 class Lambda(object):
     "A Lambda object mapping to a Scheme procedure"
 
-    __slots__ = '_lambda', 'vm', 'shallow'
+    __slots__ = '_lambda', '_vm', '_shallow'
 
     def __init__(self, lam, vm, shallow):
         self._lambda = lam
-        self.vm = vm
-        self.shallow = shallow
+        self._vm = vm
+        self._shallow = shallow
 
-    def __call__(self, *args, **options):
+    def get_vm(self):
+        return self._vm
+    def set_vm(self, val):
+        raise AttributeError, "Readonly attribute: vm"
+    def get_shallow(self):
+        return self._shallow
+    def set_shallow(self, val):
+        raise AttributeError, "Readonly attribute: shallow"
+    vm = property(get_vm, set_vm, "The VM this lambda created from")
+    shallow = property(get_shallow, set_shallow, "Whether this lambda is a shallow wrapper or deep one")
+
+    def __call__(self, *args):
         """\
         Call this lambda.
 
         If this lambda is shallow, it should be called with Scheme values
         and return a Scheme value. Otherwise, it should be called with Python
         values and return a Python value.
-
-        The vm where this lambda should run can be specified through the `vm'
-        keyword argument.
         """
-        vm = self.vm
-        if options.get('vm'):
-            vm = options['vm']
-        if not vm:
-            raise VMNotFoundError, "Lambda can't be called without a VM."
-        
-        if not self.shallow:
-            args = [vm.toscheme(arg) for arg in args]
+        if not self._shallow:
+            args = [self._vm.toscheme(arg) for arg in args]
             
-        result = vm.apply(self._lambda, args)
+        result = self._vm.apply(self._lambda, args)
 
-        if self.shallow:
+        if self._shallow:
             return result
-        return self.vm.fromscheme(result)
+        return self._vm.fromscheme(result)

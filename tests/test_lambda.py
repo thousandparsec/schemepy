@@ -17,7 +17,9 @@ class TestLambda(object):
         assert m1.type(lam) is Lambda
 
         func = m1.fromscheme(lam, shallow=True)
-        func.vm = m1
+        assert func.shallow is True
+        assert func.vm is m1
+        
         for case in cases:
             result = case[0]
             args = [m1.toscheme(arg) for arg in case[1:]]
@@ -30,7 +32,9 @@ class TestLambda(object):
         assert m1.type(lam) is Lambda
 
         func = m1.fromscheme(lam)
-        func.vm = m1
+        assert func.shallow is not True
+        assert func.vm is m1
+        
         for case in cases:
             result = case[0]
             args = case[1:]
@@ -67,7 +71,6 @@ class TestLambda(object):
         lam = m1.eval(common.compile(code))
 
         func = m1.fromscheme(lam)
-        func.vm = m1
         assert func(1) == 1
         assert func(1) == 2
         assert func(1) == 3
