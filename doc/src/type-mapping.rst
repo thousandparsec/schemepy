@@ -81,3 +81,17 @@ of different representation in memory, currently, they are converted
 by first printing to a string and then read back. It is a bit slow but
 fairly acceptable when converting back and forth of big integer is not
 common.
+
+Shallow vs Deep
+===============
+
+When converting from Scheme value, by default, Schemepy use deep
+conversion. One can pass the named parameter ``shallow=True`` to get a
+shallow conversion. This parameter apply to the following cases:
+
+* cons: Including list, dict and plain cons. If shallow conversion is
+  specified, the elements aren't converted to Python value.
+* lambda: A Scheme lambda converted to Python callable with deep
+  conversion can be called with Python values as parameters,
+  otherwise, parameters should be converted to Scheme value before
+  passing to the callable. So as to the return value.

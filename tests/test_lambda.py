@@ -4,7 +4,19 @@ import common
 
 class TestLambda(object):
     """Lambda in Scheme should be callable in Python."""
-    def call_in_python(self, code, cases):
+    def call_in_python_shallow_test(self, code, cases):
+        m1 = common.VM()
+        lam = m1.eval(common.compile(s))
+
+        assert type(lam) is common.types.Lambda
+
+        func = lam.fromscheme(shallow=True)
+        for case in cases:
+            result = case[0]
+            args = [m1.toscheme(arg) for arg in case[1:]]
+            assert func(*args).fromscheme() == result
+
+    def call_in_python_test(self, code, cases):
         m1 = common.VM()
         lam = m1.eval(common.compile(s))
 
@@ -14,9 +26,9 @@ class TestLambda(object):
         for case in cases:
             result = case[0]
             args = case[1:]
-            assert func(*args).fromscheme() == result
+            assert func(*args) == result
 
-    def call_in_scheme(self, code, cases):
+    def call_in_scheme_test(self, code, cases):
         m1 = common.VM()
         lam = m1.eval(common.compile(s))
 
@@ -36,5 +48,6 @@ class TestLambda(object):
                                   [1, 2],
                                   [4, 6]])]
         for test in tests:
-            yield self.call_in_python, test[0], test[1]
-            yield self.call_in_scheme, test[0], test[1]
+            yield self.call_in_python_test, test[0], test[1]
+            yield self.call_in_scheme_test, test[0], test[1]
+            yield self.call_in_python_shallow_test, test[0], test[1]
