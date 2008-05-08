@@ -84,6 +84,8 @@ class SCM(c_void_p):
             return str
         if guile.scm_is_symbol(self):
             return Symbol
+        if guile.scm_is_true(guile.scm_procedure_p(self)):
+            return Lambda
         return type(None)
 
     def fromscheme(self, shallow=False):
@@ -149,6 +151,8 @@ class SCM(c_void_p):
             return string_at(mem, len.value)
         if guile.scm_is_symbol(self):
             return Symbol.intern(guile.scm_symbol_to_string(self).fromscheme())
+        if guile.scm_is_true(guile.scm_procedure_p(self)):
+            return Lambda(self, shallow)
         return None
 
     def toscm(val):
@@ -189,6 +193,8 @@ class SCM(c_void_p):
         if type(val) is Symbol:
             name = SCM.toscm(val.name)
             return guile.scm_string_to_symbol(name)
+        if type(val) is Lambda:
+            return val._lambda
         return None
     toscm = staticmethod(toscm)
 
@@ -270,12 +276,28 @@ class VM(object):
         self.exception = None
    
     def eval(self, src):
+        """\
+        Eval a piece of compiled Scheme code.
+        """
         exceptions = []
         r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, SCM.toscm(src),
                                      make_exception_handler(exceptions), None)
         if len(exceptions) != 0:
             raise exceptions[0]
         return r
+
+    def apply(self, proc, args):
+        """\
+        Call the Scheme procedure proc with args as arguments.
+
+          proc should be a Scheme procedure
+          args should be a list os Scheme value
+        """
+        arglist = guile.scm_eol()
+        for arg in args:
+            arglist = guile.scm_cons(arg, arglist)
+            
+        return guile.scm_apply_0(proc, arglist)
 
     def toscheme(val):
         return SCM.toscm(val)
@@ -364,6 +386,8 @@ guile.scm_car.restype   = SCM
 guile.scm_cdr.argtypes  = [SCM]
 guile.scm_cdr.restype   = SCM
 
+guile.scm_apply_0.argtypes = [SCM, SCM]
+guile.scm_apply_0.restype = SCM
 
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
@@ -396,6 +420,8 @@ guile.scm_is_null.argtypes  = [SCM]
 guile.scm_is_null.restype   = bool
 guile.scm_is_eol.argtypes   = [SCM]
 guile.scm_is_eol.restype    = bool
+guile.scm_procedure_p.argtypes = [SCM]
+guile.scm_procedure_p.restype = SCM
 
 # Conversion functions
 guile.scm_from_int32.argtypes = [c_int]

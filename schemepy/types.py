@@ -39,3 +39,39 @@ class Symbol(object):
             sym = Symbol(name)
             Symbol.symbols[name] = sym
             return sym
+
+class Lambda(object):
+    "A Lambda object mapping to a Scheme procedure"
+
+    __slots__ = '_lambda', 'vm', 'shallow'
+
+    def __init__(self, lam, shallow):
+        self._lambda = lam
+        self.vm = None
+        self.shallow = shallow
+
+    def __call__(self, *args, **options):
+        """\
+        Call this lambda.
+
+        If this lambda is shallow, it should be called with Scheme values
+        and return a Scheme value. Otherwise, it should be called with Python
+        values and return a Python value.
+
+        The vm where this lambda should run can be specified through the `vm'
+        keyword argument.
+        """
+        vm = self.vm
+        if options.get('vm'):
+            vm = options['vm']
+        if not vm:
+            raise VMNotFoundError, "Lambda can't be called without a VM."
+        
+        if not self.shallow:
+            args = [vm.toscheme(arg) for arg in args]
+            
+        result = vm.apply(self._lambda, args)
+
+        if self.shallow:
+            return result
+        return result.fromscheme()

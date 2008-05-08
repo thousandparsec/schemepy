@@ -95,3 +95,5 @@ shallow conversion. This parameter apply to the following cases:
   conversion can be called with Python values as parameters,
   otherwise, parameters should be converted to Scheme value before
   passing to the callable. So as to the return value.
+
+Converting from Python to Scheme is always a *deep* conversion.

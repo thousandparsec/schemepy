@@ -19,3 +19,12 @@ class ConversionError(Error):
         self.message = message
         
     
+class VMNotFoundError(Error):
+    """\
+    Exception raised when no VM can be found.
+    Attributes:
+        message - the error message
+    """
+    
+    def __init__(self, message):
+        self.message = message
