@@ -1,0 +1,31 @@
+Support converting a Python callable to a Scheme lambda
+----------------------------------------------------------------------
+                                                planned at: 2008-05-08
+
+A callable is first-class member in both Python and Scheme. An 
+anonymous callable in Python should be mapped to an anonymous lambda
+in Scheme, instead of registering a global C function.
+
+The implementation involve 3 steps:
+
+ 1. Define a Scheme procedure to call a Python function. This function
+    will not be available to normal Scheme code, instead, it is stored
+    in the VM.
+
+ 2. Define a Scheme lambda wrapper:
+      (lambda (call-py py-callable)
+        (lambda args
+	  (call-py py-callable args)))
+    the returned lambda will be a closure which captures both call-py
+    and py-callable.
+
+ 3. In the wrapper before returning the lambda, we should set special
+    property to the lambda so that we could identify it when 
+    converting back to Python object. 
+    
+    There's one problem of this step, we should guarantee that the
+    user don't accidentally overwrite our property on this lambda, or
+    else we won't be able to converting back our *original* Python
+    callable. Though it will still be a Python callable wrapping the
+    Scheme lambda.
+
