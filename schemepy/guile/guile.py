@@ -179,15 +179,27 @@ class VM(object):
         if type(val) is float:
             return guile.scm_from_double(val)
         if type(val) is Cons:
+            if shallow:
+                if type(val.car) is not SCM or type(val.cdr) is not SCM:
+                    raise ConversionError(val, "Invalid shallow conversion on Cons, both car and cdr should be a Scheme value.")
+                return guile.scm_cons(var.car, var.cdr)
             return guile.scm_cons(self.toscheme(val.car), self.toscheme(val.cdr))
         if isinstance(val, list):
             scm = guile.scm_eol()
             for item in reversed(val):
+                if shallow:
+                    if type(item) is not SCM:
+                        raise ConversionError(val, "Invalid shallow conversion on list, every element should be a Scheme value.")
+                    scm = guile.scm_cons(item, scm)
                 scm = guile.scm_cons(self.toscheme(item), scm)
             return scm
         if isinstance(val, dict):
             scm = guile.scm_eol()
             for key, value in val.iteritems():
+                if shallow:
+                    if type(value) is not SCM:
+                        raise ConversionError(val, "Invalid shallow conversion on dict, every value should be a Scheme value.")
+                    scm = guile.scm_cons(guile.scm_cons(self.toscheme(key), value), scm)
                 scm = guile.scm_cons(guile.scm_cons(self.toscheme(key), self.toscheme(value)), scm)
             return scm
         if type(val) is str:
