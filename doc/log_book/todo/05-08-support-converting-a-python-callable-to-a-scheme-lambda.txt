@@ -29,3 +29,7 @@ The implementation involve 3 steps:
     callable. Though it will still be a Python callable wrapping the
     Scheme lambda.
 
+I looked at the implementation of oldguile, it seems to be a simpler
+implementation. The only concern is the oldguile implementation doesn't
+hold a reference to the original Python callable, which may be garbage
+collected by the Python interpreter.

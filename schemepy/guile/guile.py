@@ -1,6 +1,7 @@
 from ctypes.util import find_library
 from ctypes import *
 from schemepy.types import *
+from schemepy.exceptions import *
 import os.path
 
 # Load the helper library which exports the macro's as C functions
@@ -88,7 +89,7 @@ class SCM(c_void_p):
             return guile.scm_string_to_symbol(name)
         if type(val) is Lambda:
             return val._lambda
-        return None
+        return PythonSMOB.new(val)
     toscm = staticmethod(toscm)
 
 class Compiler(object):
@@ -264,7 +265,9 @@ class VM(object):
             return Symbol.intern(self.fromscheme(guile.scm_symbol_to_string(val)))
         if guile.scm_is_true(guile.scm_procedure_p(val)):
             return Lambda(val, self, shallow)
-        return None
+        if guile.scm_smob_predicate(PythonSMOB.tag, val):
+            return PythonSMOB.get(val)
+        raise ConversionError(self, "Don't know how to convert this type.")
 
     def type(self, val):
         """\
@@ -304,11 +307,83 @@ class VM(object):
             return Symbol
         if guile.scm_is_true(guile.scm_procedure_p(val)):
             return Lambda
+        if guile.scm_smob_predicate(PythonSMOB.tag, val):
+            return object
         return type(None)
+
+
+from _ctypes import Py_INCREF, Py_DECREF, PyObj_FromPtr
+
+class SCMtbits(c_void_p):
+	pass
+
+class PythonSMOB(c_void_p):
+	"""
+	Functions for dealing with a Python "pass-thru" object.
+	"""
+	def register():
+		# Create the SMOB type
+		PythonSMOB.tag = guile.scm_make_smob_type("PythonSMOB", 0)
+		guile.scm_set_smob_free( PythonSMOB.tag, PythonSMOB.free)
+		guile.scm_set_smob_print(PythonSMOB.tag, PythonSMOB.str)
+	register = staticmethod(register)	
+
+        @staticmethod
+	def new(pyobj):
+		"""
+		Create a new PythonSMOB which wraps the given object.
+		"""
+		pypointer = id(pyobj)	
+
+		# Increase the reference count to the object	
+		Py_INCREF(pyobj)
+
+		# Create the new smob
+		return guile.scm_return_newsmob(PythonSMOB.tag, pypointer)
+
+        @staticmethod
+	def free(smob):
+		"""
+		When the guile garbage collector frees the smob, remove the 
+		extra reference so Python can garbage collect the object.
+		"""
+		#print "PythonSMOB.free"
+
+		# Get the python object we are pointing too
+		pypointer = guile.scm_smob_data(smob)
+
+		# Decrease the reference to the pypointer
+		Py_DECREF(PyObj_FromPtr(pypointer))
+
+		return 0
+	free_cfunc = CFUNCTYPE(c_int, c_void_p)
+
+        @staticmethod
+	def str(smob, port, pstate):
+		smob, port = SCM(smob), SCM(port)
+
+		# Get the python object we are pointing too
+		pypointer = guile.scm_smob_data(smob)
+
+		pyobj = PyObj_FromPtr(pypointer)
+		guile.scm_display(SCM.toscm(repr(pyobj)), port)
+		guile.scm_newline(port)
+
+	str_cfunc = CFUNCTYPE(None, c_void_p, c_void_p, c_void_p)
+
+        @staticmethod
+	def get(smob):
+		pypointer = guile.scm_smob_data(smob)
+		return PyObj_FromPtr(pypointer)
+
+PythonSMOB.free = PythonSMOB.free_cfunc(PythonSMOB.free)
+PythonSMOB.str  = PythonSMOB.str_cfunc(PythonSMOB.str)
 
 
 # Initialize guile
 guile.scm_init_guile()
+# Register Python smob
+PythonSMOB.register()
 
 # Macros
 guile.scm_unbndp = _guilehelper.scm_unbndp
@@ -392,6 +467,22 @@ guile.scm_cdr.restype   = SCM
 
 guile.scm_apply_0.argtypes = [SCM, SCM]
 guile.scm_apply_0.restype = SCM
+
+guile.scm_display.argtypes = [SCM, SCM]
+guile.scm_display.restype  = None
+guile.scm_newline.argtypes = [SCM]
+guile.scm_display.restype  = None
+
+guile.scm_make_smob_type.argtypes = [c_char_p, c_int]
+guile.scm_make_smob_type.restype  = SCMtbits
+guile.scm_set_smob_free.argtypes  = [SCMtbits, PythonSMOB.free_cfunc]
+guile.scm_set_smob_free.restype   = None
+guile.scm_set_smob_print.argtypes = [SCMtbits, PythonSMOB.str_cfunc]
+guile.scm_set_smob_print.restype  = None
+guile.scm_return_newsmob.argtypes = [SCMtbits, c_void_p]
+guile.scm_return_newsmob.restype  = SCM
+guile.scm_smob_predicate.argtypes = [SCMtbits, SCM]
+guile.scm_smob_predicate.restype  = bool
 
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
