@@ -50,46 +50,21 @@ class SCM(c_void_p):
         return self.__str__()
 
     def toscm(val):
-        "Convert the Python value to a SCM"
+        """\
+        Convert the Python value to a SCM
+
+        Only some simple types are supported, user code should use
+        vm.toscheme instead.
+        """
         if type(val) is bool:
             return guile.scm_from_bool(val)
         if type(val) is int:
             return guile.scm_from_int32(val)
-        if type(val) is complex:
-            return guile.scm_make_complex(val.real, val.imag)
         if type(val) is float:
             return guile.scm_from_double(val)
-#         if val is None:
-#             return guile.scm_eol()
-        if type(val) is Cons:
-            return guile.scm_cons(SCM.toscm(val.car), SCM.toscm(val.cdr))
-        if isinstance(val, list):
-            scm = guile.scm_eol()
-            for item in reversed(val):
-                scm = guile.scm_cons(SCM.toscm(item), scm)
-            return scm
-        if isinstance(val, dict):
-            scm = guile.scm_eol()
-            for key, value in val.iteritems():
-                scm = guile.scm_cons(guile.scm_cons(SCM.toscm(key), SCM.toscm(value)), scm)
-            return scm
         if type(val) is str:
             return guile.scm_from_locale_stringn(val, len(val))
-        if type(val) is unicode:
-            try:
-                s = str(val)
-                return guile.scm_from_locale_stringn(s, len(s))
-            except UnicodeEncodeError:
-                pass
-        if type(val) is long:
-            s = str(val)
-            return guile.scm_c_eval_string(s)
-        if type(val) is Symbol:
-            name = SCM.toscm(val.name)
-            return guile.scm_string_to_symbol(name)
-        if type(val) is Lambda:
-            return val._lambda
-        return PythonSMOB.new(val)
+        raise ConversionError(self, "Don't support conversion of a %s, use vm.toscheme instead." % val)
     toscm = staticmethod(toscm)
 
 class Compiler(object):
@@ -174,7 +149,7 @@ class VM(object):
         Eval a piece of compiled Scheme code.
         """
         exceptions = []
-        r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, SCM.toscm(src),
+        r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, self.toscheme(src),
                                      make_exception_handler(self, exceptions), None)
         if len(exceptions) != 0:
             raise exceptions[0]
@@ -195,7 +170,43 @@ class VM(object):
 
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
-        return SCM.toscm(val)
+        if type(val) is bool:
+            return guile.scm_from_bool(val)
+        if type(val) is int:
+            return guile.scm_from_int32(val)
+        if type(val) is complex:
+            return guile.scm_make_complex(val.real, val.imag)
+        if type(val) is float:
+            return guile.scm_from_double(val)
+        if type(val) is Cons:
+            return guile.scm_cons(self.toscheme(val.car), self.toscheme(val.cdr))
+        if isinstance(val, list):
+            scm = guile.scm_eol()
+            for item in reversed(val):
+                scm = guile.scm_cons(self.toscheme(item), scm)
+            return scm
+        if isinstance(val, dict):
+            scm = guile.scm_eol()
+            for key, value in val.iteritems():
+                scm = guile.scm_cons(guile.scm_cons(self.toscheme(key), self.toscheme(value)), scm)
+            return scm
+        if type(val) is str:
+            return guile.scm_from_locale_stringn(val, len(val))
+        if type(val) is unicode:
+            try:
+                s = str(val)
+                return guile.scm_from_locale_stringn(s, len(s))
+            except UnicodeEncodeError:
+                pass
+        if type(val) is long:
+            s = str(val)
+            return guile.scm_c_eval_string(s)
+        if type(val) is Symbol:
+            name = self.toscheme(val.name)
+            return guile.scm_string_to_symbol(name)
+        if type(val) is Lambda:
+            return val._lambda
+        return PythonSMOB.new(val)
 
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
@@ -210,7 +221,7 @@ class VM(object):
             if guile.scm_is_true(guile.scm_exact_p(val)):
                 if guile.scm_is_fixnum(val):
                     return guile.scm_to_int32(val)
-                s = guile.scm_number_to_string(val, SCM.toscm(10))
+                s = guile.scm_number_to_string(val, self.toscheme(10))
                 return long(self.fromscheme(s))
             if guile.scm_c_imag_part(val) != 0:
                 return complex(guile.scm_c_real_part(val),
