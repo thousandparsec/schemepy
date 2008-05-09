@@ -193,7 +193,7 @@ class VM(object):
             
         return guile.scm_apply_0(proc, arglist)
 
-    def toscheme(self, val):
+    def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
         return SCM.toscm(val)
 
