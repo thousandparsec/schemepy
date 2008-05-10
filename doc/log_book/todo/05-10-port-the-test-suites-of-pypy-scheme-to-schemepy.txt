@@ -1,0 +1,8 @@
+Port the test suites of pypy scheme to Schemepy
+----------------------------------------------------------------------
+                                                planned at: 2008-05-10
+
+The testcases of PyPy Scheme is at here:
+https://codespeak.net/viewvc/pypy/dist/pypy/lang/scheme/test/
+
+
