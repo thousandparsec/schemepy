@@ -2,6 +2,7 @@ from ctypes.util import find_library
 from ctypes import *
 from schemepy.types import *
 from schemepy.exceptions import *
+import types
 import os.path
 
 # Load the helper library which exports the macro's as C functions
@@ -64,6 +65,9 @@ class SCM(c_void_p):
             return guile.scm_from_double(val)
         if type(val) is str:
             return guile.scm_from_locale_stringn(val, len(val))
+        if type(val) is Symbol:
+            name = SCM.toscm(val.name)
+            return guile.scm_string_to_symbol(name)
         raise ConversionError(self, "Don't support conversion of a %s, use vm.toscheme instead." % val)
     toscm = staticmethod(toscm)
 
@@ -82,7 +86,7 @@ def exception_body(src):
     return guile.scm_eval_string(src).value
 exception_body_t = CFUNCTYPE(SCM, SCM)
 exception_body = exception_body_t(exception_body)
-
+                                   
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, c_void_p, c_void_p)
 def make_exception_handler(vm, exceptions):
     """\
@@ -137,12 +141,41 @@ guile.scm_eval_string.restype  = SCM
 guile.scm_c_eval_string.argtypes = [c_char_p]
 guile.scm_c_eval_string.restype = SCM
 
+def scm_py_call(py_callable, shallow, vm, scm_args):
+    """\
+    This function will be registered to the Scheme world to call a Python
+    callable.
+    
+    py_callable is a Python callable, wrapped as a SMOB in Scheme world.
+    shallow     is whether the wrap is shallow, i.e. the args and return values
+                will be auto-converted if not shallow.
+    vm          is the vm in which to call the function.
+    scm_args    is a Scheme cons-list for the function.
+
+    This function will not be available to normal Scheme code.
+    """
+    vm = PythonSMOB.get(vm)
+    py_callable, shallow = vm.fromscheme(py_callable), vm.fromscheme(shallow)
+    args = vm.fromscheme(scm_args, shallow=shallow)
+    result = py_callable(*args)
+    if not shallow:
+        result = vm.toscheme(result)
+    else:
+        if not isinstance(result, SCM):
+            # TODO: is it safe to raise exception in a C handler?
+            raise TypeError("Return type is not a SCM!")
+    return result.value
+
+scm_py_call_t = CFUNCTYPE(SCM, SCM, SCM, SCM, SCM)
+scm_py_call = scm_py_call_t(scm_py_call)
+    
+
 class VM(object):
     """VM for guile.
     """
 
     def __init__(self):
-        self.exception = None
+        self._init_pyfunc_interface()
    
     def eval(self, src):
         """\
@@ -161,9 +194,11 @@ class VM(object):
 
           proc should be a Scheme procedure
           args should be a list os Scheme value
+
+        The return value is a Scheme value.
         """
         arglist = guile.scm_eol()
-        for arg in args:
+        for arg in reversed(args):
             arglist = guile.scm_cons(arg, arglist)
             
         return guile.scm_apply_0(proc, arglist)
@@ -218,6 +253,16 @@ class VM(object):
             return guile.scm_string_to_symbol(name)
         if type(val) is Lambda:
             return val._lambda
+        if callable(val):
+            smob = PythonSMOB.new(val)
+            lam = self.apply(self._scm_lambda_wrapper, [self._scm_py_call,
+                                                        smob,
+                                                        self.toscheme(shallow),
+                                                        self.toscheme(self)])
+            guile.scm_set_procedure_property_x(lam,
+                                               self._scm_py_lambda_identifier,
+                                               smob)
+            return lam
         return PythonSMOB.new(val)
 
     def fromscheme(self, val, shallow=False):
@@ -287,7 +332,11 @@ class VM(object):
         if guile.scm_is_symbol(val):
             return Symbol.intern(self.fromscheme(guile.scm_symbol_to_string(val)))
         if guile.scm_is_true(guile.scm_procedure_p(val)):
-            return Lambda(val, self, shallow)
+            smob = guile.scm_procedure_property(val,
+                                                self._scm_py_lambda_identifier)
+            if guile.scm_is_false(smob):
+                return Lambda(val, self, shallow)
+            return self.fromscheme(smob) # get the original callable
         if guile.scm_smob_predicate(PythonSMOB.tag, val):
             return PythonSMOB.get(val)
         raise ConversionError(self, "Don't know how to convert this type.")
@@ -329,10 +378,27 @@ class VM(object):
         if guile.scm_is_symbol(val):
             return Symbol
         if guile.scm_is_true(guile.scm_procedure_p(val)):
-            return Lambda
+            smob = guile.scm_procedure_property(val,
+                                                self._scm_py_lambda_identifier)
+            if guile.scm_is_false(smob):
+                return Lambda
+            return types.FunctionType
         if guile.scm_smob_predicate(PythonSMOB.tag, val):
             return object
         return type(None)
+        
+    def _init_pyfunc_interface(self):
+        """\
+        Do necessary initializations so that a Python callable can
+        be wrapped as a Scheme lambda.
+        """
+        self._scm_lambda_wrapper = guile.scm_c_eval_string("""
+            (lambda (call-py py-callable shallow vm)
+              (lambda args
+                (call-py py-callable shallow vm args)))""")
+        self._scm_py_call = guile.scm_c_make_gsubr("scm-py-call", 4, 0, 0,
+                                                   scm_py_call)
+        self._scm_py_lambda_identifier = SCM.toscm(Symbol.intern("#{schemepy python callable}#"))
 
 
 from _ctypes import Py_INCREF, Py_DECREF, PyObj_FromPtr
@@ -441,7 +507,8 @@ if hasattr(_guilehelper, 'scm_from_bool'):
 	guile.scm_is_null    = _guilehelper.scm_is_null
 	guile.scm_is_string  = _guilehelper.scm_is_string
 	guile.scm_is_true    = _guilehelper.scm_is_true
-
+	guile.scm_is_false    = _guilehelper.scm_is_false
+        
 	guile.scm_to_int32    = _guilehelper.scm_to_int32
 	guile.scm_from_int32  = _guilehelper.scm_from_int32
 	guile.scm_to_double   = _guilehelper.scm_to_double
@@ -467,6 +534,7 @@ else:
 #	guile.scm_is_pair    = _guilehelper._scm_is_pair
 	guile.scm_is_symbol  = _guilehelper._scm_is_symbol
 	guile.scm_is_true    = _guilehelper._scm_is_true
+        guile.scm_is_false    = _guilehelper._scm_is_false
 	guile.scm_is_null    = _guilehelper._scm_is_null
 
 
@@ -507,11 +575,22 @@ guile.scm_return_newsmob.restype  = SCM
 guile.scm_smob_predicate.argtypes = [SCMtbits, SCM]
 guile.scm_smob_predicate.restype  = bool
 
+guile.scm_c_make_gsubr.argtypes = [c_char_p, c_int, c_int, c_int, c_void_p]
+guile.scm_c_make_gsubr.restype  = SCM
+
+guile.scm_set_procedure_property_x.argtypes = [SCM, SCM, SCM]
+guile.scm_set_procedure_property_x.restype = SCM
+guile.scm_procedure_property.argtypes = [SCM, SCM]
+guile.scm_procedure_property.restype = SCM
+
+
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
 guile.scm_exact_p.restype = SCM
 guile.scm_is_true.argtypes     = [SCM]
 guile.scm_is_true.restype      = int
+guile.scm_is_false.argtypes     = [SCM]
+guile.scm_is_false.restype      = int
 guile.scm_is_bool.argstype     = [SCM]
 guile.scm_is_bool.restype      = bool
 guile.scm_is_number.argstype   = [SCM]

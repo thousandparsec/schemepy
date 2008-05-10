@@ -16,7 +16,7 @@ class TestPyCallable(object):
         # should be 'is'
         assert m1.fromscheme(scm) is func
 
-    def call_in_scheme(self, cases):
+    def call_in_scheme(self, func, cases):
         m1 = common.VM()
         scm = m1.toscheme(func)
 

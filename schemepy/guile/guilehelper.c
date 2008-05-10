@@ -58,6 +58,10 @@ int scm_is_true(SCM x) {
 	return SCM_NFALSEP (x);
 }
 
+int scm_is_false(SCM x) {
+	return SCM_FALSEP (x);
+}
+
 int scm_is_symbol(SCM x) {
 	return SCM_SYMBOLP (x);
 }
@@ -139,6 +143,10 @@ int _scm_is_symbol(SCM x) {
 
 int _scm_is_true(SCM x) {
 	return scm_is_true(x);
+}
+
+int _scm_is_false(SCM x) {
+	return scm_is_false(x);
 }
 
 int _scm_is_null(SCM x) {

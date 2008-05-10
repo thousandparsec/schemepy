@@ -16,5 +16,5 @@ class TestPyObject(object):
         assert m1.fromscheme(scm) is obj
 
     def test_passthru(self):
-        for obj in [Foo(), Foo, self]:
+        for obj in [Foo(), Foo(), self]:
             yield self.passthru_test, obj
