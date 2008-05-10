@@ -78,6 +78,8 @@ class TestLambda(object):
     def test_lambda(self):
         tests = [("(lambda (x) (* x x))", [[1, 1], # Test normal lambda
                                            [4, 2]]),
+                 ("(lambda (a b) (+ a a b))", [[4, 1, 2], # Test parameter passing order
+                                               [8, 2, 4]]),
                  ("+", [[10, 1, 2, 3, 4],          # Test built-in procedure
                         [0, -10, 10]])]
 
