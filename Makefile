@@ -15,11 +15,12 @@ doc: $(patsubst doc/src/%.rst,doc/html/%.html,$(wildcard doc/src/*.rst))
 ########################################
 # Test
 ########################################
-PYTEST = py.test --tb=short tests
+TRUNNER = nosetests
+SCHEMEPY = tests/schemepy
 
 test_guile:
-	TEST_MODULE=guile $(PYTEST)
+	BACKEND=guile $(TRUNNER) $(SCHEMEPY)
 test_oldguile:
-	TEST_MODULE=oldguile $(PYTEST)
+	BACKEND=oldguile $(TRUNNER) $(SCHEMEPY)
 
 test: test_guile
