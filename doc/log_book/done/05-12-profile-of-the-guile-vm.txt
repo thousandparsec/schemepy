@@ -5,3 +5,8 @@ Profile of the Guile VM
 VM should take a profile (or environment) as the sandboxing model.
 Implement this for the Guile VM.
 
+
+----------------------------------------------------------------------
+                                               finished at: 2008-05-12
+
+Only scheme-report-environment and null-environment supported currently.
