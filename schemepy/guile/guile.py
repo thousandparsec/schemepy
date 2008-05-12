@@ -174,12 +174,34 @@ class VM(object):
     """VM for guile.
     """
 
-    def __init__(self):
+    def __init__(self, profile="scheme-report-environment"):
+        """\
+        Create a VM.
+
+        profile can be
+         - scheme-report-environment (default)
+         - null-environment
+        """
+        env = profiles.get(profile)
+        if not env:
+            raise ValueError, "No such profile %s" % profile
         global guileroot
         guile.scm_set_current_module(guileroot)
-        self.module = guile.scm_c_eval_string('(make-scope)')
+        self.module = guile.scm_call_1(makescope, env)
         self._init_pyfunc_interface()
 
+    def ensure_scope(meth):
+        """\
+        The decorator to ensure the scope of guile
+        is set to the current module of VM before
+        each access to the scope.
+        """
+        def scoped_meth(self, *args, **kw):
+            guile.scm_set_current_module(self.module)
+            return meth(self, *args, **kw)
+        return scoped_meth
+
+    @ensure_scope
     def define(self, name, value):
         """\
         Define a variable in Scheme. Similar to Scheme code
@@ -190,22 +212,22 @@ class VM(object):
         """
         if not isinstance(value, SCM):
             raise TypeError, "Value to define should be a Scheme value."
-        guile.scm_set_current_module(self.module)
         name = Symbol.intern(name)
         guile.scm_define(self.toscheme(name), value)
 
+    @ensure_scope
     def get(self, name, default=None):
         """\
         Get the value bound to the symbol.
 
           name can either be a string or a schemepy.types.Symbol
         """
-        guile.scm_set_current_module(self.module)
         name = Symbol.intern(name)
         if not guile.scm_symbol_exists(self.toscheme(name)):
             return default
         return guile.scm_variable_ref(guile.scm_lookup(self.toscheme(name)))
-   
+
+    @ensure_scope
     def eval(self, src):
         """\
         Eval a piece of compiled Scheme code.
@@ -217,6 +239,7 @@ class VM(object):
             raise exceptions[0]
         return r
 
+    @ensure_scope
     def apply(self, proc, args):
         """\
         Call the Scheme procedure proc with args as arguments.
@@ -232,6 +255,7 @@ class VM(object):
             
         return guile.scm_apply_0(proc, arglist)
 
+    @ensure_scope
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
         if type(val) is bool:
@@ -294,6 +318,7 @@ class VM(object):
             return lam
         return PythonSMOB.new(val)
 
+    @ensure_scope
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
         if not isinstance(val, SCM):
@@ -370,6 +395,7 @@ class VM(object):
             return PythonSMOB.get(val)
         raise ConversionError(self, "Don't know how to convert this type.")
 
+    @ensure_scope
     def type(self, val):
         """\
         Get the (Python) type of the value.
@@ -512,9 +538,16 @@ import os, os.path
 __file__ = os.path.realpath(__file__)
 __path__ = os.path.dirname(__file__)
 guile.scm_c_primitive_load (os.path.join(__path__, "profiles", "scope.scm"))
-
 makescope_symbol = guile.scm_c_lookup("make-scope")
 makescope        = guile.scm_variable_ref(makescope_symbol)
+
+# Profiles
+guile.scm_c_eval_string("(use-modules (ice-9 r5rs))")
+profiles = {
+        "scheme-report-environment" : guile.scm_c_eval_string("(scheme-report-environment 5)"),
+        "null-environment" : guile.scm_c_eval_string("(null-environment 5)")
+        }
+
 
 # Register Python smob
 PythonSMOB.register()
@@ -605,6 +638,8 @@ guile.scm_cdr.restype   = SCM
 
 guile.scm_apply_0.argtypes = [SCM, SCM]
 guile.scm_apply_0.restype = SCM
+guile.scm_call_1.argtypes = [SCM, SCM]
+guile.scm_call_1.restype = SCM
 
 guile.scm_display.argtypes = [SCM, SCM]
 guile.scm_display.restype  = None
