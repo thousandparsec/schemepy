@@ -1,26 +1,19 @@
-import py.test
-
 import common
-setup_module = common.setup_module
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from schemepy.types import Cons
-
+Cons = common.types.Cons
 
 class TestCons(object):
-    def eval_test(self, s, value):
+    def check_eval(self, s, value):
         print 'eval', s, value
 
         m1 = common.VM()
-        a = m1.eval(common.compile(s))
+        a = m1.eval(s)
 
         assert m1.type(a) is Cons
 
         assert m1.fromscheme(a) == value
 
-    def passthru_test(self, value):
+    def check_passthru(self, value):
         m1 = common.VM()
 
         scm = m1.toscheme(value)
@@ -40,5 +33,5 @@ class TestCons(object):
     def test_cons(self):
         for value, code in [(Cons(1, 2), "`(1 . 2)"),
                             (Cons("foo", "bar"), '`("foo" . "bar")')]:
-            yield self.eval_test, code, value
-            yield self.passthru_test, value
+            yield self.check_eval, code, value
+            yield self.check_passthru, value

@@ -1,13 +1,10 @@
-import py.test
-
 import common
-setup_module = common.setup_module
 
 class Foo(object):
     pass
 
 class TestPyObject(object):
-    def passthru_test(self, obj):
+    def check_passthru(self, obj):
         m1 = common.VM()
         scm = m1.toscheme(obj)
 
@@ -17,4 +14,4 @@ class TestPyObject(object):
 
     def test_passthru(self):
         for obj in [Foo(), Foo(), self]:
-            yield self.passthru_test, obj
+            yield self.check_passthru, obj

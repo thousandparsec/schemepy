@@ -1,14 +1,12 @@
-import py.test
 import types
 
 import common
-setup_module = common.setup_module
 
-def for_test_add(a, b):
+def add(a, b):
     return a+b
 
 class TestPyCallable(object):
-    def passthru_test(self, func):
+    def check_passthru(self, func):
         m1 = common.VM()
         scm = m1.toscheme(func)
 
@@ -27,10 +25,10 @@ class TestPyCallable(object):
 
     def test_pycallable(self):
         cases = [[2, 1, 1], [0, 10, -10], ["foobar", "foo", "bar"]]
-        funcs = [for_test_add, lambda a, b: a+b]
+        funcs = [add, lambda a, b: a+b]
         for case in cases:
             for func in funcs:
-                self.passthru_test(func)
+                self.check_passthru(func)
                 self.call_in_scheme(func, cases)
 
     def test_shallow_conversion(self):

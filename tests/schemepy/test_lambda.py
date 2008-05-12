@@ -1,18 +1,12 @@
-import py.test
-
 import common
-setup_module = common.setup_module
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from schemepy.types import Lambda
+Lambda = common.types.Lambda
 
 class TestLambda(object):
     """Lambda in Scheme should be callable in Python."""
-    def call_in_python_shallow_test(self, code, cases):
+    def call_in_python_shallow(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(common.compile(code))
+        lam = m1.eval(code)
 
         assert m1.type(lam) is Lambda
 
@@ -25,9 +19,9 @@ class TestLambda(object):
             args = [m1.toscheme(arg) for arg in case[1:]]
             assert m1.fromscheme(func(*args)) == result
 
-    def call_in_python_test(self, code, cases):
+    def call_in_python(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(common.compile(code))
+        lam = m1.eval(code)
 
         assert m1.type(lam) is Lambda
 
@@ -40,9 +34,9 @@ class TestLambda(object):
             args = case[1:]
             assert func(*args) == result
 
-    def call_in_scheme_test(self, code, cases):
+    def call_in_scheme(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(common.compile(code))
+        lam = m1.eval(code)
 
         for case in cases:
             result = case[0]
@@ -50,9 +44,9 @@ class TestLambda(object):
             rlt = m1.apply(lam, args)
             assert m1.fromscheme(rlt) == result
 
-    def passthru_test(self, code, cases):
+    def check_passthru(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(common.compile(code))
+        lam = m1.eval(code)
         func = m1.fromscheme(lam)
         lam = m1.toscheme(func)
 
@@ -68,7 +62,7 @@ class TestLambda(object):
                            (set! v (+ v x))
                          v))"""
         m1 = common.VM()
-        lam = m1.eval(common.compile(code))
+        lam = m1.eval(code)
 
         func = m1.fromscheme(lam)
         assert func(1) == 1
@@ -84,7 +78,7 @@ class TestLambda(object):
                         [0, -10, 10]])]
 
         for test in tests:
-            yield self.call_in_python_test, test[0], test[1]
-            yield self.call_in_scheme_test, test[0], test[1]
-            yield self.call_in_python_shallow_test, test[0], test[1]
-            yield self.passthru_test, test[0], test[1]
+            yield self.call_in_python, test[0], test[1]
+            yield self.call_in_scheme, test[0], test[1]
+            yield self.call_in_python_shallow, test[0], test[1]
+            yield self.check_passthru, test[0], test[1]

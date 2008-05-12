@@ -1,20 +1,16 @@
-
 import common
-setup_module = common.setup_module
-
-import py.test
 
 class TestString(object):
-	def eval_test(self, value):
+	def check_eval(self, value):
 		print "eval", repr(value)
 
 		m1 = common.VM()
-		a = m1.eval(common.compile('"%s"' % value))
+		a = m1.eval('"%s"' % value)
 
 		assert m1.type(a) in (str, unicode)
 		assert m1.fromscheme(a) == value
 
-	def passthru_test(self, value):
+	def check_passthru(self, value):
 		print "passthru", repr(value)
 
 		m1 = common.VM()
@@ -32,5 +28,5 @@ class TestString(object):
 			u"", u"abc", u"t\n\t\n\r", u"a\0\0tl;\0a",
 		]
 		for value in strings:
-			yield self.eval_test, value
-			yield self.passthru_test, value
+			yield self.check_eval, value
+			yield self.check_passthru, value

@@ -1,22 +1,18 @@
-
 import common
-setup_module = common.setup_module
-
-import py.test
 
 class TestList(object):
-	def eval_test(self, s, value):
+	def check_eval(self, s, value):
 		"""
 		"""
 		print 'eval', s, value
 
 		m1 = common.VM()
-		a = m1.eval(common.compile(s))
+		a = m1.eval(s)
 
 		assert m1.type(a) == list
 		assert m1.fromscheme(a) == value
 
-	def passthru_test(self, s, value):
+	def check_passthru(self, s, value):
 		print "passthru", repr(value)
 
 		m1 = common.VM()
@@ -27,7 +23,7 @@ class TestList(object):
 
 	def test_empty_list(self):
 		m1 = common.VM()
-		a = m1.eval(common.compile("`()"))
+		a = m1.eval("`()")
 		assert m1.type(a) == list
 		assert m1.fromscheme(a) == []
 
@@ -46,5 +42,5 @@ class TestList(object):
                        '`(1 1.0 "a")'      : [1, 1.0, 'a'],            # List with a simpled mixed list
                 }
 		for s, value in lists.items():
-			yield self.eval_test, s, value
-			yield self.passthru_test, s, value
+			yield self.check_eval, s, value
+			yield self.check_passthru, s, value

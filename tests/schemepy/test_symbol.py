@@ -1,25 +1,19 @@
-import py.test
-
 import common
-setup_module = common.setup_module
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from schemepy.types import Symbol
+Symbol = common.types.Symbol
 
 class TestSymbol(object):
-    def eval_test(self, s, value):
+    def check_eval(self, s, value):
         print 'eval', s, value
 
         m1 = common.VM()
-        a = m1.eval(common.compile(s))
+        a = m1.eval(s)
 
         assert m1.type(a) is Symbol
         # should be `is'
         assert m1.fromscheme(a) is value
         
-    def passthru_test(self, value):
+    def check_passthru(self, value):
         m1 = common.VM()
 
         scm = m1.toscheme(value)
@@ -33,5 +27,5 @@ class TestSymbol(object):
         for value in [Symbol.intern(""),
                       Symbol.intern("symbol"),
                       Symbol.intern("#{--->!---<}#")]:
-            yield self.eval_test, ("(string->symbol \"%s\")" % value.name), value
-            yield self.passthru_test, value
+            yield self.check_eval, ("(string->symbol \"%s\")" % value.name), value
+            yield self.check_passthru, value

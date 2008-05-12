@@ -1,7 +1,4 @@
-import py.test
-
 import common
-setup_module = common.setup_module
 
 class TestMultiVM(object):
     def test_multi_vm(self):

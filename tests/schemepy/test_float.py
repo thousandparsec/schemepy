@@ -1,23 +1,19 @@
-
 import common
-setup_module = common.setup_module
-
-import py.test
 	
 class TestFloat(object):
-	def eval_test(self, s, value):
+	def check_eval(self, s, value):
 		"""
 		Checks that the eval returns long for large integers.
 		"""
 		print 'eval', s, value
 
 		m1 = common.VM()
-		a = m1.eval(common.compile(s))
+		a = m1.eval(s)
 
 		assert m1.type(a) == float
 		assert m1.fromscheme(a) == value
 
-	def passthru_test(self, s, value):
+	def check_passthru(self, s, value):
 		print "passthru", repr(value)
 
 		m1 = common.VM()
@@ -51,7 +47,7 @@ class TestFloat(object):
 		}
 
 		for s, value in floats.items():
-			yield self.eval_test, s, value
-			yield self.passthru_test, s, value
+			yield self.check_eval, s, value
+			yield self.check_passthru, s, value
 
 
