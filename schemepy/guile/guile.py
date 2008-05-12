@@ -175,6 +175,9 @@ class VM(object):
     """
 
     def __init__(self):
+        global guileroot
+        guile.scm_set_current_module(guileroot)
+        self.module = guile.scm_c_eval_string('(make-scope)')
         self._init_pyfunc_interface()
 
     def define(self, name, value):
@@ -187,6 +190,7 @@ class VM(object):
         """
         if not isinstance(value, SCM):
             raise TypeError, "Value to define should be a Scheme value."
+        guile.scm_set_current_module(self.module)
         name = Symbol.intern(name)
         guile.scm_define(self.toscheme(name), value)
 
@@ -196,6 +200,7 @@ class VM(object):
 
           name can either be a string or a schemepy.types.Symbol
         """
+        guile.scm_set_current_module(self.module)
         name = Symbol.intern(name)
         if not guile.scm_symbol_exists(self.toscheme(name)):
             return default
@@ -495,8 +500,25 @@ PythonSMOB.str  = PythonSMOB.str_cfunc(PythonSMOB.str)
 
 # Initialize guile
 guile.scm_init_guile()
+guileroot = guile.scm_current_module()
+
+# Load the pretty-print module..
+guile.scm_c_eval_string("(use-modules (ice-9 pretty-print))")
+prettyprint_symbol = guile.scm_c_lookup("pretty-print")
+prettyprint        = guile.scm_variable_ref(prettyprint_symbol)
+
+# Create a "scope" for this class
+import os, os.path
+__file__ = os.path.realpath(__file__)
+__path__ = os.path.dirname(__file__)
+guile.scm_c_primitive_load (os.path.join(__path__, "profiles", "scope.scm"))
+
+makescope_symbol = guile.scm_c_lookup("make-scope")
+makescope        = guile.scm_variable_ref(makescope_symbol)
+
 # Register Python smob
 PythonSMOB.register()
+
 
 # Macros
 guile.scm_unbndp = _guilehelper.scm_unbndp
@@ -616,6 +638,10 @@ guile.scm_lookup.argtypes = [SCM]
 guile.scm_lookup.restype = SCM
 guile.scm_symbol_exists.argtypes = [SCM]
 guile.scm_symbol_exists.restype = bool
+
+guile.scm_current_module.restype = SCM
+guile.scm_set_current_module.argtypes = [SCM]
+guile.scm_set_current_module.restype = SCM
 
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
