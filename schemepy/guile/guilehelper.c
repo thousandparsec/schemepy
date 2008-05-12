@@ -240,6 +240,17 @@ int scm_c_symbol_exists(const char *name) {
 	return 0;
 }
 
+int scm_symbol_exists(SCM sym) {
+    SCM var;
+
+    var = scm_sym2var(sym,
+                      scm_current_module_lookup_closure(),
+                      SCM_BOOL_F);
+    if (var != SCM_BOOL_F)
+        return 1;
+    return 0;
+}
+
 /* SMOB Helper functions */
 void scm_set_smob_data(SCM x, void* p) {
 	SCM_SET_SMOB_DATA(x, p);

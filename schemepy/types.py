@@ -32,6 +32,8 @@ class Symbol(object):
         
     @staticmethod
     def intern(name):
+        if type(name) is Symbol:
+            return name
         sym = Symbol.symbols.get(name)
         if sym:
             return sym

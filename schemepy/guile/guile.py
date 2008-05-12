@@ -176,6 +176,30 @@ class VM(object):
 
     def __init__(self):
         self._init_pyfunc_interface()
+
+    def define(self, name, value):
+        """\
+        Define a variable in Scheme. Similar to Scheme code
+          (define name value)
+
+          name can either be a string or a schemepy.types.Symbol
+          value should be a Scheme value
+        """
+        if not isinstance(value, SCM):
+            raise TypeError, "Value to define should be a Scheme value."
+        name = Symbol.intern(name)
+        guile.scm_define(self.toscheme(name), value)
+
+    def get(self, name, default=None):
+        """\
+        Get the value bound to the symbol.
+
+          name can either be a string or a schemepy.types.Symbol
+        """
+        name = Symbol.intern(name)
+        if not guile.scm_symbol_exists(self.toscheme(name)):
+            return default
+        return guile.scm_variable_ref(guile.scm_lookup(self.toscheme(name)))
    
     def eval(self, src):
         """\
@@ -480,6 +504,7 @@ guile.scm_bool_t = _guilehelper.scm_bool_t
 guile.scm_bool_f = _guilehelper.scm_bool_f
 guile.scm_eol    = _guilehelper.scm_eol
 guile.scm_c_symbol_exists = _guilehelper.scm_c_symbol_exists
+guile.scm_symbol_exists = _guilehelper.scm_symbol_exists
 
 guile.scm_smob_data      = _guilehelper.scm_smob_data
 guile.scm_set_smob_data  = _guilehelper.scm_set_smob_data
@@ -583,6 +608,14 @@ guile.scm_set_procedure_property_x.restype = SCM
 guile.scm_procedure_property.argtypes = [SCM, SCM]
 guile.scm_procedure_property.restype = SCM
 
+guile.scm_define.argtypes = [SCM, SCM]
+guile.scm_define.restype = SCM
+guile.scm_variable_ref.argtypes = [SCM]
+guile.scm_variable_ref.restype  = SCM
+guile.scm_lookup.argtypes = [SCM]
+guile.scm_lookup.restype = SCM
+guile.scm_symbol_exists.argtypes = [SCM]
+guile.scm_symbol_exists.restype = bool
 
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
