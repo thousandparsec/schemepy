@@ -5,3 +5,8 @@ Map Scheme error to Python Exception
 Scheme backend can fire a bunch of errors. Map those errors to an
 exception hierarchy of Schemepy of Python exceptions. 
 
+The exception hierarchy can refer to PyPy Scheme's. There are some 
+typical exception in its test_eval.py test case, which can be found
+here:
+  https://codespeak.net/viewvc/pypy/dist/pypy/lang/scheme/test/
+
