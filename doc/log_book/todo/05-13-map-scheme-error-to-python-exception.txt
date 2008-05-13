@@ -1,0 +1,7 @@
+Map Scheme error to Python Exception
+----------------------------------------------------------------------
+                                                planned at: 2008-05-13
+
+Scheme backend can fire a bunch of errors. Map those errors to an
+exception hierarchy of Schemepy of Python exceptions. 
+
