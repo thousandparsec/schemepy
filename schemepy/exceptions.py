@@ -28,3 +28,13 @@ class VMNotFoundError(Error):
     
     def __init__(self, message):
         self.message = message
+
+class BackendNotFoundError(Error):
+    """\
+    Exception raised when no backend can be found.
+    Attributes:
+        message - the error message
+    """
+
+    def __init__(self, message):
+        self.message = message
