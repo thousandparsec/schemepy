@@ -39,6 +39,7 @@ backends_loaded = {
 # The default 'backend module name'
 default_backend_module = "guile"
 
+# TODO: Find another when one failed to load
 def default_backend():
     """\
     Try to find a default backend to use.

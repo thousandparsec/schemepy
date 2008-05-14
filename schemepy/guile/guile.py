@@ -86,7 +86,42 @@ def exception_body(src):
     return guile.scm_eval_string(src).value
 exception_body_t = CFUNCTYPE(SCM, SCM)
 exception_body = exception_body_t(exception_body)
-                                   
+
+def make_scheme_exception(vm, key, args):
+    sym = vm.fromscheme(key).name
+    port = guile.scm_open_output_string()
+    lst = vm.fromscheme(args, shallow=True)
+    proc = vm.fromscheme(lst[0])
+    if proc is False:
+        proc = ""
+    else:
+        proc = "(in %s)" % proc
+    
+    guile.scm_simple_format(port, lst[1], lst[2])
+    buf = guile.scm_get_output_string(port)
+    guile.scm_close_port(port)
+    
+    msg = "%s%s raised: %s" % (sym, proc, vm.fromscheme(buf))
+    Error = ScmMiscError
+
+    if sym in ('error-signal', 'system-error', \
+               'memory-allocation-error', 'stack-overflow'):
+        Error = ScmSystemError
+    elif sym == 'numerical-overflow':
+        Error = ScmNumericalError
+    elif sym == 'out-of-range':
+        Error = ScmRangeError
+    elif sym == 'wrong-type-arg':
+        Error = ScmWrongArgType
+    elif sym == 'wrong-number-of-args':
+        Error = ScmWrongArgNumber
+    elif sym == 'read-error':
+        Error = ScmSyntaxError
+    elif sym == 'unbound-variable':
+        Error = ScmUnboundVariable
+
+    return Error(msg)
+    
 exception_handler_t = CFUNCTYPE(SCM, c_void_p, c_void_p, c_void_p)
 def make_exception_handler(vm, exceptions):
     """\
@@ -128,9 +163,7 @@ def make_exception_handler(vm, exceptions):
         """
         key = SCM(key)
         args = SCM(args)
-        # this will fail when converting some unknown type of scheme value
-        # exceptions.append(Exception(vm.fromscheme(key), vm.fromscheme(args)))
-        exceptions.append(Exception(key, args))
+        exceptions.append(make_scheme_exception(vm, key, args))
         return guile.scm_bool_t().value
 
     return exception_handler_t(exception_handle)
@@ -683,6 +716,15 @@ guile.scm_symbol_exists.restype = bool
 guile.scm_current_module.restype = SCM
 guile.scm_set_current_module.argtypes = [SCM]
 guile.scm_set_current_module.restype = SCM
+
+guile.scm_open_output_string.argtypes = []
+guile.scm_open_output_string.restype = SCM
+guile.scm_simple_format.argtypes = [SCM, SCM, SCM]
+guile.scm_simple_format.restype = SCM
+guile.scm_get_output_string.argtypes = [SCM]
+guile.scm_get_output_string.restype = SCM
+guile.scm_close_port.argtypes = [SCM]
+guile.scm_close_port.restype = SCM
 
 # Predict functions
 guile.scm_exact_p.argtypes = [SCM]
