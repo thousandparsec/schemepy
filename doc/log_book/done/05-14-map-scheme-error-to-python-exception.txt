@@ -10,3 +10,10 @@ typical exception in its test_eval.py test case, which can be found
 here:
   https://codespeak.net/viewvc/pypy/dist/pypy/lang/scheme/test/
 
+
+----------------------------------------------------------------------
+                                               finished at: 2008-05-14
+
+Some exceptions are defined to be derived from a common ancestor
+schemepy.exceptions.SchemeError. Guile errors are mapped to those
+exceptions. Other backend will also map their errors to those exceptions.

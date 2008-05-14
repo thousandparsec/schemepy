@@ -3,6 +3,7 @@
 
 import schemepy
 import schemepy.types
+from schemepy.exceptions import *
 import nose.tools
 
 def test_numerical():
@@ -26,7 +27,7 @@ def test_numerical():
     w_num = vm.eval("(* 4 -5 6.1)")
     assert vm.fromscheme(w_num) == (4 * -5 * 6.1)
 
-    nose.tools.assert_raises(Exception, vm.eval, "(/)")
+    nose.tools.assert_raises(ScmWrongArgNumber, vm.eval, "(/)")
     w_num = vm.eval("(/ 4)")
     assert vm.fromscheme(w_num) == 1 / 4.0
     w_num = vm.eval("(/ 4 -5)")
@@ -34,7 +35,7 @@ def test_numerical():
     w_num = vm.eval("(/ 4 -5 6.1)")
     assert vm.fromscheme(w_num) == (4 / -5.0 / 6.1)
 
-    nose.tools.assert_raises(Exception, vm.eval, "(-)")
+    nose.tools.assert_raises(ScmWrongArgNumber, vm.eval, "(-)")
     w_num = vm.eval("(- 4)")
     assert vm.fromscheme(w_num) == -4
     w_num = vm.eval("(- 4 5)")
@@ -42,14 +43,14 @@ def test_numerical():
     w_num = vm.eval("(- 4 -5 6.1)")
     assert vm.fromscheme(w_num) == 4 - (-5) - 6.1
 
-    nose.tools.assert_raises(Exception, vm.eval, "(+ 'a)")
-    nose.tools.assert_raises(Exception, vm.eval, "(+ 1 'a)")
-    nose.tools.assert_raises(Exception, vm.eval, "(- 'a)")
-    nose.tools.assert_raises(Exception, vm.eval, "(- 1 'a)")
-    nose.tools.assert_raises(Exception, vm.eval, "(* 'a)")
-    nose.tools.assert_raises(Exception, vm.eval, "(* 2 'a)")
-    nose.tools.assert_raises(Exception, vm.eval, "(/ 'a)")
-    nose.tools.assert_raises(Exception, vm.eval, "(/ 1 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(+ 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(+ 1 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(- 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(- 1 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(* 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(* 2 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(/ 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(/ 1 'a)")
 
 def test_numerical_nested():
     vm = schemepy.VM()
@@ -97,7 +98,7 @@ def test_sete():
     vm.eval("(define x 42)")
     vm.eval("(set! x 43)")
     assert vm.fromscheme(vm.get("x")) == 43
-    nose.tools.assert_raises(Exception, vm.eval, "(set! y 42)")
+    nose.tools.assert_raises(ScmUnboundVariable, vm.eval, "(set! y 42)")
 
 def test_if_simple():
     vm = schemepy.VM()
@@ -189,7 +190,7 @@ def test_comparison_homonums():
     w_bool = vm.eval("(= 2.1 2.1 2.1 2)")
     assert vm.fromscheme(w_bool) is False
 
-    nose.tools.assert_raises(Exception, vm.eval, "(= 'a 1)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(= 'a 1)")
 
 def test_comparison_heteronums():
     vm = schemepy.VM()
@@ -381,7 +382,7 @@ def test_let():
                   (x (lambda () 2))) (y)))""")
     assert vm.fromscheme(w_result) == 1
 
-    nose.tools.assert_raises(Exception, vm.eval, "(let ((y 0) (x y)) x)")
+    nose.tools.assert_raises(ScmUnboundVariable, vm.eval, "(let ((y 0) (x y)) x)")
 
 def test_letrec():
     vm = schemepy.VM()
@@ -405,7 +406,7 @@ def test_letrec():
                      (x (lambda () 2))) (y)))""")
     assert vm.fromscheme(w_result) == 2
 
-    nose.tools.assert_raises(Exception, vm.eval, "(letrec ((y 0) (x y)) x)")
+    nose.tools.assert_raises(ScmUnboundVariable, vm.eval, "(letrec ((y 0) (x y)) x)")
 
 def test_letstar():
     #test for (let* ...)
@@ -417,7 +418,7 @@ def test_letstar():
                 z)""")
     assert vm.fromscheme(w_result) == 42
 
-    nose.tools.assert_raises(Exception, vm.eval, "(let* ((x (+ 1 y)) (y 0)) x)")
+    nose.tools.assert_raises(ScmUnboundVariable, vm.eval, "(let* ((x (+ 1 y)) (y 0)) x)")
 
 def test_numbers():
     vm = schemepy.VM()
@@ -443,11 +444,11 @@ def test_exactness():
     
     assert vm.fromscheme(vm.eval("(exact? 42)"))
     assert not vm.fromscheme(vm.eval("(exact? 42.0)"))
-    nose.tools.assert_raises(Exception, vm.eval, "(exact? 'a)" )
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(exact? 'a)" )
 
     assert not vm.fromscheme(vm.eval("(inexact? 42)"))
     assert vm.fromscheme(vm.eval("(inexact? 42.0)"))
-    nose.tools.assert_raises(Exception, vm.eval, "(inexact? 'a)" )
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(inexact? 'a)" )
 
 def test_number_predicates():
     vm = schemepy.VM()
@@ -455,26 +456,26 @@ def test_number_predicates():
     assert vm.fromscheme(vm.eval("(zero? 0)"))
     assert vm.fromscheme(vm.eval("(zero? 0.0)"))
     assert not vm.fromscheme(vm.eval("(zero? 1.0)"))
-    nose.tools.assert_raises(Exception, vm.eval, "(zero? 'a)" )
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(zero? 'a)" )
 
     assert not vm.fromscheme(vm.eval("(odd? 0)"))
     assert vm.fromscheme(vm.eval("(odd? 1)"))
-    nose.tools.assert_raises(Exception, vm.eval, "(odd? 1.1)" )
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(odd? 1.1)" )
 
     assert vm.fromscheme(vm.eval("(even? 0)"))
     assert not vm.fromscheme(vm.eval("(even? 1)"))
-    nose.tools.assert_raises(Exception, vm.eval, "(even? 1.1)" )
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(even? 1.1)" )
 
 def test_delay_promise_force():
     vm = schemepy.VM()
     
     w_promise = vm.eval("(delay (+ 1 2))")
     vm.define("d", w_promise)
-    nose.tools.assert_raises(Exception, vm.eval, "(d)")
+    nose.tools.assert_raises(ScmMiscError, vm.eval, "(d)")
 
     w_value = vm.eval("(force d)")
     assert vm.fromscheme(w_value) == 3
-    nose.tools.assert_raises(Exception, vm.eval, "(force 'a)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(force 'a)")
 
     vm.eval("(define d2 (delay (+ 1 x)))")
     vm.eval("(define x 42)")
@@ -548,7 +549,7 @@ def test_quasiquote():
                                       (quote (unquote name)))))""")
     assert vm.fromscheme(w_res) == [sym("list"), sym("a"), [sym("quote"), sym("a")]]
 
-    nose.tools.assert_raises(Exception, vm.eval, "`(,,(+ 1 2))")
+    nose.tools.assert_raises(ScmUnboundVariable, vm.eval, "`(,,(+ 1 2))")
 
 def test_quasiquote_nested():
     sym = schemepy.types.Symbol.intern
@@ -588,7 +589,7 @@ def test_quasiquote_splicing():
     
     w_res = vm.eval("""`(1 2 ,@(list 3 4) 5 6)""")
     assert vm.fromscheme(w_res) == [1, 2, 3, 4, 5, 6]
-    nose.tools.assert_raises(Exception, vm.eval, "`(,@(list 1 ,@(list 2 3)))")
+    nose.tools.assert_raises(ScmUnboundVariable, vm.eval, "`(,@(list 1 ,@(list 2 3)))")
 
     w_res = vm.eval("""`(1 2 ,@(list 3 4) . ,(+ 2 3))""")
     assert vm.type(w_res) is schemepy.types.Cons
@@ -740,6 +741,6 @@ def test_apply():
     assert vm.fromscheme(w_result) == 64
 
     assert vm.fromscheme(vm.eval("(apply + '())")) == 0
-    nose.tools.assert_raises(Exception, vm.eval, "(apply 1)")
-    nose.tools.assert_raises(Exception, vm.eval, "(apply 1 '(1))")
-    nose.tools.assert_raises(Exception, vm.eval, "(apply + 42)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(apply 1)")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(apply 1 '(1))")
+    nose.tools.assert_raises(ScmWrongArgType, vm.eval, "(apply + 42)")

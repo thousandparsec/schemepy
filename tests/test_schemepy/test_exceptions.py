@@ -1,9 +1,10 @@
 import common
 from nose.tools import raises
+SchemeError = common.exceptions.SchemeError
 
 class TestExceptions(object):
 
-	@raises(Exception)
+	@raises(SchemeError)
 	def test_crap(self):
 		"""
 		Checks the interprator doesn't dies properly on crap...
