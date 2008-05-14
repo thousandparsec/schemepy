@@ -41,7 +41,8 @@
 <li><a class="reference internal" href="#procedure" id="id8">procedure</a></li>
 <li><a class="reference internal" href="#object" id="id9">object</a></li>
 <li><a class="reference internal" href="#big-integer" id="id10">big integer</a></li>
-<li><a class="reference internal" href="#shallow-vs-deep" id="id11">Shallow vs Deep</a></li>
+<li><a class="reference internal" href="#rational" id="id11">rational</a></li>
+<li><a class="reference internal" href="#shallow-vs-deep" id="id12">Shallow vs Deep</a></li>
 </ul>
 </div>
 <p>This document described the type mapping between Scheme and Python.</p>
@@ -110,8 +111,16 @@ by first printing to a string and then read back. It is a bit slow but
 fairly acceptable when converting back and forth of big integer is not
 common.</p>
 </div>
+<div class="section" id="rational">
+<h1><a class="toc-backref" href="#id11">rational</a></h1>
+<p>Scheme have the rational number type. It is exact value. Python don't
+have built-in support for this. Though it can be emulated, it is
+generally not very efficient and usually not required. So the Scheme
+rational number is mapped to a Python float. And when converting back
+to Scheme, it will be an inexact number.</p>
+</div>
 <div class="section" id="shallow-vs-deep">
-<h1><a class="toc-backref" href="#id11">Shallow vs Deep</a></h1>
+<h1><a class="toc-backref" href="#id12">Shallow vs Deep</a></h1>
 <p>When converting from Scheme value, by default, Schemepy use deep
 conversion. One can pass the named parameter <tt class="docutils literal"><span class="pre">shallow=True</span></tt> to get a
 shallow conversion. This parameter apply to the following cases:</p>

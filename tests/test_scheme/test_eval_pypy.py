@@ -28,9 +28,9 @@ def test_numerical():
 
     nose.tools.assert_raises(Exception, vm.eval, "(/)")
     w_num = vm.eval("(/ 4)")
-    assert vm.fromscheme(w_num) == 1 / 4
+    assert vm.fromscheme(w_num) == 1 / 4.0
     w_num = vm.eval("(/ 4 -5)")
-    assert vm.fromscheme(w_num) == 4 / -5
+    assert vm.fromscheme(w_num) == 4 / -5.0
     w_num = vm.eval("(/ 4 -5 6.1)")
     assert vm.fromscheme(w_num) == (4 / -5.0 / 6.1)
 

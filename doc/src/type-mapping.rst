@@ -82,6 +82,15 @@ by first printing to a string and then read back. It is a bit slow but
 fairly acceptable when converting back and forth of big integer is not
 common.
 
+rational
+========
+
+Scheme have the rational number type. It is exact value. Python don't
+have built-in support for this. Though it can be emulated, it is
+generally not very efficient and usually not required. So the Scheme
+rational number is mapped to a Python float. And when converting back
+to Scheme, it will be an inexact number.
+
 Shallow vs Deep
 ===============
 

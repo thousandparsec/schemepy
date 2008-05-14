@@ -1,7 +1,0 @@
-Handle the Scheme rational type
-----------------------------------------------------------------------
-                                                planned at: 2008-05-13
-
-Scheme has a rational type, but Python doesn't have. Map that to the
-float type of Python.
-

@@ -334,8 +334,10 @@ class VM(object):
             if guile.scm_is_true(guile.scm_exact_p(val)):
                 if guile.scm_is_fixnum(val):
                     return guile.scm_to_int32(val)
-                s = guile.scm_number_to_string(val, self.toscheme(10))
-                return eval(self.fromscheme(s))
+                if guile.scm_is_integer(val):
+                    s = guile.scm_number_to_string(val, self.toscheme(10))
+                    return eval(self.fromscheme(s))
+                return guile.scm_to_double(val) # rational
             if guile.scm_c_imag_part(val) != 0:
                 return complex(guile.scm_c_real_part(val),
                                guile.scm_c_imag_part(val))
@@ -414,7 +416,9 @@ class VM(object):
             if guile.scm_is_true(guile.scm_exact_p(val)):
                 if guile.scm_is_fixnum(val):
                     return int
-                return long
+                if guile.scm_is_integer(val):
+                    return long
+                return float
             if guile.scm_c_imag_part(val) != 0:
                 return complex
             return float
