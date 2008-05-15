@@ -6,7 +6,7 @@ class TestLambda(object):
     """Lambda in Scheme should be callable in Python."""
     def call_in_python_shallow(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(code)
+        lam = m1.eval(m1.compile(code))
 
         assert m1.type(lam) is Lambda
 
@@ -21,7 +21,7 @@ class TestLambda(object):
 
     def call_in_python(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(code)
+        lam = m1.eval(m1.compile(code))
 
         assert m1.type(lam) is Lambda
 
@@ -36,7 +36,7 @@ class TestLambda(object):
 
     def call_in_scheme(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(code)
+        lam = m1.eval(m1.compile(code))
 
         for case in cases:
             result = case[0]
@@ -46,7 +46,7 @@ class TestLambda(object):
 
     def check_passthru(self, code, cases):
         m1 = common.VM()
-        lam = m1.eval(code)
+        lam = m1.eval(m1.compile(code))
         func = m1.fromscheme(lam)
         lam = m1.toscheme(func)
 
@@ -62,7 +62,7 @@ class TestLambda(object):
                            (set! v (+ v x))
                          v))"""
         m1 = common.VM()
-        lam = m1.eval(code)
+        lam = m1.eval(m1.compile(code))
 
         func = m1.fromscheme(lam)
         assert func(1) == 1

@@ -71,12 +71,6 @@ class SCM(c_void_p):
         raise ConversionError(self, "Don't support conversion of a %s, use vm.toscheme instead." % val)
     toscm = staticmethod(toscm)
 
-class Compiler(object):
-    """Compiler for guile. Guile doesn't support bytecode yet. So the
-    compiler just do nothing."""
-    def __call__(self, code):
-        return code
-
 
 def exception_body(src):
     """\
@@ -224,6 +218,11 @@ class VM(object):
         guile.scm_set_current_module(guileroot)
         self.module = guile.scm_call_1(makescope, env)
         self._init_pyfunc_interface()
+
+    def compile(self, code):
+        """Compiler for guile. Guile doesn't support bytecode yet. So the
+        compiler just do nothing."""
+        return code
 
     def ensure_scope(meth):
         """\

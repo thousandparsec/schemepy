@@ -7,7 +7,7 @@ class TestCons(object):
         print 'eval', s, value
 
         m1 = common.VM()
-        a = m1.eval(s)
+        a = m1.eval(m1.compile(s))
 
         assert m1.type(a) is Cons
 

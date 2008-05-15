@@ -5,7 +5,7 @@ class TestString(object):
 		print "eval", repr(value)
 
 		m1 = common.VM()
-		a = m1.eval('"%s"' % value)
+		a = m1.eval(m1.compile('"%s"' % value))
 
 		assert m1.type(a) in (str, unicode)
 		assert m1.fromscheme(a) == value

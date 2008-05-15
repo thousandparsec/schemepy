@@ -35,25 +35,23 @@
 <li><a class="reference internal" href="#config-the-behavior-fo-the-front-end" id="id4">Config the behavior fo the front-end</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#create-a-compiler" id="id5">Create a compiler</a></li>
-<li><a class="reference internal" href="#create-a-vm" id="id6">Create a VM</a></li>
-<li><a class="reference internal" href="#extend-the-vm" id="id7">Extend the VM</a><ul>
-<li><a class="reference internal" href="#global-variables" id="id8">Global variables</a></li>
-<li><a class="reference internal" href="#functions" id="id9">Functions</a></li>
+<li><a class="reference internal" href="#create-a-vm" id="id5">Create a VM</a></li>
+<li><a class="reference internal" href="#extend-the-vm" id="id6">Extend the VM</a><ul>
+<li><a class="reference internal" href="#global-variables" id="id7">Global variables</a></li>
+<li><a class="reference internal" href="#functions" id="id8">Functions</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#compile-and-run-the-scheme-program" id="id10">Compile and run the Scheme program</a></li>
+<li><a class="reference internal" href="#compile-and-run-the-scheme-program" id="id9">Compile and run the Scheme program</a></li>
 </ul>
 </div>
 <p>Schemepy front-end will define a unified interface. It will be
 independent to the back-end used.</p>
 <div class="section" id="phases">
 <h1><a class="toc-backref" href="#id1">Phases</a></h1>
-<p>Using Schemepy to embed Scheme in the Python program involves 5
+<p>Using Schemepy to embed Scheme in the Python program involves 6
 phases:</p>
 <ul class="simple">
 <li>Load and configure Schemepy.</li>
-<li>Create a compiler.</li>
 <li>Create a VM.</li>
 <li>Extend the VM.</li>
 <li>Compile and run the Scheme program.</li>
@@ -82,23 +80,8 @@ one back-end to the other.</p>
 <p>FIXME: describe how it is customized.</p>
 </div>
 </div>
-<div class="section" id="create-a-compiler">
-<h1><a class="toc-backref" href="#id5">Create a compiler</a></h1>
-<p>A compiler compile Scheme source code into a compiled form. It can be
-executed multiple times in different environments.</p>
-<div class="highlight"><pre>c <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>Compiler()
-compiled <span style="color: #666666">=</span> c(source)
-</pre></div>
-<p>When an error occured during parsing, a <tt class="docutils literal"><span class="pre">CompileException</span></tt> will be
-thrown. It has the following attributes:</p>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">lineno</span></tt>: the line on which the error occured.</li>
-<li><tt class="docutils literal"><span class="pre">position</span></tt>: the position the error was detected at.</li>
-<li><tt class="docutils literal"><span class="pre">message</span></tt>: a human readable message why this is not valid.</li>
-</ul>
-</div>
 <div class="section" id="create-a-vm">
-<h1><a class="toc-backref" href="#id6">Create a VM</a></h1>
+<h1><a class="toc-backref" href="#id5">Create a VM</a></h1>
 <p>To create a new VM is simple:</p>
 <div class="highlight"><pre>vm <span style="color: #666666">=</span> scheme<span style="color: #666666">.</span>VM()
 </pre></div>
@@ -107,11 +90,11 @@ thrown. It has the following attributes:</p>
 it feasible? This would have something to do with sandboxing).</p>
 </div>
 <div class="section" id="extend-the-vm">
-<h1><a class="toc-backref" href="#id7">Extend the VM</a></h1>
+<h1><a class="toc-backref" href="#id6">Extend the VM</a></h1>
 <p>The VM can be extended by adding global variables or primitives to the
 environment.</p>
 <div class="section" id="global-variables">
-<h2><a class="toc-backref" href="#id8">Global variables</a></h2>
+<h2><a class="toc-backref" href="#id7">Global variables</a></h2>
 <p>Adding global variables to the VM can be done through <tt class="docutils literal"><span class="pre">define</span></tt> or
 <tt class="docutils literal"><span class="pre">set</span></tt>, the have similar semantic to <tt class="docutils literal"><span class="pre">define</span></tt> and <tt class="docutils literal"><span class="pre">set!</span></tt> in
 Scheme.</p>
@@ -121,7 +104,7 @@ Scheme.</p>
 calling <tt class="docutils literal"><span class="pre">scheme.toscheme(val)</span></tt> from a Python value <tt class="docutils literal"><span class="pre">val</span></tt>.</p>
 </div>
 <div class="section" id="functions">
-<h2><a class="toc-backref" href="#id9">Functions</a></h2>
+<h2><a class="toc-backref" href="#id8">Functions</a></h2>
 <p>Functions can also be added to the VM by the same way as normal
 objects:</p>
 <div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">myadd</span>(a, b):
@@ -130,20 +113,15 @@ objects:</p>
 
   <span style="color: #008000; font-weight: bold">return</span> vm<span style="color: #666666">.</span>toscheme(a<span style="color: #666666">+</span>b)
 
-vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, vm<span style="color: #666666">.</span>toscheme(myadd))
+vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd&quot;</span>, vm<span style="color: #666666">.</span>toscheme(myadd, shallow<span style="color: #666666">=</span><span style="color: #008000">True</span>))
 </pre></div>
-<p>Alternatively, you can add functions by calling <tt class="docutils literal"><span class="pre">install_function</span></tt>,
-which will do the convertion of the function object for you
+<p>Alternatively, you can omit the <tt class="docutils literal"><span class="pre">shallow=True</span></tt> to let Schemepy do
+the convertion of the function parameters and return values for you
 automatically.</p>
-<div class="highlight"><pre>vm<span style="color: #666666">.</span>install_function(<span style="color: #BA2121">&quot;myadd&quot;</span>, myadd)
-</pre></div>
-<p>The function parameters and return values can be converted to and from
-scheme automatically. You can pass the <tt class="docutils literal"><span class="pre">autoconvert</span></tt> keyword
-parameter to specify the bahavior:</p>
-<div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">myadd</span>(a, b):
+<div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">myadd2</span>(a, b):
   <span style="color: #008000; font-weight: bold">return</span> a<span style="color: #666666">+</span>b
 
-vm<span style="color: #666666">.</span>install_function(<span style="color: #BA2121">&quot;myadd&quot;</span>, myadd, autoconvert<span style="color: #666666">=</span><span style="color: #008000">True</span>)
+vm<span style="color: #666666">.</span>define(<span style="color: #BA2121">&quot;myadd2&quot;</span>, vm<span style="color: #666666">.</span>toscheme(myadd2)
 </pre></div>
 <p>Here's the map between Scheme type and Python type, more detailed
 description can be found in <a class="reference external" href="type-mapping.html">the type mapping document</a>:</p>
@@ -199,9 +177,20 @@ description can be found in <a class="reference external" href="type-mapping.htm
 </div>
 </div>
 <div class="section" id="compile-and-run-the-scheme-program">
-<h1><a class="toc-backref" href="#id10">Compile and run the Scheme program</a></h1>
-<p>To run a piece of Scheme source code, just use the compiler to compile
-it and call <tt class="docutils literal"><span class="pre">eval</span></tt> method of the VM:</p>
+<h1><a class="toc-backref" href="#id9">Compile and run the Scheme program</a></h1>
+<p>Schemepy compiles Scheme source code into a compiled form. It can be
+executed multiple times in different environments.</p>
+<div class="highlight"><pre>compiled <span style="color: #666666">=</span> vm<span style="color: #666666">.</span>compile(source)
+</pre></div>
+<p>When an error occured during parsing, a <tt class="docutils literal"><span class="pre">CompileException</span></tt> will be
+thrown. It has the following attributes:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">lineno</span></tt>: the line on which the error occured.</li>
+<li><tt class="docutils literal"><span class="pre">position</span></tt>: the position the error was detected at.</li>
+<li><tt class="docutils literal"><span class="pre">message</span></tt>: a human readable message why this is not valid.</li>
+</ul>
+<p>To run a piece of compiled source code, just call <tt class="docutils literal"><span class="pre">eval</span></tt> method of
+the VM:</p>
 <div class="highlight"><pre>result <span style="color: #666666">=</span> vm<span style="color: #666666">.</span>eval(compiled)
 </pre></div>
 <p>Like <tt class="docutils literal"><span class="pre">install_function</span></tt>, the result can be automatically

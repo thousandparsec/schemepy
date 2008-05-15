@@ -11,7 +11,7 @@ class TestExceptions(object):
 		"""
 
 		m1 = common.VM()
-		m1.eval('foobar')
+		m1.eval(m1.compile('foobar'))
 		assert False, "Never reach here"
 
 

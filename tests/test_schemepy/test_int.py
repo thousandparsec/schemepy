@@ -8,7 +8,7 @@ class TestInt(object):
 		print "eval", str(value)
 
 		m1 = common.VM()
-		a = m1.eval(str(value))
+		a = m1.eval(m1.compile(str(value)))
 
 		assert m1.type(a) in (int, long)
 		assert m1.fromscheme(a) == value

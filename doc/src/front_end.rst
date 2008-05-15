@@ -10,11 +10,10 @@ independent to the back-end used.
 Phases
 ======
 
-Using Schemepy to embed Scheme in the Python program involves 5
+Using Schemepy to embed Scheme in the Python program involves 6
 phases:
 
 * Load and configure Schemepy.
-* Create a compiler.
 * Create a VM.
 * Extend the VM.
 * Compile and run the Scheme program.
@@ -48,24 +47,6 @@ Config the behavior fo the front-end
 ------------------------------------
 
 FIXME: describe how it is customized. 
-
-Create a compiler
-=================
-
-A compiler compile Scheme source code into a compiled form. It can be
-executed multiple times in different environments.
-
-.. sourcecode:: python
-
-  c = scheme.Compiler()
-  compiled = c(source)
-
-When an error occured during parsing, a ``CompileException`` will be
-thrown. It has the following attributes:
-
-* ``lineno``: the line on which the error occured.
-* ``position``: the position the error was detected at.
-* ``message``: a human readable message why this is not valid.
 
 Create a VM
 ===========
@@ -114,26 +95,18 @@ objects:
 
     return vm.toscheme(a+b)
 
-  vm.define("myadd", vm.toscheme(myadd))
+  vm.define("myadd", vm.toscheme(myadd, shallow=True))
 
-Alternatively, you can add functions by calling ``install_function``,
-which will do the convertion of the function object for you
+Alternatively, you can omit the ``shallow=True`` to let Schemepy do
+the convertion of the function parameters and return values for you
 automatically.
 
 .. sourcecode:: python
 
-  vm.install_function("myadd", myadd)
-
-The function parameters and return values can be converted to and from
-scheme automatically. You can pass the ``autoconvert`` keyword
-parameter to specify the bahavior:
-
-.. sourcecode:: python
-
-  def myadd(a, b):
+  def myadd2(a, b):
     return a+b
 
-  vm.install_function("myadd", myadd, autoconvert=True)
+  vm.define("myadd2", vm.toscheme(myadd2)
 
 Here's the map between Scheme type and Python type, more detailed
 description can be found in `the type mapping document
@@ -159,8 +132,22 @@ lambda              callable
 Compile and run the Scheme program
 ==================================
 
-To run a piece of Scheme source code, just use the compiler to compile
-it and call ``eval`` method of the VM:
+Schemepy compiles Scheme source code into a compiled form. It can be
+executed multiple times in different environments.
+
+.. sourcecode:: python
+
+  compiled = vm.compile(source)
+
+When an error occured during parsing, a ``CompileException`` will be
+thrown. It has the following attributes:
+
+* ``lineno``: the line on which the error occured.
+* ``position``: the position the error was detected at.
+* ``message``: a human readable message why this is not valid.
+
+To run a piece of compiled source code, just call ``eval`` method of
+the VM:
 
 .. sourcecode:: python
 
