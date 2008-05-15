@@ -1,0 +1,143 @@
+Handle call/cc properly in Guile
+----------------------------------------------------------------------
+                                                planned at: 2008-05-15
+
+call/cc is causing segment fault with ctypes. Mithro pointed out that
+it has something to do with Guile's dynamic wind. Get to know and 
+solve the problem.
+
+Here's the quote of the original mail:
+
+On Tue, 2008-05-13 at 23:01 +0800, Chiyuan Zhang wrote:
+> I'm converting PyPy Scheme's test cases to Schemepy. Then I noticed our
+> Schemepy segment faulted on the continuation test case. I tracked the
+> code and make a minimized case to reproduce it, here's the code:
+
+Which test is segfaulting?
+
+I'm unable to get that result here (or I'm not seeing it) - can you give
+me the options to run?
+
+> #------------------------------------------------
+> from ctypes.util import find_library
+> from ctypes import *
+>
+> lib = find_library("guile")
+> guile = cdll.LoadLibrary(lib)
+>
+> guile.scm_c_eval_string.argtypes = [c_char_p]
+>
+> guile.scm_c_eval_string("(define cont #f)")
+> guile.scm_c_eval_string("(call-with-current-continuation (lambda (k)
+> (set! cont k) 3))")
+> guile.scm_c_eval_string("(cont 3)")
+> #-------------------------------------------------
+>
+> The code above doesn't rely Schemepy. So there might be a bug in either
+> ctypes or libguile. I noticed it seemed to be object ref counting error,
+> like double freeing and minus ref count.
+
+You can turn on the garbage collection debuging for both guile and
+python to help track down this error.
+
+To turn on Python's garbage collection do a
+       import gc
+       gc.set_debug(gc.DEBUG_LEAK)
+
+It is also recommended that you use a debug version of python which has
+extra information in the PyObject structure to help track reference
+counting problems.
+
+You can also use the following method to force python to do a collection
+routine.
+       gc.collect()
+
+I'm unsure how to turn on Guile's garbage collection debugging. You can
+force the Guile garbage collector to run by using the following
+       — Scheme Procedure: gc
+       — C Function: scm_gc ()
+               Scans all of SCM objects and reclaims for further use
+               those that are no longer accessible. You normally don't
+               need to call this function explicitly. It is called
+               automatically when appropriate
+
+My guess is that python is garbage collecting something that is
+referenced on the C stack which Guile is saving (and hence a pointer
+becomes invalid). Some more poking around in gdb should give you a
+backtrace and more information.
+
+You may need to look at the stuff below so that guile does not save the
+Python part of the C stack (see further discussion below).
+
+> I then write a C program to exam this:
+>
+> /* ------------------------------------------------ */
+> #include <libguile.h>
+>
+> static void
+> inner_main(void *closure, int argc, char **argv)
+> {
+>     printf("1\n");
+>     scm_c_eval_string("(define cont #f)");
+>     printf("2\n");
+>     scm_c_eval_string("(call-with-current-continuation (lambda (k)
+> (set! cont k) 3))");
+>     printf("3\n");
+>     scm_c_eval_string("(cont 3)");
+>     printf("4\n");
+> }
+>
+> int main(int argc, char **argv)
+> {
+>     scm_boot_guile(argc, argv, inner_main, 0);
+>     return 0;
+> }
+> /* ------------------------------------------------------------- */
+>
+> The program prints lots of 3. So I'm wondering guile is manipulating
+>  both the Scheme stack and the C stack for the continuation. That would
+>  be OK in C, but maybe not in ctypes.
+
+<mithro> Hi guys, I need some guile help
+<mithro> does guile manipulate the C stack when doing a call/cc
+<mithro> ?
+<rlb> mithro: yes.
+<rlb> mithro: well, depends on what you mean by manipulate.  Guile does
+copy the stack to implement call/cc.
+<rlb> i.e. a continuation contains a full copy of the C stack.
+
+> I don't have any ideas on how to solve this problem. Maybe we should
+>  suggest not using continuation ? But it seems call/cc is an important
+>  feature in Scheme. Do you have some suggestions?
+
+It appears to me that call/cc is a pretty fundamental part of scheme and
+should definitely be supported.
+
+I have just been reading the following documentation,
+       http://community.schemewiki.org/?call-with-current-continuation
+               and
+       http://community.schemewiki.org/?call-with-current-continuation-for-C-programmers
+
+>From that page we get
+       ﻿In C it's only possible to jump up the stack, to a point in the
+       current function or a higher calling function. But in Scheme you
+       can jump back down as well, or even "sideways". To do this
+       call/cc effectively saves the whole stack. In fact in some
+       Scheme implementations (for example Guile) a block copy of the
+       stack is exactly how it's done.
+
+The guile document is here
+       http://www.gnu.org/software/guile/manual/html_node/Continuations.html#Continuations
+
+>From the looks of it, the way we need to deal with this is the
+dynamic-wind stuff that guile provides. You can see the information
+here,
+       http://www.gnu.org/software/guile/manual/html_node/Dynamic-Wind.html#Dynamic-Wind
+
+The Dynamic-Wind stuff is quite complicated, but you already need to
+deal with if for exception handling so it shouldn't be too bad.
+
+﻿That should give you some food for thought.
+
+Tim 'Mithro' Ansell
+
