@@ -22,13 +22,32 @@ class TestString(object):
 		assert m1.type(scm) in (str, unicode)
 		assert m1.fromscheme(scm) == value
 
+	def test_unicode(self):
+		"""\
+		Check that unicode strings can be converted to Scheme
+		and back.
+		"""
+		# unicode might not be supported in every scheme
+		# implementation. So eval of unicode might not be
+		# supported. And a unicode (which really contains
+		# unicode characters) are treated as normal Python
+		# objects when converting to Scheme.
+		u1 = u"\u2345"
+
+		m1 = common.VM()
+		scm = m1.toscheme(u1)
+		u2 = m1.fromscheme(scm)
+		
+		assert type(u2) is unicode
+		assert u1 == u2
+
 	def test_string(self):
 		"""
 		Checks that the eval returns strings for various input.
 		"""
 		strings = [ \
 			 "", "abc", "t\n\t\n\r",  "a\0\0tl;\0a",
-			u"", u"abc", u"t\n\t\n\r", u"a\0\0tl;\0a",
+			 u"", u"abc", u"t\n\t\n\r", u"a\0\0tl;\0a"
 		]
 		for value in strings:
 			yield self.check_eval, value
