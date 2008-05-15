@@ -14,6 +14,7 @@ class TestInt(object):
 
 		assert m1.type(a) in (int, long)
 		assert m1.fromscheme(a) == value
+		assert type(m1.fromscheme(a)) in (int, long)
 
 	def check_passthru(self, value):
 		print "passthru", repr(value)
@@ -23,6 +24,7 @@ class TestInt(object):
 	
 		assert m1.type(scm) in (int, long)
 		assert m1.fromscheme(scm) == value
+		assert type(m1.fromscheme(scm)) in (int, long)
 
 	def test_ints(self):
 		ints = [1, 5, 1000, int(2**31-1), int(-2**31)]

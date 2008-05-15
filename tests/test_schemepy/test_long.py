@@ -14,7 +14,8 @@ class TestLong(object):
 
 		assert m1.type(a) == long
 		assert m1.fromscheme(a) == value
-
+		assert type(m1.fromscheme(a)) in (int, long)
+		
 	def check_passthru(self, value):
 		print "passthru", repr(value)
 
@@ -23,7 +24,8 @@ class TestLong(object):
 	
 		assert m1.type(scm) == long
 		assert m1.fromscheme(scm) == value
-
+		assert type(m1.fromscheme(scm)) in (int, long)
+		
 	def test_longs(self):
 		longs = [2**31+1, 2**31+200, 2**63-1]
 		for value in longs:
