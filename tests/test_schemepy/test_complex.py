@@ -1,3 +1,6 @@
+"""This file test complex number handling of Scheme and conversion
+between Python complex number."""
+
 import common
 
 class TestComplex(object):

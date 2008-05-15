@@ -1,3 +1,6 @@
+"""This file test the float number handling of Scheme and conversion
+between Python float number."""
+
 import common
 	
 class TestFloat(object):
@@ -41,9 +44,6 @@ class TestFloat(object):
 			# Complex types with zero imaginary part should come back as floats
 			'0.0+0.0i': 0.0,
 			'123.0+0.0i': 123.0,
-			# These don't seem to be portable :/
-			'+inf.0':float('inf'), 
-			'-inf.0':float('-inf'), 
 		}
 
 		for s, value in floats.items():

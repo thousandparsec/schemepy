@@ -1,3 +1,5 @@
+"""This file test the conversion between Scheme alist and Python dict."""
+
 import common
 
 class TestDict(object):

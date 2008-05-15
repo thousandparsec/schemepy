@@ -1,3 +1,6 @@
+"""This file test the conversion between Python string/unicode and
+Scheme string."""
+
 import common
 
 class TestString(object):

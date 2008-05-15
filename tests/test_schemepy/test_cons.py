@@ -1,3 +1,6 @@
+"""This file test the conversion between Python schemepy.types.Cons
+and Scheme cons pair."""
+
 import common
 
 Cons = common.types.Cons

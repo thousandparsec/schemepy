@@ -1,3 +1,6 @@
+"""This file test the conversion of a Python callable to a Scheme lambda
+and back."""
+
 import types
 
 import common

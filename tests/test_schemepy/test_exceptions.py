@@ -1,3 +1,5 @@
+"""This file test the exception handling mechanism of Schemepy."""
+
 import common
 from nose.tools import raises
 SchemeError = common.exceptions.SchemeError

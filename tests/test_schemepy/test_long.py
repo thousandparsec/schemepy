@@ -1,3 +1,5 @@
+"""This file test the conversion between Scheme big integer and Python big integer."""
+
 import common
 
 class TestLong(object):

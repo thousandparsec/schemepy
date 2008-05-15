@@ -1,3 +1,5 @@
+"""This file test the bool conversion between Scheme and Python."""
+
 import common
 
 class TestBool(object):

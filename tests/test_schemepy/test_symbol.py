@@ -1,3 +1,6 @@
+"""This file test the conversion between Python schemepy.types.Symbol
+and Scheme symbol."""
+
 import common
 
 Symbol = common.types.Symbol

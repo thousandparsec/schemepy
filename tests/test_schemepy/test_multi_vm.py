@@ -1,3 +1,5 @@
+"""This file test the independency of multiple VM."""
+
 import common
 
 class TestMultiVM(object):

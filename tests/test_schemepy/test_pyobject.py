@@ -1,3 +1,6 @@
+"""This file test the conversion of a Python normal object to a
+Scheme value and back."""
+
 import common
 
 class Foo(object):
