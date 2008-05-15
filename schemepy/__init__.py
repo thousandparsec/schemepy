@@ -3,7 +3,7 @@ from exceptions import BackendNotFoundError
 
 __all__ = ['VM']
 
-def VM(backend=None):
+def VM(backend=None, profile="scheme-report-environment"):
     """\
     Get a VM.
 
@@ -16,6 +16,10 @@ def VM(backend=None):
     When finding a default backend, Schemepy first check the
     environment variable 'BACKEND', if it exist and is a valid
     value, use it. Otherwise, use an internal default value.
+
+    profile can be
+     - scheme-report-environment (default)
+     - null-environment
     """
     if backend is None:
         backend = default_backend()
@@ -26,12 +30,13 @@ def VM(backend=None):
 
     load_backend(backend)
 
-    return backends_loaded[backend].VM()
+    return backends_loaded[backend].VM(profile)
 
 
 # A dict of 'backend name' => 'backend module name'
 backends = {
-    "guile" : "guile"
+    "guile" : "guile",
+    "pyscheme" : "pyscheme"
     }
 # A dict of 'backend module name' => 'backend module'
 backends_loaded = {

@@ -1,0 +1,28 @@
+Make pyscheme confront with the new Schemepy front-end interface
+----------------------------------------------------------------------
+                                                planned at: 2008-05-08
+
+Then we could compare the performance between other back-ends and the
+fall-back back-end.
+
+
+----------------------------------------------------------------------
+                                               finished at: 2008-05-15
+
+Now pyscheme can work as a backend of Schemepy. But not all the test
+case can be passed on the pyscheme backend. The most significant ones
+are:
+
+ - pyscheme can't handle complex numbers. The parser can't recognize
+   them.
+ - pyscheme doesn't handle rational number.
+ - pyscheme lacks some primitives (e.g. 'procedure?', 'eqv?').
+ - pyscheme doesn't handle ,@
+ - pyscheme's error is weird sometimes (e.g. '(apply 1)' raises
+   IndexError.
+ - pyscheme has no let* or letrec
+
+Though I don't like code with not passed test cases in repo, I'm currently
+not going to fix those problem on pyscheme. If we select PyPy Scheme as
+the fallback implementation. Those will not be problems.
+

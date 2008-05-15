@@ -203,25 +203,21 @@ class VM(object):
     """VM for guile.
     """
 
-    def __init__(self, profile="scheme-report-environment"):
+    def __init__(self, profile):
         """\
         Create a VM.
-
-        profile can be
-         - scheme-report-environment (default)
-         - null-environment
         """
         env = profiles.get(profile)
         if not env:
-            raise ValueError, "No such profile %s" % profile
+            raise ProfileNotFoundError, "No such profile %s" % profile
         global guileroot
         guile.scm_set_current_module(guileroot)
         self.module = guile.scm_call_1(makescope, env)
         self._init_pyfunc_interface()
 
     def compile(self, code):
-        """Compiler for guile. Guile doesn't support bytecode yet. So the
-        compiler just do nothing."""
+        """Compile for guile. Guile doesn't support bytecode yet. So
+        just do nothing."""
         return code
 
     def ensure_scope(meth):

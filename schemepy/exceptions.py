@@ -2,7 +2,8 @@
 
 class Error(Exception):
     "The base class for the Exceptions in Schemepy."
-    pass
+    def __str__(self):
+        return self.message
 
 
 class ConversionError(Error):
@@ -26,6 +27,15 @@ class VMNotFoundError(Error):
         message - the error message
     """
     
+    def __init__(self, message):
+        self.message = message
+
+class ProfileNotFoundError(Error):
+    """\
+    Exception raised when no profile can be found.
+    Attributes:
+        message - the error message
+    """
     def __init__(self, message):
         self.message = message
 
@@ -93,7 +103,7 @@ class ScmSyntaxError(SchemeError):
     Exception raised when there's an syntax error in the Scheme code.
     """
     def __init__(self, message):
-        SchemeError.__init__(message)
+        SchemeError.__init__(self, message)
 
 class ScmUnboundVariable(SchemeError):
     """\

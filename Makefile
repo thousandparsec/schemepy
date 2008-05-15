@@ -19,7 +19,7 @@ TRUNNER = nosetests tests
 
 test_guile:
 	BACKEND=guile $(TRUNNER)
-test_oldguile:
-	BACKEND=oldguile $(TRUNNER)
+test_pyscheme:
+	BACKEND=pyscheme $(TRUNNER)
 
 test: test_guile

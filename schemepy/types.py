@@ -73,6 +73,8 @@ class Lambda(object):
         """
         if not self._shallow:
             args = [self._vm.toscheme(arg) for arg in args]
+        else:
+            args = list(args)
             
         result = self._vm.apply(self._lambda, args)
 

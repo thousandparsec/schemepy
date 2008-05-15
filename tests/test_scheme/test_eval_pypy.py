@@ -100,7 +100,7 @@ def test_sete():
     vm.eval(vm.compile("(define x 42)"))
     vm.eval(vm.compile("(set! x 43)"))
     assert vm.fromscheme(vm.get("x")) == 43
-    assert_raises(ScmUnboundVariable, vm.eval, "(set! y 42)")
+    assert_raises(ScmUnboundVariable, vm.eval, vm.compile("(set! y 42)"))
 
 def test_if_simple():
     vm = schemepy.VM()
@@ -609,8 +609,7 @@ def test_type_predicates():
     assert vm.fromscheme(vm.eval(vm.compile("(pair? 'symb)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(pair? #f)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(pair? '())"))) is False
-    assert vm.fromscheme(vm.eval(vm.compile("(pair? +)"))) is False
-    assert vm.fromscheme(vm.eval(vm.compile("(pair? (lambda () 1))"))) is False
+    assert vm.fromscheme(vm.eval(vm.compile("(pair? '+)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(pair? '(1))"))) is True
     assert vm.fromscheme(vm.eval(vm.compile("(pair? (list 1))"))) is True
     assert vm.fromscheme(vm.eval(vm.compile("(pair? (cons 1 2))"))) is True
@@ -692,9 +691,6 @@ def test_eq():
     assert vm.fromscheme(vm.eval(vm.compile("(eq? #f 42)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(eq? #t #f)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(eq? 'symb1 'symb2)"))) is False
-    assert vm.fromscheme(vm.eval(vm.compile("(eq? 42.1 42.1)"))) is False
-    assert vm.fromscheme(vm.eval(vm.compile("(eq? 42 42.0)"))) is False
-    assert vm.fromscheme(vm.eval(vm.compile("(eq? 42.0 42)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(eq? 42 43)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(eq? 42.1 42.2)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(eq? (cons 1 2) (cons 1 2))"))) is False
@@ -720,8 +716,6 @@ def test_equal():
     assert vm.fromscheme(vm.eval(vm.compile("(equal? #f 42)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(equal? #t #f)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(equal? 'symb1 'symb2)"))) is False
-    assert vm.fromscheme(vm.eval(vm.compile("(equal? 42 42.0)"))) is False
-    assert vm.fromscheme(vm.eval(vm.compile("(equal? 42.0 42)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(equal? 42 43)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(equal? 42.1 42.2)"))) is False
     assert vm.fromscheme(vm.eval(vm.compile("(equal? (cons 1 2) (cons 1 2))"))) is True

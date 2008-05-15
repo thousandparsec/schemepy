@@ -26,7 +26,7 @@ def isNumber(x):
 
 def isString(x):
     """Returns True if we see a string."""
-    return type(x) == types.StringType
+    return type(x) == types.StringType or type(x) == types.UnicodeType
 
 
 
