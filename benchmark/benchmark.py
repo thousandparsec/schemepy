@@ -19,25 +19,16 @@ class Benchmark(object):
         self._rehearsal = rehearsal
         self._measures = []
 
-    def measure(self, func, args=(), title=None, repeat=None):
+    def measure(self, title, func, *args):
         """\
         Add a measure to the benchmark. It is not run immediately,
         but lazily when the report is needed.
 
+         - title:  the title of this measure
          - func:   the callable to run
-         - args:   the arguments to fun. If multiple arguments needed to
-                   be passed to func, they should be written as a tuple.
-         - title:  the title of this measure. default will be
-                   func.__name__
-         - repeat: number of times to repeat. default will be the
-                   'repeat' attribute of the benchmark.
+         - args:   the arguments to fun
         """
-        if title is None:
-            title = func.__name__
-        if repeat is None:
-            repeat = self._repeat
-        
-        self._measures.append((func, args, title, repeat))
+        self._measures.append((func, args, title))
 
     def report(self):
         """\
@@ -54,18 +45,13 @@ class Benchmark(object):
         "Run all measures and return the result."
         results = []
         for measure in self._measures:
-            func, args, title, repeat = measure
-            if isinstance(args, tuple) or isinstance(args, list):
-                lam = lambda : func(*args)
-            else:
-                lam = lambda : func(args)
-
-            t_start = os.times()
+            func, args, title = measure
             try:
-                for i in xrange(repeat):
-                    lam()
+                t_start = os.times()
+                for i in xrange(self._repeat):
+                    func(*args)
                 t_end = os.times()
-                t_ms = [(t[1]-t[0])*1000000/repeat \
+                t_ms = [(t[1]-t[0])*1000000/self._repeat \
                         for t in zip(t_start, t_end)]
                 t_ms = (t_ms[0], t_ms[1], t_ms[4])
                 results.append((title, t_ms))

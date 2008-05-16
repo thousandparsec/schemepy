@@ -16,6 +16,6 @@ def load_backend(backend):
 bm = Benchmark(title="Time to load the VM", repeat=1)
 
 for backend in helper.BACKENDS:
-    bm.measure(load_backend, backend, title=backend)
+    bm.measure(backend, load_backend, backend)
 
 helper.report(bm.report())

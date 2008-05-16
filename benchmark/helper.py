@@ -23,7 +23,7 @@ def load_backends():
     of the backends will be benchmarked separately.
     """
     for backend in BACKENDS:
-        schemepy.VM(backend=backend)
+        VM(backend=backend)
 
 def report(report):
     """\
