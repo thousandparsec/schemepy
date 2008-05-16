@@ -51,7 +51,7 @@ class Benchmark(object):
                 for i in xrange(self._repeat):
                     func(*args)
                 t_end = os.times()
-                t_ms = [(t[1]-t[0])*1000000/self._repeat \
+                t_ms = [(t[1]-t[0])/self._repeat \
                         for t in zip(t_start, t_end)]
                 t_ms = (t_ms[0], t_ms[1], t_ms[4])
                 results.append((title, t_ms))
@@ -119,10 +119,10 @@ class TextFormatter(object):
     def _print_times(self, io, results):
         title_len = max([len(rlt[0]) for rlt in results]) + 3
         print >>io, ' '*title_len + \
-              "          user        system          real         total"
+              "        user      system        real       total"
         for rlt in results:
             if isinstance(rlt[1], tuple):
-                print >>io, "%s%14.6f%14.6f%14.6f%14.6f" % \
+                print >>io, "%s%12.6f%12.6f%12.6f%12.6f" % \
                       (rlt[0].ljust(title_len),
                        rlt[1][0],
                        rlt[1][1],

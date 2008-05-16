@@ -4,3 +4,6 @@ Write benchmark code for back-end
 
 They will be used to measure the performance of different back-ends.
 
+Here are many benchmarks for Scheme:
+http://www.ccs.neu.edu/home/will/Twobit/benchmarks.html
+
