@@ -242,7 +242,7 @@ class VM(object):
         """
         if not isinstance(value, SCM):
             raise TypeError, "Value to define should be a Scheme value."
-        name = Symbol.intern(name)
+        name = Symbol(name)
         guile.scm_define(self.toscheme(name), value)
 
     @ensure_scope
@@ -252,7 +252,7 @@ class VM(object):
 
           name can either be a string or a schemepy.types.Symbol
         """
-        name = Symbol.intern(name)
+        name = Symbol(name)
         if not guile.scm_symbol_exists(self.toscheme(name)):
             return default
         return guile.scm_variable_ref(guile.scm_lookup(self.toscheme(name)))
@@ -416,7 +416,7 @@ class VM(object):
             mem = guile.scm_to_locale_stringn(val, pointer(len))
             return string_at(mem, len.value)
         if guile.scm_is_symbol(val):
-            return Symbol.intern(self.fromscheme(guile.scm_symbol_to_string(val)))
+            return Symbol(self.fromscheme(guile.scm_symbol_to_string(val)))
         if guile.scm_is_true(guile.scm_procedure_p(val)):
             smob = guile.scm_procedure_property(val,
                                                 self._scm_py_lambda_identifier)
@@ -487,7 +487,7 @@ class VM(object):
                 (call-py py-callable shallow vm args)))""")
         self._scm_py_call = guile.scm_c_make_gsubr("scm-py-call", 4, 0, 0,
                                                    scm_py_call)
-        self._scm_py_lambda_identifier = SCM.toscm(Symbol.intern("#{schemepy python callable}#"))
+        self._scm_py_lambda_identifier = SCM.toscm(Symbol("#{schemepy python callable}#"))
 
 
 from _ctypes import Py_INCREF, Py_DECREF, PyObj_FromPtr

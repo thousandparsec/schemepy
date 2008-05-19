@@ -46,14 +46,14 @@ class VM(object):
 
     def define(self, name, value):
         """Define a variable in Scheme"""
-        name = schemepy.types.Symbol.intern(name)
+        name = schemepy.types.Symbol(name)
         environment.defineVariable(self.toscheme(name),
                                    value,
                                    self._interp.get_environment())
 
     def get(self, name, default=None):
         """Get a value bound to the symbol"""
-        name = schemepy.types.Symbol.intern(name)
+        name = schemepy.types.Symbol(name)
         try:
             val = environment.lookupVariableValue(self.toscheme(name),
                                                   self._interp.get_environment())
@@ -123,7 +123,7 @@ class VM(object):
                 return True
             if val == symbol.false:
                 return False
-            return schemepy.types.Symbol.intern(str(val))
+            return schemepy.types.Symbol(str(val))
         if pair.isNull(val):
             return []
         if isAList(val):

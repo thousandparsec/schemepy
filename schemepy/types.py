@@ -1,3 +1,5 @@
+import weakref
+
 from schemepy.exceptions import *
 
 class Cons(object):
@@ -13,34 +15,29 @@ class Cons(object):
         return self.car == o.car and self.cdr == o.cdr
 
 class Symbol(object):
-    "A Symbol object mapping to a Scheme symbol"
+    class _Meta(type):         
+        def __call__(cls, name):
+            if cls.symbols.has_key(name):
+                return cls.symbols[name]
 
-    symbols = {}
-    __slots__ = '_name'
-    
+            sym = type.__call__(cls, name)
+            cls.symbols[name] = sym
+            return sym
+
+    __metaclass__ = _Meta    
+    symbols = weakref.WeakValueDictionary({})
+
     def __init__(self, name):
         self._name = name
 
-    def __repr__(self):
-        return "<symbol %s>" % self.name.__repr__()
+    def __eq__(self, other):
+        return self is other
 
     def get_name(self):
         return self._name
-    def set_name(self, value):
-        raise AttributeError, "Can't modify symbol's name."
-    name = property(get_name, set_name, "name of the symbol")
-        
-    @staticmethod
-    def intern(name):
-        if type(name) is Symbol:
-            return name
-        sym = Symbol.symbols.get(name)
-        if sym:
-            return sym
-        else:
-            sym = Symbol(name)
-            Symbol.symbols[name] = sym
-            return sym
+    def set_name(self):
+        raise AttributeError("Can't modify name of a symbol.")
+    name = property(get_name, set_name)
 
 class Lambda(object):
     "A Lambda object mapping to a Scheme procedure"

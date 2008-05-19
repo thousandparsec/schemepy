@@ -27,8 +27,8 @@ class TestSymbol(object):
         assert m1.fromscheme(scm) is value
 
     def test_symbol(self):
-        for value in [Symbol.intern(""),
-                      Symbol.intern("symbol"),
-                      Symbol.intern("#{--->!---<}#")]:
+        for value in [Symbol(""),
+                      Symbol("symbol"),
+                      Symbol("#{--->!---<}#")]:
             yield self.check_eval, ("(string->symbol \"%s\")" % value.name), value
             yield self.check_passthru, value

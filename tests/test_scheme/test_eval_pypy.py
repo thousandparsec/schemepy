@@ -318,7 +318,7 @@ def test_define_lambda_sugar():
     assert vm.fromscheme(w_result) == [2]
 
 def test_quote():
-    sym = schemepy.types.Symbol.intern
+    sym = schemepy.types.Symbol
     vm = schemepy.VM()
     
     w_fnum = vm.eval(vm.compile("(quote 42)"))
@@ -337,7 +337,7 @@ def test_quote():
     assert vm.fromscheme(w_lst) == [sym("a"), [sym("x"), sym("y")], sym("c")]
 
 def test_quote_parse():
-    sym = schemepy.types.Symbol.intern
+    sym = schemepy.types.Symbol
     vm = schemepy.VM()
 
     w_fnum = vm.eval(vm.compile("'42"))
@@ -360,7 +360,7 @@ def test_list():
     vm.define("var", vm.toscheme(42))
     w_lst = vm.eval(vm.compile("(list 1 var (+ 2 1) 'a)"))
     assert vm.type(w_lst) is list
-    assert vm.fromscheme(w_lst) == [1, 42, 3, schemepy.types.Symbol.intern("a")]
+    assert vm.fromscheme(w_lst) == [1, 42, 3, schemepy.types.Symbol("a")]
 
 def test_begin():
     vm = schemepy.VM()
@@ -539,7 +539,7 @@ def test_setcdr():
     vm.type(w_lst) is list
 
 def test_quasiquote():
-    sym = schemepy.types.Symbol.intern
+    sym = schemepy.types.Symbol
     vm = schemepy.VM()
     
     w_res = vm.eval(vm.compile("(quasiquote (list (unquote (+ 1 2)) 4))"))
@@ -554,7 +554,7 @@ def test_quasiquote():
     assert_raises(ScmUnboundVariable, vm.eval, vm.compile("`(,,(+ 1 2))"))
 
 def test_quasiquote_nested():
-    sym = schemepy.types.Symbol.intern
+    sym = schemepy.types.Symbol
     vm = schemepy.VM()
     
     w_res = vm.eval(vm.compile("""
@@ -599,8 +599,8 @@ def test_quasiquote_splicing():
 
     w_res = vm.eval(vm.compile("""`(( foo  7) ,@(cdr '(c)) . ,(car '(cons)))"""))
     assert vm.type(w_res) is schemepy.types.Cons
-    assert vm.fromscheme(w_res).cdr == schemepy.types.Symbol.intern("cons")
-    assert vm.fromscheme(w_res).car == [schemepy.types.Symbol.intern("foo"), 7]
+    assert vm.fromscheme(w_res).cdr == schemepy.types.Symbol("cons")
+    assert vm.fromscheme(w_res).car == [schemepy.types.Symbol("foo"), 7]
 
 def test_type_predicates():
     vm = schemepy.VM()
