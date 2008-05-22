@@ -15,20 +15,20 @@ class Cons(object):
         return self.car == o.car and self.cdr == o.cdr
 
 class Symbol(object):
-    class _Meta(type):         
-        def __call__(cls, name):
-            if cls.symbols.has_key(name):
-                return cls.symbols[name]
-
-            sym = type.__call__(cls, name)
-            cls.symbols[name] = sym
-            return sym
-
-    __metaclass__ = _Meta    
     symbols = weakref.WeakValueDictionary({})
 
-    def __init__(self, name):
-        self._name = name
+    def __new__(cls, name):
+        """\
+        Get the interned symbol of name. If no found, create
+        a new interned symbol.
+        """
+        if cls.symbols.has_key(name):
+            return cls.symbols[name]
+
+        sym = object.__new__(cls)
+        sym._name = name
+        cls.symbols[name] = sym
+        return sym
 
     def __eq__(self, other):
         return self is other
