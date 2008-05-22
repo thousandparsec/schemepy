@@ -64,12 +64,17 @@ class VM(object):
                 return False
             return True
 
+    def type(self, val):
+        "Get the corresponding Python type of the Scheme value."
+        if mz.scheme_bool_p(val):
+            return bool
+
 _mzhelper.init_mz()
 global_env = SCM.in_dll(_mzhelper, "global_env")
 
 # global constants
-mz.scheme_true = SCM.in_dll(mz, "scheme_true")
-mz.scheme_false = SCM.in_dll(mz, "scheme_false")
+mz.scheme_true = SCM.in_dll(_mzhelper, "_scheme_true")
+mz.scheme_false = SCM.in_dll(_mzhelper, "_scheme_false")
 
 # macros
 mz.scheme_bool_p = _mzhelper.scheme_bool_p

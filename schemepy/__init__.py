@@ -61,4 +61,4 @@ def load_backend(backend):
     Try to load the backend. The parameter is the backend module name.
     """
     mod = __import__("schemepy.%s.%s" % (backend, backend))
-    backends_loaded[backend] = mod.__getattribute__(backend).__getattribute__(backend)
+    backends_loaded[backend] = getattr(getattr(mod, backend),backend)
