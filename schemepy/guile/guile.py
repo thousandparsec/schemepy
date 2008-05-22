@@ -351,7 +351,7 @@ class VM(object):
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
         if not isinstance(val, SCM):
-            raise ArgumentError, "Expecting a Scheme value, but get a %s." % val
+            raise ArgumentError("Expecting a Scheme value, but get a %s." % val)
         
         if guile.scm_is_bool(val):
             if guile.scm_is_true(val):

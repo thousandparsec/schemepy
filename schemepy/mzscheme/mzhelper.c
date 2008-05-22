@@ -8,3 +8,11 @@ void init_mz()
     global_env = scheme_basic_env();
 }
 
+int scheme_bool_p(Scheme_Object *o)
+{
+    return SCHEME_BOOLP(o);
+}
+int scheme_false_p(Scheme_Object *o)
+{
+    return SCHEME_FALSEP(o);
+}

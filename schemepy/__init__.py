@@ -36,7 +36,8 @@ def VM(backend=None, profile="scheme-report-environment"):
 # A dict of 'backend name' => 'backend module name'
 backends = {
     "guile" : "guile",
-    "pyscheme" : "pyscheme"
+    "pyscheme" : "pyscheme",
+    "mzscheme" : "mzscheme"
     }
 # A dict of 'backend module name' => 'backend module'
 backends_loaded = {
