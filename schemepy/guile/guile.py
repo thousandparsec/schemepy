@@ -16,7 +16,7 @@ lib = find_library("guile")
 if lib is None:
     raise RuntimeError("Can't find a guile library to use.")
 if not lib.endswith(ver_lib):
-	raise RuntimeError("The found library %s does not match the library the helper was compiled with." % lib)
+    raise RuntimeError("The found library %s does not match the library the helper was compiled with." % lib)
 
 guile = cdll.LoadLibrary(lib)
 
@@ -49,7 +49,7 @@ class SCM(c_void_p):
     
     def __repr__(self):
         return self.__str__()
-
+    @staticmethod
     def toscm(val):
         """\
         Convert the Python value to a SCM
@@ -69,7 +69,6 @@ class SCM(c_void_p):
             name = SCM.toscm(val.name)
             return guile.scm_string_to_symbol(name)
         raise ConversionError(self, "Don't support conversion of a %s, use vm.toscheme instead." % val)
-    toscm = staticmethod(toscm)
 
 
 def exception_body(src):
