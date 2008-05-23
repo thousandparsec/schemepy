@@ -57,6 +57,9 @@ class VM(object):
             return mz.scheme_make_integer_value(val)
         if type(val) is float:
             return mz.scheme_make_double(val)
+        if type(val) is complex:
+            return mz.scheme_make_complex(self.toscheme(val.real),
+                                          self.toscheme(val.imag))
 
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
@@ -132,6 +135,8 @@ mz.scheme_complex_real_part.argtypes = [SCM]
 mz.scheme_complex_real_part.restype = SCM
 mz.scheme_complex_imaginary_part.argtypes = [SCM]
 mz.scheme_complex_imaginary_part.restype = SCM
+mz.scheme_make_complex.argtypes = [SCM, SCM]
+mz.scheme_make_complex.restype = SCM
 
 # Predicts
 mz.scheme_bool_p.argtypes = [SCM]
