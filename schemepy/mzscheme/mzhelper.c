@@ -59,7 +59,15 @@ int scheme_bignum_p(Scheme_Object *o)
 
 int scheme_real_p(Scheme_Object *o)
 {
-    return SCHEME_REALP(o);
+    return SCHEME_REALP(o) && ! SCHEME_COMPLEX_IZIP(o);
+}
+double scheme_real_value(Scheme_Object *o)
+{
+    if (SCHEME_RATIONALP(o))
+        return scheme_rational_to_double(o);
+    if (SCHEME_DBLP(o))
+        return SCHEME_DBL_VAL(o);
+    return SCHEME_FLOAT_VAL(o);
 }
 
 int scheme_number_p(Scheme_Object *o)

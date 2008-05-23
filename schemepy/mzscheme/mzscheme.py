@@ -55,6 +55,8 @@ class VM(object):
             return mz.scheme_false
         if type(val) is int:
             return mz.scheme_make_integer_value(val)
+        if type(val) is float:
+            return mz.scheme_make_double(val)
 
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
@@ -71,6 +73,14 @@ class VM(object):
             src = mz.scheme_bignum_to_string(val, 10)
             # TODO: Do we need to free src?
             return eval(src)
+        if mz.scheme_real_p(val):
+            return mz.scheme_real_value(val)
+        if mz.scheme_number_p(val):
+            img = self.fromscheme(mz.scheme_complex_imaginary_part(val))
+            real = self.fromscheme(mz.scheme_complex_real_part(val))
+            if img == 0:
+                return float(real)
+            return complex(real, img)
 
     def type(self, val):
         "Get the corresponding Python type of the Scheme value."
@@ -83,6 +93,9 @@ class VM(object):
         if mz.scheme_real_p(val):
             return float
         if mz.scheme_number_p(val):
+            img = self.fromscheme(mz.scheme_complex_imaginary_part(val))
+            if img == 0:
+                return float
             return complex
 
 _mzhelper.init_mz()
@@ -99,17 +112,26 @@ mz.scheme_fixnum_p = _mzhelper.scheme_fixnum_p
 mz.scheme_fixnum_value = _mzhelper.scheme_fixnum_value
 mz.scheme_bignum_p = _mzhelper.scheme_bignum_p
 mz.scheme_real_p = _mzhelper.scheme_real_p
+mz.scheme_real_value = _mzhelper.scheme_real_value
 mz.scheme_number_p = _mzhelper.scheme_number_p
 
 # constructors
 mz.scheme_make_integer_value.argtypes = [c_int]
 mz.scheme_make_integer_value.restype = SCM
+mz.scheme_make_double.argtypes = [c_double]
+mz.scheme_make_double.restype = SCM
 
 # extractor
 mz.scheme_fixnum_value.argtypes = [SCM]
 mz.scheme_fixnum_value.restype = c_int
 mz.scheme_bignum_to_string.argtypes = [SCM, c_int]
 mz.scheme_bignum_to_string.restype = c_char_p
+mz.scheme_real_value.argtypes = [SCM]
+mz.scheme_real_value.restype = c_double
+mz.scheme_complex_real_part.argtypes = [SCM]
+mz.scheme_complex_real_part.restype = SCM
+mz.scheme_complex_imaginary_part.argtypes = [SCM]
+mz.scheme_complex_imaginary_part.restype = SCM
 
 # Predicts
 mz.scheme_bool_p.argtypes = [SCM]
@@ -118,6 +140,10 @@ mz.scheme_false_p.argtypes = [SCM]
 mz.scheme_false_p.restype = c_int
 mz.scheme_fixnum_p.argtypes = [SCM]
 mz.scheme_fixnum_p.restype = c_int
+mz.scheme_bignum_p.argtypes = [SCM]
+mz.scheme_bignum_p.restype = c_int
+mz.scheme_real_p.argtypes = [SCM]
+mz.scheme_bignum_p.restype = c_int
 
 # Helper
 mz.scheme_eval_string.argtypes = [c_char_p, SCM]
