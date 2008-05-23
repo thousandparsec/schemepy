@@ -53,6 +53,8 @@ class VM(object):
             if val is True:
                 return mz.scheme_true
             return mz.scheme_false
+        if type(val) is int:
+            return mz.scheme_make_integer_value(val)
 
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
@@ -63,11 +65,25 @@ class VM(object):
             if mz.scheme_false_p(val):
                 return False
             return True
+        if mz.scheme_fixnum_p(val):
+            return mz.scheme_fixnum_value(val)
+        if mz.scheme_bignum_p(val):
+            src = mz.scheme_bignum_to_string(val, 10)
+            # TODO: Do we need to free src?
+            return eval(src)
 
     def type(self, val):
         "Get the corresponding Python type of the Scheme value."
         if mz.scheme_bool_p(val):
             return bool
+        if mz.scheme_fixnum_p(val):
+            return int
+        if mz.scheme_bignum_p(val):
+            return long
+        if mz.scheme_real_p(val):
+            return float
+        if mz.scheme_number_p(val):
+            return complex
 
 _mzhelper.init_mz()
 global_env = SCM.in_dll(_mzhelper, "global_env")
@@ -79,12 +95,30 @@ mz.scheme_false = SCM.in_dll(_mzhelper, "_scheme_false")
 # macros
 mz.scheme_bool_p = _mzhelper.scheme_bool_p
 mz.scheme_false_p = _mzhelper.scheme_false_p
+mz.scheme_fixnum_p = _mzhelper.scheme_fixnum_p
+mz.scheme_fixnum_value = _mzhelper.scheme_fixnum_value
+mz.scheme_bignum_p = _mzhelper.scheme_bignum_p
+mz.scheme_real_p = _mzhelper.scheme_real_p
+mz.scheme_number_p = _mzhelper.scheme_number_p
+
+# constructors
+mz.scheme_make_integer_value.argtypes = [c_int]
+mz.scheme_make_integer_value.restype = SCM
+
+# extractor
+mz.scheme_fixnum_value.argtypes = [SCM]
+mz.scheme_fixnum_value.restype = c_int
+mz.scheme_bignum_to_string.argtypes = [SCM, c_int]
+mz.scheme_bignum_to_string.restype = c_char_p
 
 # Predicts
 mz.scheme_bool_p.argtypes = [SCM]
-mz.scheme_bool_p.restype = int
+mz.scheme_bool_p.restype = c_int
 mz.scheme_false_p.argtypes = [SCM]
-mz.scheme_false_p.restype = int
+mz.scheme_false_p.restype = c_int
+mz.scheme_fixnum_p.argtypes = [SCM]
+mz.scheme_fixnum_p.restype = c_int
 
+# Helper
 mz.scheme_eval_string.argtypes = [c_char_p, SCM]
 mz.scheme_eval_string.restype = SCM

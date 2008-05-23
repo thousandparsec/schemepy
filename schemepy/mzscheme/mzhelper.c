@@ -29,3 +29,40 @@ int scheme_false_p(Scheme_Object *o)
 {
     return SCHEME_FALSEP(o);
 }
+
+/**
+ * Number type mapping:
+ *
+ *    Mz              Py
+ * --------       ---------
+ * fixnum         int
+ * double         float
+ * float          float
+ * rational       float
+ * bignum         long
+ * complex        complex
+ */
+
+int scheme_fixnum_p(Scheme_Object *o)
+{
+    return SCHEME_INTP(o);
+}
+int scheme_fixnum_value(Scheme_Object *o)
+{
+    return SCHEME_INT_VAL(o);
+}
+
+int scheme_bignum_p(Scheme_Object *o)
+{
+    return SCHEME_BIGNUMP(o);
+}
+
+int scheme_real_p(Scheme_Object *o)
+{
+    return SCHEME_REALP(o);
+}
+
+int scheme_number_p(Scheme_Object *o)
+{
+    return SCHEME_NUMBERP(o);
+}
