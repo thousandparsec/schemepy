@@ -38,14 +38,16 @@ class VM(object):
         """\
         Compile for mzscheme.
         """
-        # TODO: mzscheme support compiling, add support for it
-        return code
+        code = str(code)
+        port = mz.scheme_make_sized_byte_string_input_port(code, len(code))
+        sexp = mz.scheme_read(port)
+        return mz.scheme_compile(sexp, global_env, 0)
 
     def eval(self, code):
         """\
         eval the compiled code for mzscheme.
         """
-        return mz.scheme_eval_string(code, global_env)
+        return mz.scheme_eval_compiled(code, global_env)
 
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
@@ -140,6 +142,8 @@ mz.scheme_make_double.argtypes = [c_double]
 mz.scheme_make_double.restype = SCM
 mz.scheme_char_string_to_byte_string_locale.argtypes = [SCM]
 mz.scheme_char_string_to_byte_string_locale.restype = SCM
+mz.scheme_make_sized_byte_string_input_port.argtypes = [c_char_p, c_int]
+mz.scheme_make_sized_byte_string_input_port.restype = SCM
 
 # extractor
 mz.scheme_fixnum_value.argtypes = [SCM]
@@ -178,3 +182,9 @@ mz.scheme_char_string_p.restype = c_int
 # Helper
 mz.scheme_eval_string.argtypes = [c_char_p, SCM]
 mz.scheme_eval_string.restype = SCM
+mz.scheme_read.argteyps = [SCM]
+mz.scheme_read.restype = SCM
+mz.scheme_compile.argtypes = [SCM, SCM, c_int]
+mz.scheme_compile.restype = SCM
+mz.scheme_eval_compiled.argtypes = [SCM, SCM]
+mz.scheme_eval_compiled.restype = SCM
