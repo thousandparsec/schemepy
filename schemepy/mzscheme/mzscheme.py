@@ -16,7 +16,7 @@ if lib is None:
 mz = cdll.LoadLibrary(lib)
 
 class SCM(c_void_p):
-    """
+    """\
     A Scheme_Object pointer in mzscheme.
     """
     def __init__(self, value=None):
@@ -48,6 +48,39 @@ class SCM(c_void_p):
         return "<SCM %s>" % self.value
     def __repr__(self):
         return self.__str__()
+
+from _ctypes import Py_INCREF, Py_DECREF, PyObj_FromPtr
+def PyObj_del(scm):
+    """\
+    The finalizer of PyObj. Decrease the ref-count of
+    the referenced Python object here.
+    """
+    Py_DECREF(PyObj_FromPtr(PyObj.pointer(scm)))
+PyObj_finalizer_cfun = CFUNCTION(None, c_void_p)
+PyObj_finalizer = PyObj_finalizer_cfun(PyObj_del)
+    
+class PyObj(SCM):
+    """\
+    A mzscheme type holding Python value.
+    """
+    @staticmethod
+    def pointer(scm):
+        "The the id of the referenced Python Object."
+        return mz.PyObj_id(scm)
+
+    @staticmethod
+    def get(scm):
+        "Return the referenced Python Object."
+        return PyObj_FromPtr(mz.PyObj_id(scm))
+
+    @staticmethod
+    def new(obj):
+        """\
+        Create a new PyObj with reference to obj.
+        """
+        PY_INCREF(obj)
+        pointer = id(obj)
+        return mz.PyObj_create(pointer, PyObj_finalizer)
 
 class VM(object):
     """VM for mzscheme
@@ -95,8 +128,8 @@ class VM(object):
                 return mz.scm_make_sized_byte_string(s, len(s), True)
             except UnicodeEncodeError:
                 pass
+        return PyObj.new(val)
         
-
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
         if not isinstance(val, SCM):
@@ -126,6 +159,8 @@ class VM(object):
             return string_at(mem, length)
         if mz.scheme_char_string_p(val):
             return self.fromscheme(mz.scheme_char_string_to_byte_string_locale(val))
+        if mz.PyObj_p(val):
+            return PyObj.get(val)
 
     def type(self, val):
         "Get the corresponding Python type of the Scheme value."
@@ -146,6 +181,8 @@ class VM(object):
             return str
         if mz.scheme_char_string_p(val):
             return str
+        if mz.PyObj_p(val):
+            return object
 
 _mzhelper.init_mz()
 global_env = SCM.in_dll(_mzhelper, "global_env")
@@ -167,6 +204,11 @@ mz.scheme_char_string_p = _mzhelper.scheme_char_string_p
 mz.scheme_byte_string_p = _mzhelper.scheme_byte_string_p
 mz.scheme_byte_string_val = _mzhelper.scheme_byte_string_val
 mz.scheme_byte_string_len = _mzhelper.scheme_byte_string_len
+
+# helpers
+mz.PyObj_create = _mzhelper.PyObj_create
+mz.PyObj_p = _mzhelper.PyObj_p
+mz.PyObj_id = _mzhelper.PyObj_id
 
 # constructors
 mz.scheme_make_integer_value.argtypes = [c_int]
@@ -225,3 +267,10 @@ mz.scheme_eval_compiled.argtypes = [SCM, SCM]
 mz.scheme_eval_compiled.restype = SCM
 mz.scheme_gc_ptr_ok.argtypes = [SCM]
 mz.scheme_dont_gc_ptr.argtypes = [SCM]
+
+mz.PyObj_create.argtypes = [c_uint, PyObj_finalizer_cfun]
+mz.PyObj_create.restype = PyObj
+mz.PyObj_p.argtypes = [SCM]
+mz.PyObj_p.restype = c_int
+mz.PyObj_id.argtypes = [SCM]
+mz.PyObj_id.restype = c_uint

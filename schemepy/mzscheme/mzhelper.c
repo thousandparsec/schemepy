@@ -12,6 +12,47 @@ Scheme_Env *global_env;
 Scheme_Object *_scheme_true;
 Scheme_Object *_scheme_false;
 
+/**
+ * A mzscheme type to hold Python object
+ */
+Scheme_Type PyObj_type;
+typedef struct PyObj_t
+{
+    Scheme_Object header;
+    unsigned int id;           /* the Python object id */
+} PyObj;
+int PyObj_size(void *obj)
+{
+    return gcBYTES_TO_WORDS(sizeof(PyObj));
+}
+/**
+ * Create a PyObj reference to a Python object. The id
+ * of the Python object is passed as parameter. Besides,
+ * a function is passed as the finalizer of this reference.
+ *
+ * NOTE:
+ * the reference count if the Python object is not incremented
+ * here, it should be increased in Python before passing the
+ * id here.
+ */
+PyObj *PyObj_create(unsigned int id, void (*finalizer)(void *p))
+{
+    PyObj *obj = (PyObj *)scheme_malloc(sizeof(PyObj));
+    obj->header.type = PyObj_type;
+    obj->id = id;
+    scheme_register_finalizer(obj, (void (*)(void *, void *))finalizer,
+                              NULL, NULL, NULL);
+    return obj;
+}
+int PyObj_p(Scheme_Object *o)
+{
+    return o->type == PyObj_type;
+}
+unsigned PyObj_id(Scheme_Object *o)
+{
+    return ((PyObj *)o)->id;
+}
+
 void init_mz()
 {
     scheme_set_stack_base(NULL, 1); /* required for OS X, only */
@@ -19,6 +60,9 @@ void init_mz()
 
     _scheme_true = scheme_true;
     _scheme_false = scheme_false;
+
+    PyObj_type = scheme_make_type("Python Object");
+    GC_register_traversers(PyObj_type, PyObj_size, NULL, NULL, 1, 1);
 }
 
 int scheme_bool_p(Scheme_Object *o)
