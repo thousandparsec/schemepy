@@ -34,11 +34,11 @@ class SCM(c_void_p):
         
     def value_set(self, value):
         oldv = getattr(self, 'value', None)
-        if oldv is not None and guile and not guile.scm_imp(oldv):
+        if oldv is not None and not guile.scm_imp(oldv):
             if getattr(self, 'protected', False):
                 guile.scm_gc_unprotect_object(oldv)
             self.protected = False
-        if value is not None and guile and not guile.scm_imp(value):
+        if value is not None and not guile.scm_imp(value):
             guile.scm_gc_protect_object(value)
             self.protected = True
         return c_void_p.value.__set__(self, value)
@@ -48,6 +48,8 @@ class SCM(c_void_p):
     value = property(value_get, value_set)
     
     def __del__(self):
+        if guile is None:
+            return # the guile library has been unloaded, do nothing
         self.value = None
 
     def __str__(self):

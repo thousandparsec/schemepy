@@ -19,6 +19,31 @@ class SCM(c_void_p):
     """
     A Scheme_Object pointer in mzscheme.
     """
+    def __init__(self, value=None):
+        c_void_p.__init__(self)
+        self.value = value
+
+    def value_set(self, value):
+        oldv = getattr(self, 'value', None)
+        if oldv is not None:
+            mz.scheme_gc_ptr_ok(oldv)
+        if value is not None:
+            mz.scheme_dont_gc_ptr(value)
+        return c_void_p.value.__set__(self, value)
+    def value_get(self):
+        return c_void_p.value.__get__(self)
+    value = property(value_get, value_set)
+
+    def __del__(self):
+        if mz is None:
+            return # the mz library has been unloaded, do nothing
+        # We should be careful here in __del__, originally my code
+        # of 'self.value' is firing some exceptions saying that
+        # NoneType has no 'value' attribute.
+        value = getattr(self, 'value', None)
+        if value is not None:
+            mz.scheme_gc_ptr_ok(value)
+    
     def __str__(self):
         return "<SCM %s>" % self.value
     def __repr__(self):
@@ -41,7 +66,7 @@ class VM(object):
         code = str(code)
         port = mz.scheme_make_sized_byte_string_input_port(code, len(code))
         sexp = mz.scheme_read(port)
-        return mz.scheme_compile(sexp, global_env, 0)
+        return mz.scheme_compile(sexp, global_env, False)
 
     def eval(self, code):
         """\
@@ -62,6 +87,14 @@ class VM(object):
         if type(val) is complex:
             return mz.scheme_make_complex(self.toscheme(val.real),
                                           self.toscheme(val.imag))
+        if type(val) is str:
+            return mz.scheme_make_sized_byte_string(val, len(val), True)
+        if type(val) is unicode:
+            try:
+                s = str(val)
+                return mz.scm_make_sized_byte_string(s, len(s), True)
+            except UnicodeEncodeError:
+                pass
         
 
     def fromscheme(self, val, shallow=False):
@@ -144,6 +177,8 @@ mz.scheme_char_string_to_byte_string_locale.argtypes = [SCM]
 mz.scheme_char_string_to_byte_string_locale.restype = SCM
 mz.scheme_make_sized_byte_string_input_port.argtypes = [c_char_p, c_int]
 mz.scheme_make_sized_byte_string_input_port.restype = SCM
+mz.scheme_make_sized_byte_string.argteyps = [c_char_p, c_int, c_int]
+mz.scheme_make_sized_byte_string.restype = SCM
 
 # extractor
 mz.scheme_fixnum_value.argtypes = [SCM]
@@ -188,3 +223,5 @@ mz.scheme_compile.argtypes = [SCM, SCM, c_int]
 mz.scheme_compile.restype = SCM
 mz.scheme_eval_compiled.argtypes = [SCM, SCM]
 mz.scheme_eval_compiled.restype = SCM
+mz.scheme_gc_ptr_ok.argtypes = [SCM]
+mz.scheme_dont_gc_ptr.argtypes = [SCM]
