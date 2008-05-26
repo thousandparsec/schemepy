@@ -20,6 +20,9 @@ if not lib.endswith(ver_lib):
 
 guile = cdll.LoadLibrary(lib)
 
+guile.scm_imp      = _guilehelper.scm_imp
+guile.scm_imp.argtypes = [c_void_p]
+guile.scm_imp.restype = bool
 
 class SCM(c_void_p):
     """
@@ -31,15 +34,18 @@ class SCM(c_void_p):
         
     def value_set(self, value):
         oldv = getattr(self, 'value', None)
-        if oldv is not None:
-            guile.scm_gc_unprotect_object(oldv)
-        if value is not None:
+        if oldv is not None and guile and not guile.scm_imp(oldv):
+            if getattr(self, 'protected', False):
+                guile.scm_gc_unprotect_object(oldv)
+            self.protected = False
+        if value is not None and guile and not guile.scm_imp(value):
             guile.scm_gc_protect_object(value)
-        return c_void_p.value.__set__(self, v)
+            self.protected = True
+        return c_void_p.value.__set__(self, value)
 
     def value_get(self):
         return c_void_p.value.__get__(self)
-    scm = property(value_get, value_set)
+    value = property(value_get, value_set)
     
     def __del__(self):
         self.value = None
@@ -599,7 +605,6 @@ guile.scm_set_smob_data  = _guilehelper.scm_set_smob_data
 guile.scm_return_newsmob = _guilehelper.scm_return_newsmob
 guile.scm_smob_predicate = _guilehelper.scm_smob_predicate
 
-guile.scm_imp      = _guilehelper.scm_imp
 guile.scm_is_eol   = _guilehelper.scm_is_eol 
 guile.scm_is_list  = _guilehelper.scm_is_list
 guile.scm_is_alist = _guilehelper.scm_is_alist
