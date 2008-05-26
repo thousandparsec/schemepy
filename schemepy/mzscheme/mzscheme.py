@@ -56,7 +56,7 @@ def PyObj_del(scm):
     the referenced Python object here.
     """
     Py_DECREF(PyObj_FromPtr(PyObj.pointer(scm)))
-PyObj_finalizer_cfun = CFUNCTION(None, c_void_p)
+PyObj_finalizer_cfun = CFUNCTYPE(None, c_void_p)
 PyObj_finalizer = PyObj_finalizer_cfun(PyObj_del)
     
 class PyObj(SCM):
@@ -78,7 +78,7 @@ class PyObj(SCM):
         """\
         Create a new PyObj with reference to obj.
         """
-        PY_INCREF(obj)
+        Py_INCREF(obj)
         pointer = id(obj)
         return mz.PyObj_create(pointer, PyObj_finalizer)
 
@@ -125,7 +125,7 @@ class VM(object):
         if type(val) is unicode:
             try:
                 s = str(val)
-                return mz.scm_make_sized_byte_string(s, len(s), True)
+                return mz.scheme_make_sized_byte_string(s, len(s), True)
             except UnicodeEncodeError:
                 pass
         return PyObj.new(val)

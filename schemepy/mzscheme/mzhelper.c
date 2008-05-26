@@ -21,10 +21,6 @@ typedef struct PyObj_t
     Scheme_Object header;
     unsigned int id;           /* the Python object id */
 } PyObj;
-int PyObj_size(void *obj)
-{
-    return gcBYTES_TO_WORDS(sizeof(PyObj));
-}
 /**
  * Create a PyObj reference to a Python object. The id
  * of the Python object is passed as parameter. Besides,
@@ -62,7 +58,6 @@ void init_mz()
     _scheme_false = scheme_false;
 
     PyObj_type = scheme_make_type("Python Object");
-    GC_register_traversers(PyObj_type, PyObj_size, NULL, NULL, 1, 1);
 }
 
 int scheme_bool_p(Scheme_Object *o)
