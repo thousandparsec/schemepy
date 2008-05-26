@@ -74,3 +74,21 @@ int scheme_number_p(Scheme_Object *o)
 {
     return SCHEME_NUMBERP(o);
 }
+
+
+int scheme_char_string_p(Scheme_Object *o)
+{
+    return SCHEME_CHAR_STRINGP(o);
+}
+int scheme_byte_string_p(Scheme_Object *o)
+{
+    return SCHEME_BYTE_STRINGP(o);
+}
+char *scheme_byte_string_val(Scheme_Object *o)
+{
+    return SCHEME_BYTE_STR_VAL(o);
+}
+int scheme_byte_string_len(Scheme_Object *o)
+{
+    return SCHEME_BYTE_STRLEN_VAL(o);
+}

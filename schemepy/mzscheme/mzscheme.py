@@ -60,6 +60,7 @@ class VM(object):
         if type(val) is complex:
             return mz.scheme_make_complex(self.toscheme(val.real),
                                           self.toscheme(val.imag))
+        
 
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
@@ -84,6 +85,12 @@ class VM(object):
             if img == 0:
                 return float(real)
             return complex(real, img)
+        if mz.scheme_byte_string_p(val):
+            mem = mz.scheme_byte_string_val(val)
+            length = mz.scheme_byte_string_len(val)
+            return string_at(mem, length)
+        if mz.scheme_char_string_p(val):
+            return self.fromscheme(mz.scheme_char_string_to_byte_string_locale(val))
 
     def type(self, val):
         "Get the corresponding Python type of the Scheme value."
@@ -100,6 +107,10 @@ class VM(object):
             if img == 0:
                 return float
             return complex
+        if mz.scheme_byte_string_p(val):
+            return str
+        if mz.scheme_char_string_p(val):
+            return str
 
 _mzhelper.init_mz()
 global_env = SCM.in_dll(_mzhelper, "global_env")
@@ -117,12 +128,18 @@ mz.scheme_bignum_p = _mzhelper.scheme_bignum_p
 mz.scheme_real_p = _mzhelper.scheme_real_p
 mz.scheme_real_value = _mzhelper.scheme_real_value
 mz.scheme_number_p = _mzhelper.scheme_number_p
+mz.scheme_char_string_p = _mzhelper.scheme_char_string_p
+mz.scheme_byte_string_p = _mzhelper.scheme_byte_string_p
+mz.scheme_byte_string_val = _mzhelper.scheme_byte_string_val
+mz.scheme_byte_string_len = _mzhelper.scheme_byte_string_len
 
 # constructors
 mz.scheme_make_integer_value.argtypes = [c_int]
 mz.scheme_make_integer_value.restype = SCM
 mz.scheme_make_double.argtypes = [c_double]
 mz.scheme_make_double.restype = SCM
+mz.scheme_char_string_to_byte_string_locale.argtypes = [SCM]
+mz.scheme_char_string_to_byte_string_locale.restype = SCM
 
 # extractor
 mz.scheme_fixnum_value.argtypes = [SCM]
@@ -137,6 +154,10 @@ mz.scheme_complex_imaginary_part.argtypes = [SCM]
 mz.scheme_complex_imaginary_part.restype = SCM
 mz.scheme_make_complex.argtypes = [SCM, SCM]
 mz.scheme_make_complex.restype = SCM
+mz.scheme_byte_string_val.argtypes = [SCM]
+mz.scheme_byte_string_val.restype = c_void_p
+mz.scheme_byte_string_len.argtypes = [SCM]
+mz.scheme_byte_string_len.restype = c_int
 
 # Predicts
 mz.scheme_bool_p.argtypes = [SCM]
@@ -149,6 +170,10 @@ mz.scheme_bignum_p.argtypes = [SCM]
 mz.scheme_bignum_p.restype = c_int
 mz.scheme_real_p.argtypes = [SCM]
 mz.scheme_bignum_p.restype = c_int
+mz.scheme_byte_string_p.argtypes = [SCM]
+mz.scheme_byte_string_p.restype = c_int
+mz.scheme_char_string_p.argtypes = [SCM]
+mz.scheme_char_string_p.restype = c_int
 
 # Helper
 mz.scheme_eval_string.argtypes = [c_char_p, SCM]
