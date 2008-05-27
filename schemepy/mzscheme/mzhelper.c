@@ -131,3 +131,16 @@ int scheme_byte_string_len(Scheme_Object *o)
 {
     return SCHEME_BYTE_STRLEN_VAL(o);
 }
+
+int scheme_symbol_p(Scheme_Object *o)
+{
+    return SCHEME_SYMBOLP(o);
+}
+char *scheme_symbol_val(Scheme_Object *o)
+{
+    return SCHEME_SYM_VAL(o);
+}
+int scheme_symbol_len(Scheme_Object *o)
+{
+    return SCHEME_SYM_LEN(o);
+}

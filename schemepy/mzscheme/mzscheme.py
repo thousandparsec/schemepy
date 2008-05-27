@@ -1,6 +1,6 @@
 from ctypes.util import find_library
 from ctypes import *
-# from schemepy.types import *
+from schemepy.types import *
 # from schemepy.exceptions import *
 import types
 import os.path
@@ -128,6 +128,8 @@ class VM(object):
                 return mz.scheme_make_sized_byte_string(s, len(s), True)
             except UnicodeEncodeError:
                 pass
+        if type(val) is Symbol:
+            return mz.scheme_intern_exact_symbol(val.name.encode('utf-8'), len(val.name))
         return PyObj.new(val)
         
     def fromscheme(self, val, shallow=False):
@@ -159,6 +161,10 @@ class VM(object):
             return string_at(mem, length)
         if mz.scheme_char_string_p(val):
             return self.fromscheme(mz.scheme_char_string_to_byte_string_locale(val))
+        if mz.scheme_symbol_p(val):
+            mem = mz.scheme_symbol_val(val)
+            length = mz.scheme_symbol_len(val)
+            return Symbol(string_at(mem, length))
         if mz.PyObj_p(val):
             return PyObj.get(val)
 
@@ -181,6 +187,8 @@ class VM(object):
             return str
         if mz.scheme_char_string_p(val):
             return str
+        if mz.scheme_symbol_p(val):
+            return Symbol
         if mz.PyObj_p(val):
             return object
 
@@ -204,6 +212,9 @@ mz.scheme_char_string_p = _mzhelper.scheme_char_string_p
 mz.scheme_byte_string_p = _mzhelper.scheme_byte_string_p
 mz.scheme_byte_string_val = _mzhelper.scheme_byte_string_val
 mz.scheme_byte_string_len = _mzhelper.scheme_byte_string_len
+mz.scheme_symbol_p = _mzhelper.scheme_symbol_p
+mz.scheme_symbol_val = _mzhelper.scheme_symbol_val
+mz.scheme_symbol_len = _mzhelper.scheme_symbol_len
 
 # helpers
 mz.PyObj_create = _mzhelper.PyObj_create
@@ -221,6 +232,8 @@ mz.scheme_make_sized_byte_string_input_port.argtypes = [c_char_p, c_int]
 mz.scheme_make_sized_byte_string_input_port.restype = SCM
 mz.scheme_make_sized_byte_string.argteyps = [c_char_p, c_int, c_int]
 mz.scheme_make_sized_byte_string.restype = SCM
+mz.scheme_intern_exact_symbol.argtypes = [c_char_p, c_int]
+mz.scheme_intern_exact_symbol.restype = SCM
 
 # extractor
 mz.scheme_fixnum_value.argtypes = [SCM]
@@ -239,6 +252,10 @@ mz.scheme_byte_string_val.argtypes = [SCM]
 mz.scheme_byte_string_val.restype = c_void_p
 mz.scheme_byte_string_len.argtypes = [SCM]
 mz.scheme_byte_string_len.restype = c_int
+mz.scheme_symbol_val.argtypes = [SCM]
+mz.scheme_symbol_val.restype = c_void_p
+mz.scheme_symbol_len.argtypes = [SCM]
+mz.scheme_symbol_len.restype = c_int
 
 # Predicts
 mz.scheme_bool_p.argtypes = [SCM]
@@ -255,6 +272,8 @@ mz.scheme_byte_string_p.argtypes = [SCM]
 mz.scheme_byte_string_p.restype = c_int
 mz.scheme_char_string_p.argtypes = [SCM]
 mz.scheme_char_string_p.restype = c_int
+mz.scheme_symbol_p.argtypes = [SCM]
+mz.scheme_symbol_p.restype = c_int
 
 # Helper
 mz.scheme_eval_string.argtypes = [c_char_p, SCM]
