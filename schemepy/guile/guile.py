@@ -316,7 +316,8 @@ class VM(object):
                     if type(item) is not SCM:
                         raise ConversionError(val, "Invalid shallow conversion on list, every element should be a Scheme value.")
                     scm = guile.scm_cons(item, scm)
-                scm = guile.scm_cons(self.toscheme(item), scm)
+                else:
+                    scm = guile.scm_cons(self.toscheme(item), scm)
             return scm
         if isinstance(val, dict):
             scm = guile.scm_eol()
@@ -325,7 +326,8 @@ class VM(object):
                     if type(value) is not SCM:
                         raise ConversionError(val, "Invalid shallow conversion on dict, every value should be a Scheme value.")
                     scm = guile.scm_cons(guile.scm_cons(self.toscheme(key), value), scm)
-                scm = guile.scm_cons(guile.scm_cons(self.toscheme(key), self.toscheme(value)), scm)
+                else:
+                    scm = guile.scm_cons(guile.scm_cons(self.toscheme(key), self.toscheme(value)), scm)
             return scm
         if type(val) is str:
             return guile.scm_from_locale_stringn(val, len(val))

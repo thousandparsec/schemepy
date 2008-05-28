@@ -3,7 +3,7 @@
 Scheme_Env *global_env;
 
 /**
- * It's strange that bool constants from mzscheme.so is different
+ * It's strange that constants from mzscheme.so is different
  * from what's seen from this library (from the header file). And
  * since value seen from this library consists with the eval-ed
  * values (i.e. scheme_eval_string("#t", env)), we'll use constants
@@ -11,6 +11,7 @@ Scheme_Env *global_env;
  */
 Scheme_Object *_scheme_true;
 Scheme_Object *_scheme_false;
+Scheme_Object *_scheme_null;
 
 /**
  * A mzscheme type to hold Python object
@@ -56,6 +57,7 @@ void init_mz()
 
     _scheme_true = scheme_true;
     _scheme_false = scheme_false;
+    _scheme_null = scheme_null;
 
     PyObj_type = scheme_make_type("Python Object");
 }
@@ -143,4 +145,46 @@ char *scheme_symbol_val(Scheme_Object *o)
 int scheme_symbol_len(Scheme_Object *o)
 {
     return SCHEME_SYM_LEN(o);
+}
+
+int scheme_null_p(Scheme_Object *o)
+{
+    return SCHEME_NULLP(o);
+}
+int scheme_pair_p(Scheme_Object *o)
+{
+    return SCHEME_PAIRP(o);
+}
+Scheme_Object *scheme_pair_car(Scheme_Object *o)
+{
+    return SCHEME_CAR(o);
+}
+Scheme_Object *scheme_pair_cdr(Scheme_Object *o)
+{
+    return SCHEME_CDR(o);
+}
+int scheme_list_p(Scheme_Object *o)
+{
+    while (1)
+    {
+        if (SCHEME_NULLP(o))
+            return 1;
+        if (!SCHEME_PAIRP(o))
+            return 0;
+        o = SCHEME_CDR(o);
+    }
+    return 0; /* should reach here */
+}
+int scheme_alist_p(Scheme_Object *o)
+{
+    while (1)
+    {
+        if (SCHEME_NULLP(o))
+            return 1;
+        if (!SCHEME_PAIRP(o))
+            return 0;
+        if (!SCHEME_PAIRP(SCHEME_CAR(o)))
+            return 0;
+        o = SCHEME_CDR(o);
+    }
 }

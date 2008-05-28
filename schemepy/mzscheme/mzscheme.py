@@ -1,7 +1,7 @@
 from ctypes.util import find_library
 from ctypes import *
 from schemepy.types import *
-# from schemepy.exceptions import *
+from schemepy.exceptions import *
 import types
 import os.path
 
@@ -130,6 +130,32 @@ class VM(object):
                 pass
         if type(val) is Symbol:
             return mz.scheme_intern_exact_symbol(val.name.encode('utf-8'), len(val.name))
+        if type(val) is Cons:
+            if shallow:
+                if not isinstance(val.car, SCM) or not isinstance(val.cdr, SCM):
+                    raise ConversionError(val, "Invalid shallow conversion on Cons, both car and cdr should be a Scheme value.")
+                return mz.scheme_make_pair(val.car, val.cdr)
+            return mz.scheme_make_pair(self.toscheme(val.car), self.toscheme(val.cdr))
+        if isinstance(val, list):
+            scm = mz.scheme_null
+            for item in reversed(val):
+                if shallow:
+                    if not isinstance(item, SCM):
+                        raise ConversionError(val, "Invalid shallow conversion on list, every element should be a Scheme value.")
+                    scm = mz.scheme_make_pair(item, scm)
+                else:
+                    scm = mz.scheme_make_pair(self.toscheme(item), scm)
+            return scm
+        if isinstance(val, dict):
+            scm = mz.scheme_null
+            for key, value in val.iteritems():
+                if shallow:
+                    if not isinstance(item, SCM):
+                        raise ConversionError(val, "Invalid shallow conversion on dict, every value should be a Scheme value.")
+                    scm = mz.scheme_make_pair(mz.scheme_make_pair(self.toscheme(key), value), scm)
+                else:
+                    scm = mz.scheme_make_pair(mz.scheme_make_pair(self.toscheme(key), self.toscheme(value)), scm)
+            return scm
         return PyObj.new(val)
         
     def fromscheme(self, val, shallow=False):
@@ -165,6 +191,39 @@ class VM(object):
             mem = mz.scheme_symbol_val(val)
             length = mz.scheme_symbol_len(val)
             return Symbol(string_at(mem, length))
+        if mz.scheme_null_p(val):
+            return []
+        if mz.scheme_alist_p(val):
+            d = {}
+            scm = val
+            while not mz.scheme_null_p(scm):
+                item = mz.scheme_pair_car(scm)
+                key = self.fromscheme(mz.scheme_pair_car(item))
+                value = mz.scheme_pair_cdr(item)
+                if not shallow:
+                    d[key] = self.fromscheme(value)
+                else:
+                    d[key] = value
+                scm = mz.scheme_pair_cdr(scm)
+            return d
+        if mz.scheme_list_p(val):
+            l = []
+            scm = val
+            while not mz.scheme_null_p(scm):
+                item = mz.scheme_pair_car(scm)
+                if not shallow:
+                    l.append(self.fromscheme(item))
+                else:
+                    l.append(item)
+                scm = mz.scheme_pair_cdr(scm)
+            return l
+        if mz.scheme_pair_p(val):
+            car = mz.scheme_pair_car(val)
+            cdr = mz.scheme_pair_cdr(val)
+            if not shallow:
+                return Cons(self.fromscheme(car), self.fromscheme(cdr))
+            else:
+                return Cons(car, cdr)
         if mz.PyObj_p(val):
             return PyObj.get(val)
 
@@ -189,6 +248,14 @@ class VM(object):
             return str
         if mz.scheme_symbol_p(val):
             return Symbol
+        if mz.scheme_null_p(val):
+            return list
+        if mz.scheme_alist_p(val):
+            return dict
+        if mz.scheme_list_p(val):
+            return list
+        if mz.scheme_pair_p(val):
+            return Cons
         if mz.PyObj_p(val):
             return object
 
@@ -198,6 +265,7 @@ global_env = SCM.in_dll(_mzhelper, "global_env")
 # global constants
 mz.scheme_true = SCM.in_dll(_mzhelper, "_scheme_true")
 mz.scheme_false = SCM.in_dll(_mzhelper, "_scheme_false")
+mz.scheme_null = SCM.in_dll(_mzhelper, "_scheme_null")
 
 # macros
 mz.scheme_bool_p = _mzhelper.scheme_bool_p
@@ -215,11 +283,17 @@ mz.scheme_byte_string_len = _mzhelper.scheme_byte_string_len
 mz.scheme_symbol_p = _mzhelper.scheme_symbol_p
 mz.scheme_symbol_val = _mzhelper.scheme_symbol_val
 mz.scheme_symbol_len = _mzhelper.scheme_symbol_len
+mz.scheme_pair_p = _mzhelper.scheme_pair_p
+mz.scheme_pair_car = _mzhelper.scheme_pair_car
+mz.scheme_pair_cdr = _mzhelper.scheme_pair_cdr
+mz.scheme_null_p = _mzhelper.scheme_null_p
 
 # helpers
 mz.PyObj_create = _mzhelper.PyObj_create
 mz.PyObj_p = _mzhelper.PyObj_p
 mz.PyObj_id = _mzhelper.PyObj_id
+mz.scheme_list_p = _mzhelper.scheme_list_p
+mz.scheme_alist_p = _mzhelper.scheme_alist_p
 
 # constructors
 mz.scheme_make_integer_value.argtypes = [c_int]
@@ -234,6 +308,8 @@ mz.scheme_make_sized_byte_string.argteyps = [c_char_p, c_int, c_int]
 mz.scheme_make_sized_byte_string.restype = SCM
 mz.scheme_intern_exact_symbol.argtypes = [c_char_p, c_int]
 mz.scheme_intern_exact_symbol.restype = SCM
+mz.scheme_make_pair.argtypes = [SCM, SCM]
+mz.scheme_make_pair.restype = SCM
 
 # extractor
 mz.scheme_fixnum_value.argtypes = [SCM]
@@ -256,6 +332,11 @@ mz.scheme_symbol_val.argtypes = [SCM]
 mz.scheme_symbol_val.restype = c_void_p
 mz.scheme_symbol_len.argtypes = [SCM]
 mz.scheme_symbol_len.restype = c_int
+mz.scheme_pair_car.argtypes = [SCM]
+mz.scheme_pair_car.restype = SCM
+mz.scheme_pair_cdr.argtypes = [SCM]
+mz.scheme_pair_cdr.restype = SCM
+
 
 # Predicts
 mz.scheme_bool_p.argtypes = [SCM]
@@ -274,6 +355,14 @@ mz.scheme_char_string_p.argtypes = [SCM]
 mz.scheme_char_string_p.restype = c_int
 mz.scheme_symbol_p.argtypes = [SCM]
 mz.scheme_symbol_p.restype = c_int
+mz.scheme_pair_p.argtypes = [SCM]
+mz.scheme_pair_p.restype = c_int
+mz.scheme_list_p.argtypes = [SCM]
+mz.scheme_list_p.restype = c_int
+mz.scheme_alist_p.argtypes = [SCM]
+mz.scheme_alist_p.restype = c_int
+mz.scheme_null_p.argtypes = [SCM]
+mz.scheme_null_p.restype = c_int
 
 # Helper
 mz.scheme_eval_string.argtypes = [c_char_p, SCM]
