@@ -101,6 +101,21 @@ class VM(object):
         sexp = mz.scheme_read(port)
         return mz.scheme_compile(sexp, global_env, False)
 
+    def apply(self, proc, args):
+        """\
+        Call the Scheme procedure proc with args as arguments.
+
+          proc should be a Scheme procedure
+          args should be a list os Scheme value
+
+        The return value is a Scheme value.
+        """
+        arglist = mz.scheme_null
+        for arg in reversed(args):
+            arglist = mz.scheme_make_pair(arg, arglist)
+
+        return mz.scheme_apply_to_list(proc, arglist)
+        
     def eval(self, code):
         """\
         eval the compiled code for mzscheme.
@@ -156,6 +171,8 @@ class VM(object):
                 else:
                     scm = mz.scheme_make_pair(mz.scheme_make_pair(self.toscheme(key), self.toscheme(value)), scm)
             return scm
+        if type(val) is Lambda:
+            return val._lambda
         return PyObj.new(val)
         
     def fromscheme(self, val, shallow=False):
@@ -224,6 +241,8 @@ class VM(object):
                 return Cons(self.fromscheme(car), self.fromscheme(cdr))
             else:
                 return Cons(car, cdr)
+        if mz.scheme_procedure_p(val):
+            return Lambda(val, self, shallow)
         if mz.PyObj_p(val):
             return PyObj.get(val)
 
@@ -256,6 +275,8 @@ class VM(object):
             return list
         if mz.scheme_pair_p(val):
             return Cons
+        if mz.scheme_procedure_p(val):
+            return Lambda
         if mz.PyObj_p(val):
             return object
 
@@ -287,6 +308,7 @@ mz.scheme_pair_p = _mzhelper.scheme_pair_p
 mz.scheme_pair_car = _mzhelper.scheme_pair_car
 mz.scheme_pair_cdr = _mzhelper.scheme_pair_cdr
 mz.scheme_null_p = _mzhelper.scheme_null_p
+mz.scheme_procedure_p = _mzhelper.scheme_procedure_p
 
 # helpers
 mz.PyObj_create = _mzhelper.PyObj_create
@@ -363,6 +385,8 @@ mz.scheme_alist_p.argtypes = [SCM]
 mz.scheme_alist_p.restype = c_int
 mz.scheme_null_p.argtypes = [SCM]
 mz.scheme_null_p.restype = c_int
+mz.scheme_procedure_p.argtypes = [SCM]
+mz.scheme_procedure_p.restype = c_int
 
 # Helper
 mz.scheme_eval_string.argtypes = [c_char_p, SCM]
@@ -375,6 +399,8 @@ mz.scheme_eval_compiled.argtypes = [SCM, SCM]
 mz.scheme_eval_compiled.restype = SCM
 mz.scheme_gc_ptr_ok.argtypes = [SCM]
 mz.scheme_dont_gc_ptr.argtypes = [SCM]
+mz.scheme_apply_to_list.argtypes = [SCM, SCM]
+mz.scheme_apply_to_list.restype = SCM
 
 mz.PyObj_create.argtypes = [c_uint, PyObj_finalizer_cfun]
 mz.PyObj_create.restype = PyObj

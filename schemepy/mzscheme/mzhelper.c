@@ -188,3 +188,8 @@ int scheme_alist_p(Scheme_Object *o)
         o = SCHEME_CDR(o);
     }
 }
+
+int scheme_procedure_p(Scheme_Object *o)
+{
+    return SCHEME_PROCP(o);
+}
