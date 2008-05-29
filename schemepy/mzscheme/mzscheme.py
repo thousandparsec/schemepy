@@ -173,6 +173,12 @@ class VM(object):
             return scm
         if type(val) is Lambda:
             return val._lambda
+        if callable(val):
+            scm_proc = PyObj.new(val)
+            return self.apply(scm_lambda_wrapper, [scm_py_call,
+                                                   scm_proc,
+                                                   self.toscheme(shallow),
+                                                   self.toscheme(self)])
         return PyObj.new(val)
         
     def fromscheme(self, val, shallow=False):
@@ -242,6 +248,8 @@ class VM(object):
             else:
                 return Cons(car, cdr)
         if mz.scheme_procedure_p(val):
+            if self.fromscheme(mz.scheme_get_proc_name(val)) == scm_py_call_identifier:
+                return PyObj.get(self.apply(val, [self.toscheme(scm_py_call_extractor)]))
             return Lambda(val, self, shallow)
         if mz.PyObj_p(val):
             return PyObj.get(val)
@@ -276,9 +284,12 @@ class VM(object):
         if mz.scheme_pair_p(val):
             return Cons
         if mz.scheme_procedure_p(val):
+            if self.fromscheme(mz.scheme_get_proc_name(val)) == scm_py_call_identifier:
+                return types.FunctionType
             return Lambda
         if mz.PyObj_p(val):
             return object
+        
 
 _mzhelper.init_mz()
 global_env = SCM.in_dll(_mzhelper, "global_env")
@@ -316,6 +327,7 @@ mz.PyObj_p = _mzhelper.PyObj_p
 mz.PyObj_id = _mzhelper.PyObj_id
 mz.scheme_list_p = _mzhelper.scheme_list_p
 mz.scheme_alist_p = _mzhelper.scheme_alist_p
+mz.scheme_get_proc_name = _mzhelper._scheme_get_proc_name
 
 # constructors
 mz.scheme_make_integer_value.argtypes = [c_int]
@@ -408,3 +420,63 @@ mz.PyObj_p.argtypes = [SCM]
 mz.PyObj_p.restype = c_int
 mz.PyObj_id.argtypes = [SCM]
 mz.PyObj_id.restype = c_uint
+
+mz.scheme_get_proc_name.argtypes = [SCM]
+mz.scheme_get_proc_name.restype = SCM
+
+def scm_py_call(narg, arg):
+    """\
+    This function will be registered to the Scheme world to call a Python
+    callable.
+    
+    py_callable is a Python callable, wrapped as a SMOB in Scheme world.
+    shallow     is whether the wrap is shallow, i.e. the args and return values
+                will be auto-converted if not shallow.
+    vm          is the vm in which to call the function.
+    scm_args    is a Scheme cons-list for the function.
+
+    This function will not be available to normal Scheme code.
+    """
+    if narg != 4:
+        # TODO: is it safe to raise exception in a C handler?
+        raise TypeError("scm_py_call takes exactly 4 arguments.")
+    py_callable = arg[0]
+    shallow     = arg[1]
+    vm          = arg[2]
+    scm_args    = arg[3]
+    
+    vm = PyObj.get(vm)
+    py_callable, shallow = vm.fromscheme(py_callable), vm.fromscheme(shallow)
+    args = vm.fromscheme(scm_args, shallow=shallow)
+    result = py_callable(*args)
+    if not shallow:
+        result = vm.toscheme(result)
+    else:
+        if not isinstance(result, SCM):
+            # TODO: is it safe to raise exception in a C handler
+            raise TypeError("Return type is not a SCM!")
+    return result.value
+
+scm_py_call_t = CFUNCTYPE(SCM, c_int, POINTER(SCM))
+scm_py_call = scm_py_call_t(scm_py_call)
+
+mz.scheme_make_prim_w_arity.argtypes = [scm_py_call_t, c_char_p, c_int, c_int]
+mz.scheme_make_prim_w_arity.restype = SCM
+
+scm_py_call = mz.scheme_make_prim_w_arity(scm_py_call, "schemepy-py-call", 4, 4)
+
+scm_py_call_identifier = Symbol("schemepy-python-callable")
+scm_py_call_extractor = Symbol("schemepy-python-get-callable")
+scm_lambda_wrapper = mz.scheme_eval_string("""
+            (lambda (call-py py-callable shallow vm)
+              ; this will infer mzscheme to name the lambda
+              ; by `schemepy-python-callable'
+              (let ((schemepy-python-callable
+                      (case-lambda
+                        [(x)
+                          (if (eq? x 'schemepy-python-get-callable)
+                              py-callable
+                            (call-py py-callable shallow vm (list x)))]
+                        [args
+                          (call-py py-callable shallow vm args)])))
+                schemepy-python-callable))""", global_env)

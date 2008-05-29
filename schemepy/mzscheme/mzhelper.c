@@ -193,3 +193,18 @@ int scheme_procedure_p(Scheme_Object *o)
 {
     return SCHEME_PROCP(o);
 }
+
+Scheme_Object *_scheme_get_proc_name(Scheme_Object *o)
+{
+    const char *s;
+    int len;
+    s = scheme_get_proc_name(o, &len, -1);
+    if (s)
+    {
+        if (len < 0)
+            return (Scheme_Object *)s;
+        else
+            return scheme_intern_exact_symbol(s, len);
+    }
+    return _scheme_false;
+}
