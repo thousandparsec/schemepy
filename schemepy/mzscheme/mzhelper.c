@@ -98,7 +98,7 @@ void init_mz()
     PyObj_type = scheme_make_type("Python Object");
 
     catched_apply_proc = scheme_eval_string(catched_apply_proc_code, global_env);
-    proc_scheme_compile = scheme_make_prim_w_arity(do_compile, "schemepy-do-compile", 1, 1);
+    proc_scheme_compile = scheme_make_prim_w_arity(do_compile, "schemepy-do-compile", 2, 2);
     proc_scheme_eval = scheme_make_prim_w_arity(do_eval, "schemepy-do-eval", 2, 2);
     proc_scheme_apply = scheme_make_prim_w_arity(do_apply, "schemepy-do-apply", 2, 2);
 }
@@ -266,17 +266,18 @@ Scheme_Object *_scheme_get_proc_name(Scheme_Object *o)
 static Scheme_Object *do_compile(int argc, Scheme_Object **argv)
 {
     Scheme_Object *sexp = scheme_read((Scheme_Object *)argv[0]);
-    return scheme_compile(sexp, global_env, 0);
+    return scheme_compile(sexp, (Scheme_Env *)argv[1], 0);
 }  
-Scheme_Object *catched_scheme_compile(char *code, int len)
+Scheme_Object *catched_scheme_compile(char *code, int len, Scheme_Object *env)
 {
-    Scheme_Object *params[2];
+    Scheme_Object *params[3];
     Scheme_Object *port = scheme_make_sized_byte_string_input_port(code, len);
     Scheme_Object *result;
 
     params[0] = proc_scheme_compile;
     params[1] = port;
-    result = scheme_apply(catched_apply_proc, 2, params);
+    params[2] = env;
+    result = scheme_apply(catched_apply_proc, 3, params);
 
     scheme_close_input_port(port);
     return result;

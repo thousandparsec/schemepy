@@ -216,7 +216,7 @@ class VM(object):
         """
         env = profiles.get(profile)
         if not env:
-            raise ProfileNotFoundError, "No such profile %s" % profile
+            raise ProfileNotFoundError("No such profile %s" % profile)
         global guileroot
         guile.scm_set_current_module(guileroot)
         self.module = guile.scm_call_1(makescope, env)

@@ -86,20 +86,18 @@ class VM(object):
     """VM for mzscheme
     """
 
-    module_number = 0
-    @staticmethod
-    def next_module_name():
-        VM.module_number += 1
-        return "schemepy-vm-module-%d" % VM.module_number
-    
+    profiles = {
+        "scheme-report-environment" : "(scheme-report-environment 5)",
+        "null-environment" : "(null-environment 5)"
+        }
     def __init__(self, profile):
         """\
         Create a VM.
         """
-        name = VM.next_module_name()
-        name = mz.scheme_intern_exact_symbol(name.encode('utf-8'), len(name))
-        self._module = mz.scheme_primitive_module(name, global_env)
-        # TODO: deal with profile
+        env = VM.profiles.get(profile, None)
+        if not env:
+            raise ProfileNotFoundError("No such profile %s" % profile)
+        self._module = mz.scheme_eval_string(env, global_env)
 
     def filter_exception(meth):
         """\
@@ -108,11 +106,13 @@ class VM(object):
         otherwise.
         """
         def filtered_meth(self, *args, **kw):
-            rlt = self.fromscheme(meth(self, *args, **kw), shallow=True)
-            if self.fromscheme(rlt.car) is True:
-                return rlt.cdr
-            excp = self.fromscheme(rlt.cdr)
-            raise getattr(exceptions, excp.car)(excp.cdr)
+            rlt = meth(self, *args, **kw)
+            if self.fromscheme(mz.scheme_pair_car(rlt)) is True:
+                return mz.scheme_pair_cdr(rlt)
+            excp = mz.scheme_pair_cdr(rlt)
+            ex_name = self.fromscheme(mz.scheme_pair_car(excp))
+            ex_msg =  self.fromscheme(mz.scheme_pair_cdr(excp))
+            raise getattr(exceptions, ex_name)(ex_msg)
         return filtered_meth
         
     def define(self, name, value):
@@ -145,7 +145,7 @@ class VM(object):
         """\
         Compile for mzscheme.
         """
-        return mz.catched_scheme_compile(code, len(code))
+        return mz.catched_scheme_compile(code, len(code), self._module)
 
     @filter_exception
     def apply(self, proc, args):
@@ -178,6 +178,8 @@ class VM(object):
             return mz.scheme_false
         if type(val) is int:
             return mz.scheme_make_integer_value(val)
+        if type(val) is long:
+            return mz.scheme_eval_string(str(val), global_env)
         if type(val) is float:
             return mz.scheme_make_double(val)
         if type(val) is complex:
@@ -465,16 +467,14 @@ mz.scheme_gc_ptr_ok.argtypes = [SCM]
 mz.scheme_dont_gc_ptr.argtypes = [SCM]
 mz.scheme_apply_to_list.argtypes = [SCM, SCM]
 mz.scheme_apply_to_list.restype = SCM
-mz.scheme_primitive_module.argtypes = [SCM, SCM]
-mz.scheme_primitive_module.restype = SCM
-mz.scheme_finish_primitive_module.argtypes = [SCM]
-mz.scheme_finish_primitive_module.restype = None
+mz.scheme_make_namespace.argtypes = [c_int, c_void_p]
+mz.scheme_make_namespace.restype = SCM
 mz.scheme_lookup_global.argtypes = [SCM, SCM]
 mz.scheme_lookup_global.restype = SCM
 mz.scheme_add_global_symbol.argtypes = [SCM, SCM, SCM]
 mz.scheme_add_global_symbol.restype = None
 
-mz.catched_scheme_compile.argtypes = [c_char_p, c_int]
+mz.catched_scheme_compile.argtypes = [c_char_p, c_int, SCM]
 mz.catched_scheme_compile.restype = SCM
 mz.catched_scheme_eval.argtypes = [SCM, SCM]
 mz.catched_scheme_eval.restype = SCM
