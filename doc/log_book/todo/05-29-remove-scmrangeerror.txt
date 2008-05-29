@@ -1,0 +1,9 @@
+Remove ScmRangeError
+----------------------------------------------------------------------
+                                                planned at: 2008-05-29
+
+Guile has range-error which is mapped to ScmRangeError currently. But
+this type of error may not available from other backends and this is
+generally not very useful. Remove this exception type and map guile's
+range-error to other exception type.
+
