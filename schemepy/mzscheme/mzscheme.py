@@ -1,7 +1,7 @@
 from ctypes.util import find_library
 from ctypes import *
 from schemepy.types import *
-from schemepy.exceptions import *
+from schemepy import exceptions
 import types
 import os.path
 
@@ -101,6 +101,20 @@ class VM(object):
         self._module = mz.scheme_primitive_module(name, global_env)
         # TODO: deal with profile
 
+    def filter_exception(meth):
+        """\
+        The decorator parse the return value of catched function calls,
+        raise exceptions when necessary and return the filtered value
+        otherwise.
+        """
+        def filtered_meth(self, *args, **kw):
+            rlt = self.fromscheme(meth(self, *args, **kw), shallow=True)
+            if self.fromscheme(rlt.car) is True:
+                return rlt.cdr
+            excp = self.fromscheme(rlt.cdr)
+            raise getattr(exceptions, excp.car)(excp.cdr)
+        return filtered_meth
+        
     def define(self, name, value):
         """\
         Define a variable in Scheme. Similar to Scheme code
@@ -126,15 +140,14 @@ class VM(object):
             return default
         return val
 
+    @filter_exception
     def compile(self, code):
         """\
         Compile for mzscheme.
         """
-        code = str(code)
-        port = mz.scheme_make_sized_byte_string_input_port(code, len(code))
-        sexp = mz.scheme_read(port)
-        return mz.scheme_compile(sexp, global_env, False)
+        return mz.catched_scheme_compile(code, len(code))
 
+    @filter_exception
     def apply(self, proc, args):
         """\
         Call the Scheme procedure proc with args as arguments.
@@ -148,13 +161,14 @@ class VM(object):
         for arg in reversed(args):
             arglist = mz.scheme_make_pair(arg, arglist)
 
-        return mz.scheme_apply_to_list(proc, arglist)
-        
+        return mz.catched_scheme_apply(proc, arglist)
+
+    @filter_exception
     def eval(self, code):
         """\
         eval the compiled code for mzscheme.
         """
-        return mz.scheme_eval_compiled(code, self._module)
+        return mz.catched_scheme_eval(code, self._module)
 
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
@@ -363,6 +377,10 @@ mz.scheme_list_p = _mzhelper.scheme_list_p
 mz.scheme_alist_p = _mzhelper.scheme_alist_p
 mz.scheme_get_proc_name = _mzhelper._scheme_get_proc_name
 
+mz.catched_scheme_compile = _mzhelper.catched_scheme_compile
+mz.catched_scheme_eval = _mzhelper.catched_scheme_eval
+mz.catched_scheme_apply = _mzhelper.catched_scheme_apply
+
 # constructors
 mz.scheme_make_integer_value.argtypes = [c_int]
 mz.scheme_make_integer_value.restype = SCM
@@ -455,6 +473,13 @@ mz.scheme_lookup_global.argtypes = [SCM, SCM]
 mz.scheme_lookup_global.restype = SCM
 mz.scheme_add_global_symbol.argtypes = [SCM, SCM, SCM]
 mz.scheme_add_global_symbol.restype = None
+
+mz.catched_scheme_compile.argtypes = [c_char_p, c_int]
+mz.catched_scheme_compile.restype = SCM
+mz.catched_scheme_eval.argtypes = [SCM, SCM]
+mz.catched_scheme_eval.restype = SCM
+mz.catched_scheme_apply.argtypes = [SCM, SCM]
+mz.catched_scheme_apply.restype = SCM
 
 mz.PyObj_create.argtypes = [c_uint, PyObj_finalizer_cfun]
 mz.PyObj_create.restype = PyObj

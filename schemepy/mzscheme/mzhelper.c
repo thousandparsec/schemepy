@@ -14,6 +14,42 @@ Scheme_Object *_scheme_false;
 Scheme_Object *_scheme_null;
 
 /**
+ * Used to catch exceptions
+ */
+Scheme_Object *catched_apply_proc;
+static const char *catched_apply_proc_code = \
+    "(lambda (proc . args)"
+    "  (with-handlers"
+    "   ([exn:fail:read?"
+    "     (lambda (exn) (cons #f (cons \"ScmSyntaxError\" (exn-message exn))))]"
+    "    [exn:fail:syntax?"
+    "     (lambda (exn) (cons #f (cons \"ScmSyntaxError\" (exn-message exn))))]"
+    "    [exn:fail:contract:variable?"
+    "     (lambda (exn) (cons #f (cons \"ScmUnboundVariable\" (exn-message exn))))]"
+    "    [exn:fail:contract:arity?"
+    "     (lambda (exn) (cons #f (cons \"ScmWrongArgNumber\" (exn-message exn))))]"
+    "    [exn:fail:contract?"
+    "     (lambda (exn) (cons #f (cons \"ScmWrongArgType\" (exn-message exn))))]"
+    "    [exn:fail:contract:divide-by-zero?"
+    "     (lambda (exn) (cons #f (cons \"ScmNumericalError\" (exn-message exn))))]"
+    "    [exn:fail:filesystem?"
+    "     (lambda (exn) (cons #f (cons \"ScmSystemError\" (exn-message exn))))]"
+    "    [exn:fail:network?"
+    "     (lambda (exn) (cons #f (cons \"ScmSystemError\" (exn-message exn))))]"
+    "    [exn:fail:out-of-memory?"
+    "     (lambda (exn) (cons #f (cons \"ScmSystemError\" (exn-message exn))))]"
+    "    [exn:fail?"
+    "     (lambda (exn) (cons #f (cons \"ScmMiscError\" (exn-message exn))))])"
+    "   (cons #t (apply proc args))))";
+static Scheme_Object *proc_scheme_compile;
+static Scheme_Object *proc_scheme_eval;
+static Scheme_Object *proc_scheme_apply;
+
+static Scheme_Object *do_compile(int argc, Scheme_Object **argv);
+static Scheme_Object *do_eval(int argc, Scheme_Object **argv);
+static Scheme_Object *do_apply(int argc, Scheme_Object **argv);
+
+/**
  * A mzscheme type to hold Python object
  */
 Scheme_Type PyObj_type;
@@ -60,6 +96,11 @@ void init_mz()
     _scheme_null = scheme_null;
 
     PyObj_type = scheme_make_type("Python Object");
+
+    catched_apply_proc = scheme_eval_string(catched_apply_proc_code, global_env);
+    proc_scheme_compile = scheme_make_prim_w_arity(do_compile, "schemepy-do-compile", 1, 1);
+    proc_scheme_eval = scheme_make_prim_w_arity(do_eval, "schemepy-do-eval", 2, 2);
+    proc_scheme_apply = scheme_make_prim_w_arity(do_apply, "schemepy-do-apply", 2, 2);
 }
 
 int scheme_bool_p(Scheme_Object *o)
@@ -207,4 +248,62 @@ Scheme_Object *_scheme_get_proc_name(Scheme_Object *o)
             return scheme_intern_exact_symbol(s, len);
     }
     return _scheme_false;
+}
+
+/**
+ * Those procedures are wrapper of the mzscheme procedures
+ * that call with exception handler. The return value of
+ * each function is a cons. When the action success without
+ * exception, the return value is
+ *
+ *   (#t . result)
+ *
+ * otherwise, the return value is
+ *
+ *   (#f . (ExceptionName . parameter))
+ *
+ */
+static Scheme_Object *do_compile(int argc, Scheme_Object **argv)
+{
+    Scheme_Object *sexp = scheme_read((Scheme_Object *)argv[0]);
+    return scheme_compile(sexp, global_env, 0);
+}  
+Scheme_Object *catched_scheme_compile(char *code, int len)
+{
+    Scheme_Object *params[2];
+    Scheme_Object *port = scheme_make_sized_byte_string_input_port(code, len);
+    Scheme_Object *result;
+
+    params[0] = proc_scheme_compile;
+    params[1] = port;
+    result = scheme_apply(catched_apply_proc, 2, params);
+
+    scheme_close_input_port(port);
+    return result;
+}
+static Scheme_Object *do_eval(int argc, Scheme_Object **argv)
+{
+    Scheme_Object *compiled = argv[0];
+    Scheme_Env *env = (Scheme_Env *)argv[1];
+    return scheme_eval_compiled(compiled, env);
+}
+Scheme_Object *catched_scheme_eval(Scheme_Object *compiled, Scheme_Env *env)
+{
+    Scheme_Object *params[3];
+    params[0] = proc_scheme_eval;
+    params[1] = compiled;
+    params[2] = (Scheme_Object *)env;
+    return scheme_apply(catched_apply_proc, 3, params);
+}
+static Scheme_Object *do_apply(int argc, Scheme_Object **argv)
+{
+    return scheme_apply_to_list(argv[0], argv[1]);
+}
+Scheme_Object *catched_scheme_apply(Scheme_Object *proc, Scheme_Object *args)
+{
+    Scheme_Object *params[3];
+    params[0] = proc_scheme_apply;
+    params[1] = proc;
+    params[2] = args;
+    return scheme_apply(catched_apply_proc, 3, params);
 }

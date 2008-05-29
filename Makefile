@@ -21,5 +21,7 @@ test_guile:
 	BACKEND=guile $(TRUNNER)
 test_pyscheme:
 	BACKEND=pyscheme $(TRUNNER)
+test_mzscheme:
+	BACKEND=mzscheme $(TRUNNER)
 
 test: test_guile
