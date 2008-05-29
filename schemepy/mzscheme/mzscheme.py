@@ -86,11 +86,45 @@ class VM(object):
     """VM for mzscheme
     """
 
+    module_number = 0
+    @staticmethod
+    def next_module_name():
+        VM.module_number += 1
+        return "schemepy-vm-module-%d" % VM.module_number
+    
     def __init__(self, profile):
         """\
         Create a VM.
         """
+        name = VM.next_module_name()
+        name = mz.scheme_intern_exact_symbol(name.encode('utf-8'), len(name))
+        self._module = mz.scheme_primitive_module(name, global_env)
         # TODO: deal with profile
+
+    def define(self, name, value):
+        """\
+        Define a variable in Scheme. Similar to Scheme code
+          (define name value)
+
+          name can either be a string or a schemepy.types.Symbol
+          value should be a Scheme value
+        """
+        if not isinstance(value, SCM):
+            raise TypeError, "Value to define should be a Scheme value."
+        name = Symbol(name)
+        mz.scheme_add_global_symbol(self.toscheme(name), value, self._module)
+
+    def get(self, name, default=None):
+        """\
+        Get the value bound to the symbol.
+
+          name can either be a string or a schemepy.types.Symbol
+        """
+        name = Symbol(name)
+        val = mz.scheme_lookup_global(self.toscheme(name), self._module)
+        if val.value is None:
+            return default
+        return val
 
     def compile(self, code):
         """\
@@ -120,7 +154,7 @@ class VM(object):
         """\
         eval the compiled code for mzscheme.
         """
-        return mz.scheme_eval_compiled(code, global_env)
+        return mz.scheme_eval_compiled(code, self._module)
 
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
@@ -413,6 +447,14 @@ mz.scheme_gc_ptr_ok.argtypes = [SCM]
 mz.scheme_dont_gc_ptr.argtypes = [SCM]
 mz.scheme_apply_to_list.argtypes = [SCM, SCM]
 mz.scheme_apply_to_list.restype = SCM
+mz.scheme_primitive_module.argtypes = [SCM, SCM]
+mz.scheme_primitive_module.restype = SCM
+mz.scheme_finish_primitive_module.argtypes = [SCM]
+mz.scheme_finish_primitive_module.restype = None
+mz.scheme_lookup_global.argtypes = [SCM, SCM]
+mz.scheme_lookup_global.restype = SCM
+mz.scheme_add_global_symbol.argtypes = [SCM, SCM, SCM]
+mz.scheme_add_global_symbol.restype = None
 
 mz.PyObj_create.argtypes = [c_uint, PyObj_finalizer_cfun]
 mz.PyObj_create.restype = PyObj
