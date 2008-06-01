@@ -99,6 +99,15 @@ class VM(object):
             raise ProfileNotFoundError("No such profile %s" % profile)
         self._module = mz.scheme_eval_string(env, global_env)
 
+    def ensure_namespace(meth):
+        """\
+        Set the current namespace parameter before calling methods.
+        """
+        def decorated_meth(self, *args, **kw):
+            mz.set_current_namespace(self._module)
+            return meth(self, *args, **kw)
+        return decorated_meth
+
     def filter_exception(meth):
         """\
         The decorator parse the return value of catched function calls,
@@ -140,13 +149,15 @@ class VM(object):
             return default
         return val
 
+    @ensure_namespace
     @filter_exception
     def compile(self, code):
         """\
         Compile for mzscheme.
         """
         return mz.catched_scheme_compile(code, len(code), self._module)
-
+    
+    @ensure_namespace
     @filter_exception
     def apply(self, proc, args):
         """\
@@ -163,6 +174,7 @@ class VM(object):
 
         return mz.catched_scheme_apply(proc, arglist)
 
+    @ensure_namespace
     @filter_exception
     def eval(self, code):
         """\
@@ -379,6 +391,7 @@ mz.scheme_list_p = _mzhelper.scheme_list_p
 mz.scheme_alist_p = _mzhelper.scheme_alist_p
 mz.scheme_get_proc_name = _mzhelper._scheme_get_proc_name
 
+mz.set_current_namespace = _mzhelper.set_current_namespace
 mz.catched_scheme_compile = _mzhelper.catched_scheme_compile
 mz.catched_scheme_eval = _mzhelper.catched_scheme_eval
 mz.catched_scheme_apply = _mzhelper.catched_scheme_apply
@@ -473,6 +486,9 @@ mz.scheme_lookup_global.argtypes = [SCM, SCM]
 mz.scheme_lookup_global.restype = SCM
 mz.scheme_add_global_symbol.argtypes = [SCM, SCM, SCM]
 mz.scheme_add_global_symbol.restype = None
+
+mz.set_current_namespace.argtypes = [SCM]
+mz.set_current_namespace.restype = None
 
 mz.catched_scheme_compile.argtypes = [c_char_p, c_int, SCM]
 mz.catched_scheme_compile.restype = SCM

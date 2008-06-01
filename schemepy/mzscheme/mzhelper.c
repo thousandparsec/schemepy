@@ -308,3 +308,8 @@ Scheme_Object *catched_scheme_apply(Scheme_Object *proc, Scheme_Object *args)
     params[2] = args;
     return scheme_apply(catched_apply_proc, 3, params);
 }
+
+void set_current_namespace(Scheme_Object *namespace)
+{
+    scheme_set_param(scheme_current_config(), MZCONFIG_ENV, namespace);
+}
