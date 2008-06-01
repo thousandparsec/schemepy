@@ -98,6 +98,7 @@ class VM(object):
         if not env:
             raise ProfileNotFoundError("No such profile %s" % profile)
         self._module = mz.scheme_eval_string(env, global_env)
+        self._catched_apply_proc = mz.init_catched_apply_proc(self._module)
 
     def filter_exception(meth):
         """\
@@ -145,7 +146,7 @@ class VM(object):
         """\
         Compile for mzscheme.
         """
-        return mz.catched_scheme_compile(code, len(code), self._module)
+        return mz.catched_scheme_compile(code, len(code), self._module, self._catched_apply_proc)
 
     @filter_exception
     def apply(self, proc, args):
@@ -161,14 +162,14 @@ class VM(object):
         for arg in reversed(args):
             arglist = mz.scheme_make_pair(arg, arglist)
 
-        return mz.catched_scheme_apply(proc, arglist)
+        return mz.catched_scheme_apply(proc, arglist, self._catched_apply_proc)
 
     @filter_exception
     def eval(self, code):
         """\
         eval the compiled code for mzscheme.
         """
-        return mz.catched_scheme_eval(code, self._module)
+        return mz.catched_scheme_eval(code, self._module, self._catched_apply_proc)
 
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
@@ -179,7 +180,7 @@ class VM(object):
         if type(val) is int:
             return mz.scheme_make_integer_value(val)
         if type(val) is long:
-            return mz.scheme_eval_string(str(val), global_env)
+            return mz.scheme_eval_string(str(val), self._module)
         if type(val) is float:
             return mz.scheme_make_double(val)
         if type(val) is complex:
@@ -379,6 +380,7 @@ mz.scheme_list_p = _mzhelper.scheme_list_p
 mz.scheme_alist_p = _mzhelper.scheme_alist_p
 mz.scheme_get_proc_name = _mzhelper._scheme_get_proc_name
 
+mz.init_catched_apply_proc = _mzhelper.init_catched_apply_proc
 mz.catched_scheme_compile = _mzhelper.catched_scheme_compile
 mz.catched_scheme_eval = _mzhelper.catched_scheme_eval
 mz.catched_scheme_apply = _mzhelper.catched_scheme_apply
@@ -473,6 +475,9 @@ mz.scheme_lookup_global.argtypes = [SCM, SCM]
 mz.scheme_lookup_global.restype = SCM
 mz.scheme_add_global_symbol.argtypes = [SCM, SCM, SCM]
 mz.scheme_add_global_symbol.restype = None
+
+mz.init_catched_apply_proc.argtypes = [SCM]
+mz.init_catched_apply_proc.restype = SCM
 
 mz.catched_scheme_compile.argtypes = [c_char_p, c_int, SCM]
 mz.catched_scheme_compile.restype = SCM

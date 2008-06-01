@@ -16,7 +16,6 @@ Scheme_Object *_scheme_null;
 /**
  * Used to catch exceptions
  */
-Scheme_Object *catched_apply_proc;
 static const char *catched_apply_proc_code = \
     "(lambda (proc . args)"
     "  (with-handlers"
@@ -97,10 +96,14 @@ void init_mz()
 
     PyObj_type = scheme_make_type("Python Object");
 
-    catched_apply_proc = scheme_eval_string(catched_apply_proc_code, global_env);
     proc_scheme_compile = scheme_make_prim_w_arity(do_compile, "schemepy-do-compile", 2, 2);
     proc_scheme_eval = scheme_make_prim_w_arity(do_eval, "schemepy-do-eval", 2, 2);
     proc_scheme_apply = scheme_make_prim_w_arity(do_apply, "schemepy-do-apply", 2, 2);
+}
+
+Scheme_Object *init_catched_apply_proc(Scheme_Env *namespace)
+{
+    return scheme_eval_string(catched_apply_proc_code, namespace);
 }
 
 int scheme_bool_p(Scheme_Object *o)
@@ -268,7 +271,7 @@ static Scheme_Object *do_compile(int argc, Scheme_Object **argv)
     Scheme_Object *sexp = scheme_read((Scheme_Object *)argv[0]);
     return scheme_compile(sexp, (Scheme_Env *)argv[1], 0);
 }  
-Scheme_Object *catched_scheme_compile(char *code, int len, Scheme_Object *env)
+Scheme_Object *catched_scheme_compile(char *code, int len, Scheme_Object *env, Scheme_Object *catched_apply_proc)
 {
     Scheme_Object *params[3];
     Scheme_Object *port = scheme_make_sized_byte_string_input_port(code, len);
@@ -288,7 +291,7 @@ static Scheme_Object *do_eval(int argc, Scheme_Object **argv)
     Scheme_Env *env = (Scheme_Env *)argv[1];
     return scheme_eval_compiled(compiled, env);
 }
-Scheme_Object *catched_scheme_eval(Scheme_Object *compiled, Scheme_Env *env)
+Scheme_Object *catched_scheme_eval(Scheme_Object *compiled, Scheme_Env *env, Scheme_Object *catched_apply_proc)
 {
     Scheme_Object *params[3];
     params[0] = proc_scheme_eval;
@@ -300,7 +303,7 @@ static Scheme_Object *do_apply(int argc, Scheme_Object **argv)
 {
     return scheme_apply_to_list(argv[0], argv[1]);
 }
-Scheme_Object *catched_scheme_apply(Scheme_Object *proc, Scheme_Object *args)
+Scheme_Object *catched_scheme_apply(Scheme_Object *proc, Scheme_Object *args, Scheme_Object *catched_apply_proc)
 {
     Scheme_Object *params[3];
     params[0] = proc_scheme_apply;
