@@ -1,0 +1,11 @@
+Handle exception when calling Python from scheme
+----------------------------------------------------------------------
+                                                planned at: 2008-06-02
+
+Both Scheme and Python has exception system. Currently, the exception
+is only handled when calling Scheme from Python. But the behavior is
+still undefined when a Scheme code calls a Python function which then
+raises an exception.
+
+Define the behavior of this problem and write code to handle this.
+
