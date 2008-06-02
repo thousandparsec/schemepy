@@ -97,8 +97,7 @@ class VM(object):
         env = VM.profiles.get(profile, None)
         if not env:
             raise ProfileNotFoundError("No such profile %s" % profile)
-        self._module = mz.scheme_eval_string(env, global_env)
-        self._catched_apply_proc = mz.init_catched_apply_proc(self._module)
+        self._module = mz.scheme_eval_string("(make-namespace)", global_env)
 
     def ensure_namespace(meth):
         """\
@@ -156,7 +155,7 @@ class VM(object):
         """\
         Compile for mzscheme.
         """
-        return mz.catched_scheme_compile(code, len(code), self._module, self._catched_apply_proc)
+        return mz.catched_scheme_compile(code, len(code), self._module)
 
     @ensure_namespace
     @filter_exception
@@ -173,7 +172,7 @@ class VM(object):
         for arg in reversed(args):
             arglist = mz.scheme_make_pair(arg, arglist)
 
-        return mz.catched_scheme_apply(proc, arglist, self._catched_apply_proc)
+        return mz.catched_scheme_apply(proc, arglist)
 
     @ensure_namespace
     @filter_exception
@@ -181,7 +180,7 @@ class VM(object):
         """\
         eval the compiled code for mzscheme.
         """
-        return mz.catched_scheme_eval(code, self._module, self._catched_apply_proc)
+        return mz.catched_scheme_eval(code, self._module)
 
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
@@ -393,11 +392,12 @@ mz.scheme_alist_p = _mzhelper.scheme_alist_p
 mz.scheme_get_proc_name = _mzhelper._scheme_get_proc_name
 
 mz.set_current_namespace = _mzhelper.set_current_namespace
-mz.init_catched_apply_proc = _mzhelper.init_catched_apply_proc
 
 mz.catched_scheme_compile = _mzhelper.catched_scheme_compile
 mz.catched_scheme_eval = _mzhelper.catched_scheme_eval
 mz.catched_scheme_apply = _mzhelper.catched_scheme_apply
+
+mz.init_scm_py_call = _mzhelper.init_scm_py_call
 
 # constructors
 mz.scheme_make_integer_value.argtypes = [c_int]
@@ -492,8 +492,6 @@ mz.scheme_add_global_symbol.restype = None
 
 mz.set_current_namespace.argtypes = [SCM]
 mz.set_current_namespace.restype = None
-mz.init_catched_apply_proc.argtypes = [SCM]
-mz.init_catched_apply_proc.restype = SCM
 
 mz.catched_scheme_compile.argtypes = [c_char_p, c_int, SCM]
 mz.catched_scheme_compile.restype = SCM
@@ -512,7 +510,7 @@ mz.PyObj_id.restype = c_uint
 mz.scheme_get_proc_name.argtypes = [SCM]
 mz.scheme_get_proc_name.restype = SCM
 
-def scm_py_call(narg, arg):
+def scm_py_call_func(narg, arg):
     """\
     This function will be registered to the Scheme world to call a Python
     callable.
@@ -546,25 +544,13 @@ def scm_py_call(narg, arg):
     return result.value
 
 scm_py_call_t = CFUNCTYPE(SCM, c_int, POINTER(SCM))
-scm_py_call = scm_py_call_t(scm_py_call)
+scm_py_call_proc = scm_py_call_t(scm_py_call_func)
 
-mz.scheme_make_prim_w_arity.argtypes = [scm_py_call_t, c_char_p, c_int, c_int]
-mz.scheme_make_prim_w_arity.restype = SCM
+mz.init_scm_py_call.argtypes = [scm_py_call_t]
+mz.init_scm_py_call.restype = SCM
 
-scm_py_call = mz.scheme_make_prim_w_arity(scm_py_call, "schemepy-py-call", 4, 4)
+scm_py_call = mz.init_scm_py_call(scm_py_call_proc)
 
 scm_py_call_identifier = Symbol("schemepy-python-callable")
 scm_py_call_extractor = Symbol("schemepy-python-get-callable")
-scm_lambda_wrapper = mz.scheme_eval_string("""
-            (lambda (call-py py-callable shallow vm)
-              ; this will infer mzscheme to name the lambda
-              ; by `schemepy-python-callable'
-              (let ((schemepy-python-callable
-                      (case-lambda
-                        [(x)
-                          (if (eq? x 'schemepy-python-get-callable)
-                              py-callable
-                            (call-py py-callable shallow vm (list x)))]
-                        [args
-                          (call-py py-callable shallow vm args)])))
-                schemepy-python-callable))""", global_env)
+scm_lambda_wrapper = SCM.in_dll(_mzhelper, "scm_lambda_wrapper")

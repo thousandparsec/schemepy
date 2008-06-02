@@ -10,6 +10,8 @@ def add(a, b):
 
 class TestPyCallable(object):
     def check_passthru(self, func):
+        print "check_passthru of %s" % func.__name__
+        
         m1 = common.VM()
         scm = m1.toscheme(func)
 
@@ -22,6 +24,8 @@ class TestPyCallable(object):
         scm = m1.toscheme(func)
 
         for case in cases:
+            print "call_in_scheme of %s(%s) expecting %s" % (func.__name__, case[1:], case[0])
+        
             result = case[0]
             args = [m1.toscheme(arg) for arg in case[1:]]
             assert m1.fromscheme(m1.apply(scm, args)) == result
@@ -35,6 +39,8 @@ class TestPyCallable(object):
                 self.call_in_scheme(func, cases)
 
     def test_shallow_conversion(self):
+        print "test_shallow_conversion"
+        
         m1 = common.VM()
 
         def add(a, b):
