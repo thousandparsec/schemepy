@@ -36,3 +36,14 @@ Ikarus is burning up; LL needs some heat. :)
     * http://oaklisp.alioth.debian.org/
 
 Add the benchmark to Schemepy.
+
+----------------------------------------------------------------------
+                                               finished at: 2008-06-02
+
+Here's the benchmark result of guile and mzscheme:
+
+mark ------------------------------------------------------------------
+                   user      system        real       total
+guile         11.996667    0.026667   12.110000   24.133333
+mzscheme       2.933333    0.010000    2.953333    5.896667
+
