@@ -114,21 +114,6 @@ def test_if_simple():
     w_f = vm.eval(vm.compile("(if #t #t)"))
     assert vm.fromscheme(w_f) is True
 
-def test_if_evaluation():
-    vm = schemepy.VM()
-    
-    vm.eval(vm.compile("(define then #f)"))
-    vm.eval(vm.compile("(define else #f)"))
-    vm.eval(vm.compile("(if #t (define then #t) (define else #t))"))
-    assert vm.fromscheme(vm.get("then")) is True
-    assert vm.fromscheme(vm.get("else")) is False
-
-    vm.eval(vm.compile("(define then #f)"))
-    vm.eval(vm.compile("(define else #f)"))
-    vm.eval(vm.compile("(if #f (define then #t) (define else #t))"))
-    assert vm.fromscheme(vm.get("then")) is False
-    assert vm.fromscheme(vm.get("else")) is True
-
 def test_cons_simple():
     vm = schemepy.VM()
     
