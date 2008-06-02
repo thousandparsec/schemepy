@@ -97,7 +97,7 @@ class VM(object):
         env = VM.profiles.get(profile, None)
         if not env:
             raise ProfileNotFoundError("No such profile %s" % profile)
-        self._module = mz.scheme_eval_string("(make-namespace)", global_env)
+        self._module = mz.scheme_eval_string(env, global_env)
 
     def ensure_namespace(meth):
         """\
