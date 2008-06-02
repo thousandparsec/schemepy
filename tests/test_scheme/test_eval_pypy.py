@@ -146,12 +146,6 @@ def test_car_simple():
 
 def test_comparison_homonums():
     vm = schemepy.VM()
-    
-    w_bool = vm.eval(vm.compile("(=)"))
-    assert vm.fromscheme(w_bool) is True
-
-    w_bool = vm.eval(vm.compile("(= 1)"))
-    assert vm.fromscheme(w_bool) is True
 
     w_bool = vm.eval(vm.compile("(= 1 2)"))
     assert vm.fromscheme(w_bool) is False
