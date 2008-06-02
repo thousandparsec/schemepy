@@ -534,10 +534,12 @@ def test_setcdr():
     w_lst = vm.eval(vm.compile("lst"))
     assert vm.fromscheme(w_lst) == [1, 3, 12]
 
-    #warning circural list
+    # warning circural list
     vm.eval(vm.compile("(set-cdr! (cdr (cdr lst)) lst)"))
     w_lst = vm.eval(vm.compile("lst"))
-    vm.type(w_lst) is list
+    # circular list is not a list
+    assert vm.type(w_lst) is not list
+    assert vm.type(w_lst) is schemepy.types.Cons
 
 def test_quasiquote():
     sym = schemepy.types.Symbol

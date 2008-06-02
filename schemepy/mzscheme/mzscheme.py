@@ -278,20 +278,20 @@ class VM(object):
             return Symbol(string_at(mem, length))
         if mz.scheme_null_p(val):
             return []
-        if mz.scheme_alist_p(val):
-            d = {}
-            scm = val
-            while not mz.scheme_null_p(scm):
-                item = mz.scheme_pair_car(scm)
-                key = self.fromscheme(mz.scheme_pair_car(item))
-                value = mz.scheme_pair_cdr(item)
-                if not shallow:
-                    d[key] = self.fromscheme(value)
-                else:
-                    d[key] = value
-                scm = mz.scheme_pair_cdr(scm)
-            return d
         if mz.scheme_list_p(val):
+            if mz.scheme_alist_p(val):
+                d = {}
+                scm = val
+                while not mz.scheme_null_p(scm):
+                    item = mz.scheme_pair_car(scm)
+                    key = self.fromscheme(mz.scheme_pair_car(item))
+                    value = mz.scheme_pair_cdr(item)
+                    if not shallow:
+                        d[key] = self.fromscheme(value)
+                    else:
+                        d[key] = value
+                    scm = mz.scheme_pair_cdr(scm)
+                return d
             l = []
             scm = val
             while not mz.scheme_null_p(scm):
@@ -339,9 +339,9 @@ class VM(object):
             return Symbol
         if mz.scheme_null_p(val):
             return list
-        if mz.scheme_alist_p(val):
-            return dict
         if mz.scheme_list_p(val):
+            if mz.scheme_alist_p(val):
+                return dict
             return list
         if mz.scheme_pair_p(val):
             return Cons

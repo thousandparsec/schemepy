@@ -245,15 +245,29 @@ Scheme_Object *scheme_pair_cdr(Scheme_Object *o)
 }
 int scheme_list_p(Scheme_Object *o)
 {
-    while (1)
+    Scheme_Object *obj1, *obj2;
+
+    obj1 = obj2 = o;
+    do
     {
-        if (SCHEME_NULLP(o))
+        if (SCHEME_NULLP(obj1))
             return 1;
-        if (!SCHEME_PAIRP(o))
+        if (!SCHEME_PAIRP(obj1))
             return 0;
-        o = SCHEME_CDR(o);
+
+        obj1 = SCHEME_CDR(obj1);
+
+        if (SCHEME_NULLP(obj1))
+            return 1;
+        if (!SCHEME_PAIRP(obj1))
+            return 0;
+
+        obj1 = SCHEME_CDR(obj1);
+        obj2 = SCHEME_CDR(obj2);
     }
-    return 0; /* should reach here */
+    while (NOT_SAME_OBJ(obj1, obj2));
+
+    return 0; /* circular list */
 }
 int scheme_alist_p(Scheme_Object *o)
 {
