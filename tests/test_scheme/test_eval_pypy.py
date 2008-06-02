@@ -452,7 +452,7 @@ def test_delay_promise_force():
     
     w_promise = vm.eval(vm.compile("(delay (+ 1 2))"))
     vm.define("d", w_promise)
-    assert_raises(ScmMiscError, vm.eval, vm.compile("(d)"))
+    assert_raises(SchemeError, vm.eval, vm.compile("(d)"))
 
     w_value = vm.eval(vm.compile("(force d)"))
     assert vm.fromscheme(w_value) == 3
@@ -711,6 +711,5 @@ def test_apply():
     assert vm.fromscheme(w_result) == 64
 
     assert vm.fromscheme(vm.eval(vm.compile("(apply + '())"))) == 0
-    assert_raises(ScmWrongArgType, vm.eval, vm.compile("(apply 1)"))
     assert_raises(ScmWrongArgType, vm.eval, vm.compile("(apply 1 '(1))"))
     assert_raises(ScmWrongArgType, vm.eval, vm.compile("(apply + 42)"))
