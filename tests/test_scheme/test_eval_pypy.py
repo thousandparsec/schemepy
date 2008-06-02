@@ -525,7 +525,7 @@ def test_quasiquote():
                                       (quote (unquote name)))))"""))
     assert vm.fromscheme(w_res) == [sym("list"), sym("a"), [sym("quote"), sym("a")]]
 
-    assert_raises(ScmUnboundVariable, vm.eval, vm.compile("`(,,(+ 1 2))"))
+    assert_raises(SchemeError, lambda x:vm.eval(vm.compile(x)), "`(,,(+ 1 2))")
 
 def test_quasiquote_nested():
     sym = schemepy.types.Symbol
@@ -565,7 +565,7 @@ def test_quasiquote_splicing():
     
     w_res = vm.eval(vm.compile("""`(1 2 ,@(list 3 4) 5 6)"""))
     assert vm.fromscheme(w_res) == [1, 2, 3, 4, 5, 6]
-    assert_raises(ScmUnboundVariable, vm.eval, vm.compile("`(,@(list 1 ,@(list 2 3)))"))
+    assert_raises(SchemeError, lambda x:vm.eval(vm.compile(x)), "`(,@(list 1 ,@(list 2 3)))")
 
     w_res = vm.eval(vm.compile("""`(1 2 ,@(list 3 4) . ,(+ 2 3))"""))
     assert vm.type(w_res) is schemepy.types.Cons
