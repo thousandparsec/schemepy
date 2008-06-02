@@ -114,6 +114,22 @@ def test_if_simple():
     w_f = vm.eval(vm.compile("(if #t #t)"))
     assert vm.fromscheme(w_f) is True
 
+def test_if_evaluation():
+    print "This testcase will fail in mzscheme"
+    vm = schemepy.VM()
+
+    vm.eval(vm.compile("(define then #f)"))
+    vm.eval(vm.compile("(define else #f)"))
+    vm.eval(vm.compile("(if #t (define then #t) (define else #t))"))
+    assert vm.fromscheme(vm.get("then")) is True
+    assert vm.fromscheme(vm.get("else")) is False
+
+    vm.eval(vm.compile("(define then #f)"))
+    vm.eval(vm.compile("(define else #f)"))
+    vm.eval(vm.compile("(if #f (define then #t) (define else #t))"))
+    assert vm.fromscheme(vm.get("then")) is False
+    assert vm.fromscheme(vm.get("else")) is True
+
 def test_cons_simple():
     vm = schemepy.VM()
     
@@ -146,6 +162,12 @@ def test_car_simple():
 
 def test_comparison_homonums():
     vm = schemepy.VM()
+
+    w_bool = vm.eval(vm.compile("(=)"))
+    assert vm.fromscheme(w_bool) is True
+
+    w_bool = vm.eval(vm.compile("(= 1)"))
+    assert vm.fromscheme(w_bool) is True
 
     w_bool = vm.eval(vm.compile("(= 1 2)"))
     assert vm.fromscheme(w_bool) is False
@@ -511,6 +533,11 @@ def test_setcdr():
     vm.eval(vm.compile("(set-cdr! (cdr lst) '(12))"))
     w_lst = vm.eval(vm.compile("lst"))
     assert vm.fromscheme(w_lst) == [1, 3, 12]
+
+    #warning circural list
+    vm.eval(vm.compile("(set-cdr! (cdr (cdr lst)) lst)"))
+    w_lst = vm.eval(vm.compile("lst"))
+    vm.type(w_lst) is list
 
 def test_quasiquote():
     sym = schemepy.types.Symbol
