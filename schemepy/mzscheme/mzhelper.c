@@ -77,6 +77,10 @@ typedef struct PyObj_t
     Scheme_Object header;
     unsigned int id;           /* the Python object id */
 } PyObj;
+static int PyObj_size(void *obj)
+{
+    return gcBYTES_TO_WORDS(sizeof(PyObj));
+}
 /**
  * Create a PyObj reference to a Python object. The id
  * of the Python object is passed as parameter. Besides,
@@ -129,6 +133,7 @@ void init_mz()
     _scheme_null = scheme_null;
 
     PyObj_type = scheme_make_type("Python Object");
+    GC_register_traversers(PyObj_type, PyObj_size, NULL, NULL, 1, 1);
 
     catched_apply_proc = scheme_eval_string(catched_apply_proc_code, global_env);
     proc_scheme_compile = scheme_make_prim_w_arity(do_compile, "schemepy-do-compile", 2, 2);
