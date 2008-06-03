@@ -243,7 +243,7 @@ class VM(object):
                 return mz.scheme_make_pair(val.car, val.cdr)
             return mz.scheme_make_pair(self.toscheme(val.car), self.toscheme(val.cdr))
         if isinstance(val, list):
-            scm = mz.scheme_null
+            scm = mz.scheme_null_ref
             for item in reversed(val):
                 if shallow:
                     if not isinstance(item, SCM):
@@ -253,7 +253,7 @@ class VM(object):
                     scm = mz.scheme_make_pair(self.toscheme(item), scm)
             return scm
         if isinstance(val, dict):
-            scm = mz.scheme_null
+            scm = mz.scheme_null_ref
             for key, value in val.iteritems():
                 if shallow:
                     if not isinstance(item, SCM):

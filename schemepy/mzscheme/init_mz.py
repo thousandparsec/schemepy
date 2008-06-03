@@ -57,9 +57,9 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     mz.scheme_make_sized_byte_string.argteyps = [c_char_p, c_int, c_int]
     mz.scheme_make_sized_byte_string.restype = SCMRef
     mz.scheme_intern_exact_symbol.argtypes = [c_char_p, c_int]
-    mz.scheme_intern_exact_symbol.restype = SCM
-    mz.scheme_make_pair.argtypes = [SCM, SCM]
-    mz.scheme_make_pair.restype = SCM
+    mz.scheme_intern_exact_symbol.restype = SCMRef
+    mz.scheme_make_pair.argtypes = [SCMRef, SCMRef]
+    mz.scheme_make_pair.restype = SCMRef
     
     # extractor
     mz.scheme_fixnum_value.argtypes = [SCMRef]
@@ -78,9 +78,9 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     mz.scheme_byte_string_val.restype = c_void_p
     mz.scheme_byte_string_len.argtypes = [SCMRef]
     mz.scheme_byte_string_len.restype = c_int
-    mz.scheme_symbol_val.argtypes = [SCM]
+    mz.scheme_symbol_val.argtypes = [SCMRef]
     mz.scheme_symbol_val.restype = c_void_p
-    mz.scheme_symbol_len.argtypes = [SCM]
+    mz.scheme_symbol_len.argtypes = [SCMRef]
     mz.scheme_symbol_len.restype = c_int
     mz.scheme_pair_car.argtypes = [SCMRef]
     mz.scheme_pair_car.restype = SCMRef
