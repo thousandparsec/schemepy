@@ -1,0 +1,7 @@
+Add a simple homepage for Schemepy
+----------------------------------------------------------------------
+                                                planned at: 2008-06-03
+
+A simple one with news (changelog) and links to related documents is
+enough. Refer to libmng-py's homepage for example.
+

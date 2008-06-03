@@ -1,0 +1,8 @@
+Create uniformed document for the interface
+----------------------------------------------------------------------
+                                                planned at: 2008-06-03
+
+The docstring of each backend is varying. However, the behavior of all
+those functions from the user's view should be identical. Add document
+to describe those behaviors.
+
