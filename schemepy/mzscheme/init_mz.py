@@ -68,12 +68,12 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     mz.scheme_bignum_to_string.restype = c_char_p
     mz.scheme_real_value.argtypes = [SCMRef]
     mz.scheme_real_value.restype = c_double
-    mz.scheme_complex_real_part.argtypes = [SCM]
-    mz.scheme_complex_real_part.restype = SCM
-    mz.scheme_complex_imaginary_part.argtypes = [SCM]
-    mz.scheme_complex_imaginary_part.restype = SCM
-    mz.scheme_make_complex.argtypes = [SCM, SCM]
-    mz.scheme_make_complex.restype = SCM
+    mz.scheme_complex_real_part.argtypes = [SCMRef]
+    mz.scheme_complex_real_part.restype = SCMRef
+    mz.scheme_complex_imaginary_part.argtypes = [SCMRef]
+    mz.scheme_complex_imaginary_part.restype = SCMRef
+    mz.scheme_make_complex.argtypes = [SCMRef, SCMRef]
+    mz.scheme_make_complex.restype = SCMRef
     mz.scheme_byte_string_val.argtypes = [SCM]
     mz.scheme_byte_string_val.restype = c_void_p
     mz.scheme_byte_string_len.argtypes = [SCM]
@@ -101,6 +101,8 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     mz.scheme_bignum_p.restype = c_int
     mz.scheme_real_p.argtypes = [SCMRef]
     mz.scheme_real_p.restype = c_int
+    mz.scheme_number_p.argtypes = [SCMRef]
+    mz.scheme_number_p.restype = c_int
     mz.scheme_byte_string_p.argtypes = [SCM]
     mz.scheme_byte_string_p.restype = c_int
     mz.scheme_char_string_p.argtypes = [SCM]
