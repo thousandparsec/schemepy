@@ -49,7 +49,7 @@ class SCMRef(object):
                 self._value = mz.scheme_malloc_immobile_box(value)
     def value_get(self):
         if self._indirect:
-            return self._value[0]
+            return self._value[0].value
         return self._value
     value = property(value_get, value_set, "The underlying Scheme value")
 
@@ -58,7 +58,7 @@ class SCMRef(object):
         "Used by ctypes"
         if not isinstance(obj, SCMRef):
             raise ArgumentError("Expecting a SCMRef but got a %s" % obj)
-        return obj.value.value
+        return obj.value
 
     def __del__(self):
         """\
@@ -74,7 +74,7 @@ class SCMRef(object):
     def __str__(self):
         if self._indirect:
             return "<SCM => @%x>" % self._value[0].value
-        return "<SCM @%x>" % self._value.value
+        return "<SCM @%x>" % self._value
     def __repr__(self):
         return self.__str__()
                 
