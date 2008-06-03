@@ -123,21 +123,19 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     # Helper
     mz.scheme_eval_string.argtypes = [c_char_p, SCMRef]
     mz.scheme_eval_string.restype = SCMRef
-    mz.scheme_read.argteyps = [SCM]
-    mz.scheme_read.restype = SCM
-    mz.scheme_compile.argtypes = [SCM, SCM, c_int]
-    mz.scheme_compile.restype = SCM
-    mz.scheme_eval_compiled.argtypes = [SCM, SCM]
-    mz.scheme_eval_compiled.restype = SCM
-    mz.scheme_gc_ptr_ok.argtypes = [SCM]
-    mz.scheme_dont_gc_ptr.argtypes = [SCM]
-    mz.scheme_apply_to_list.argtypes = [SCM, SCM]
-    mz.scheme_apply_to_list.restype = SCM
+    mz.scheme_read.argteyps = [SCMRef]
+    mz.scheme_read.restype = SCMRef
+    mz.scheme_compile.argtypes = [SCMRef, SCMRef, c_int]
+    mz.scheme_compile.restype = SCMRef
+    mz.scheme_eval_compiled.argtypes = [SCMRef, SCMRef]
+    mz.scheme_eval_compiled.restype = SCMRef
+    mz.scheme_apply_to_list.argtypes = [SCMRef, SCMRef]
+    mz.scheme_apply_to_list.restype = SCMRef
     mz.scheme_make_namespace.argtypes = [c_int, c_void_p]
-    mz.scheme_make_namespace.restype = SCM
-    mz.scheme_lookup_global.argtypes = [SCM, SCM]
-    mz.scheme_lookup_global.restype = SCM
-    mz.scheme_add_global_symbol.argtypes = [SCM, SCM, SCM]
+    mz.scheme_make_namespace.restype = SCMRef
+    mz.scheme_lookup_global.argtypes = [SCMRef, SCMRef]
+    mz.scheme_lookup_global.restype = SCMRef
+    mz.scheme_add_global_symbol.argtypes = [SCMRef, SCMRef, SCMRef]
     mz.scheme_add_global_symbol.restype = None
     
     mz.scheme_free_immobile_box.argtypes = [POINTER(SCM)]

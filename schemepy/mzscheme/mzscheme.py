@@ -84,7 +84,7 @@ def PyObj_del(scm):
     The finalizer of PyObj. Decrease the ref-count of
     the referenced Python object here.
     """
-    Py_DECREF(PyObj_FromPtr(PyObj.pointer(scm)))
+    Py_DECREF(PyObj_FromPtr(PyObj.pointer(SCMRef(scm))))
 PyObj_finalizer_cfun = CFUNCTYPE(None, c_void_p)
 PyObj_finalizer = PyObj_finalizer_cfun(PyObj_del)
     
@@ -161,7 +161,7 @@ class VM(object):
           name can either be a string or a schemepy.types.Symbol
           value should be a Scheme value
         """
-        if not isinstance(value, SCM):
+        if not isinstance(value, SCMRef):
             raise TypeError, "Value to define should be a Scheme value."
         name = Symbol(name)
         mz.scheme_add_global_symbol(self.toscheme(name), value, self._module)
@@ -197,7 +197,7 @@ class VM(object):
 
         The return value is a Scheme value.
         """
-        arglist = mz.scheme_null
+        arglist = mz.scheme_null_ref
         for arg in reversed(args):
             arglist = mz.scheme_make_pair(arg, arglist)
 
@@ -401,8 +401,8 @@ mz.PyObj_p.restype = c_int
 mz.PyObj_id.argtypes = [SCMRef]
 mz.PyObj_id.restype = c_uint
 
-mz.scheme_get_proc_name.argtypes = [SCM]
-mz.scheme_get_proc_name.restype = SCM
+mz.scheme_get_proc_name.argtypes = [SCMRef]
+mz.scheme_get_proc_name.restype = SCMRef
 
 def scm_py_call_func(narg, arg):
     """\
@@ -425,14 +425,14 @@ def scm_py_call_func(narg, arg):
     vm          = arg[2]
     scm_args    = arg[3]
     
-    vm = PyObj.get(vm)
-    py_callable, shallow = vm.fromscheme(py_callable), vm.fromscheme(shallow)
-    args = vm.fromscheme(scm_args, shallow=shallow)
+    vm = PyObj.get(SCMRef(vm))
+    py_callable, shallow = vm.fromscheme(SCMRef(py_callable)), vm.fromscheme(SCMRef(shallow))
+    args = vm.fromscheme(SCMRef(scm_args), shallow=shallow)
     result = py_callable(*args)
     if not shallow:
         result = vm.toscheme(result)
     else:
-        if not isinstance(result, SCM):
+        if not isinstance(result, SCMRef):
             # TODO: is it safe to raise exception in a C handler
             raise TypeError("Return type is not a SCM!")
     return result.value
@@ -441,10 +441,10 @@ scm_py_call_t = CFUNCTYPE(SCM, c_int, POINTER(SCM))
 scm_py_call_proc = scm_py_call_t(scm_py_call_func)
 
 mz.init_scm_py_call.argtypes = [scm_py_call_t]
-mz.init_scm_py_call.restype = SCM
+mz.init_scm_py_call.restype = SCMRef
 
 scm_py_call = mz.init_scm_py_call(scm_py_call_proc)
 
 scm_py_call_identifier = Symbol("schemepy-python-callable")
 scm_py_call_extractor = Symbol("schemepy-python-get-callable")
-scm_lambda_wrapper = SCM.in_dll(_mzhelper, "scm_lambda_wrapper")
+scm_lambda_wrapper = SCMRef(SCM.in_dll(_mzhelper, "scm_lambda_wrapper"))
