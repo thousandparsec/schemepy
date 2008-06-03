@@ -88,7 +88,7 @@ def PyObj_del(scm):
 PyObj_finalizer_cfun = CFUNCTYPE(None, c_void_p)
 PyObj_finalizer = PyObj_finalizer_cfun(PyObj_del)
     
-class PyObj(SCM):
+class PyObj(object):
     """\
     A mzscheme type holding Python value.
     """
@@ -395,10 +395,10 @@ global_env_ref = SCMRef(global_env)
 
 
 mz.PyObj_create.argtypes = [c_uint, PyObj_finalizer_cfun]
-mz.PyObj_create.restype = PyObj
-mz.PyObj_p.argtypes = [SCM]
+mz.PyObj_create.restype = SCMRef
+mz.PyObj_p.argtypes = [SCMRef]
 mz.PyObj_p.restype = c_int
-mz.PyObj_id.argtypes = [SCM]
+mz.PyObj_id.argtypes = [SCMRef]
 mz.PyObj_id.restype = c_uint
 
 mz.scheme_get_proc_name.argtypes = [SCM]
