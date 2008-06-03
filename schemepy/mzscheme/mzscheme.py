@@ -5,15 +5,15 @@ from schemepy import exceptions
 import types
 import os.path
 
-# Load the helper library which exports the macro's as C functions
-path = os.path.abspath(os.path.join(os.path.split(__file__)[0], '_mzhelper.so'))
-_mzhelper = cdll.LoadLibrary(path)
-
-lib = find_library("mzscheme")
+lib = find_library("mzscheme3m")
 if lib is None:
     raise RuntimeError("Can't find a mzscheme library to use.")
 
 mz = cdll.LoadLibrary(lib)
+
+# Load the helper library which exports the macro's as C functions
+path = os.path.abspath(os.path.join(os.path.split(__file__)[0], '_mzhelper.so'))
+_mzhelper = cdll.LoadLibrary(path)
 
 class SCM(c_void_p):
     """\

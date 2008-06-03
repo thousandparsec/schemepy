@@ -107,7 +107,9 @@ unsigned PyObj_id(Scheme_Object *o)
 
 void init_mz()
 {
-    scheme_set_stack_base(NULL, 1); /* required for OS X, only */
+    MZ_GC_DECL_REG(0);
+    scheme_set_stack_base(&__gc_var_stack__, 1);
+    MZ_GC_REG();
 
     scheme_register_extension_global(&catched_apply_proc, sizeof(Scheme_Object *));
     scheme_register_extension_global(&proc_scheme_compile, sizeof(Scheme_Object *));
@@ -134,6 +136,8 @@ void init_mz()
     proc_scheme_apply = scheme_make_prim_w_arity(do_apply, "schemepy-do-apply", 2, 2);
 
     scm_lambda_wrapper = scheme_eval_string(scm_lambda_wrapper_code, global_env);
+
+    MZ_GC_UNREG();
 }
 
 Scheme_Object *init_scm_py_call(Scheme_Prim proc)
