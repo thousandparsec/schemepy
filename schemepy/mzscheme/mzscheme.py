@@ -17,38 +17,67 @@ _mzhelper = cdll.LoadLibrary(path)
 
 class SCM(c_void_p):
     """\
-    A Scheme_Object pointer in mzscheme.
+    Corresponding to the type Scheme_Object * in C.
     """
-    def __init__(self, value=None):
-        c_void_p.__init__(self)
+    pass
+
+class SCMRef(object):
+    """\
+    Hold a Scheme_Object * value.
+
+    If the value is immediate integer value embedded in the pointer, hold it drectly.
+    Otherwise, use a immobile to hold it indrectly to survive the memory-moving GC
+    of mzscheme.
+    """
+    def __init__(self, value):
+        """\
+        Create a SCM referencing to the Scheme value.
+        """
+        self._indirect = False
+        self._value = None
         self.value = value
 
     def value_set(self, value):
-        oldv = getattr(self, 'value', None)
-        if oldv is not None:
-            mz.scheme_gc_ptr_ok(oldv)
+        if self._value is not None and self._indirect:
+            mz.scheme_free_immobile_box(self._value)
         if value is not None:
-            mz.scheme_dont_gc_ptr(value)
-        return c_void_p.value.__set__(self, value)
+            if mz.scheme_immediate_p(value):
+                self._indirect = False
+                self._value = value
+            else:
+                self._indirect = True
+                self._value = mz.scheme_malloc_immobile_box(value)
     def value_get(self):
-        return c_void_p.value.__get__(self)
-    value = property(value_get, value_set)
+        if self._indirect:
+            return self._value[0]
+        return self._value
+    value = property(value_get, value_set, "The underlying Scheme value")
+
+    @classmethod
+    def from_param(cls, obj):
+        "Used by ctypes"
+        if not isinstance(obj, SCMRef):
+            raise ArgumentError("Expecting a SCMRef but got a %s" % obj)
+        return obj.value.value
 
     def __del__(self):
+        """\
+        When this object is released by the Python GC. Also release the
+        referencing Scheme Object so that it can be collected by the
+        mzscheme GC later.
+        """
         if mz is None:
-            return # the mz library has been unloaded, do nothing
-        # We should be careful here in __del__, originally my code
-        # of 'self.value' is firing some exceptions saying that
-        # NoneType has no 'value' attribute.
-        value = getattr(self, 'value', None)
-        if value is not None:
-            mz.scheme_gc_ptr_ok(value)
-    
+            return # mz library has been unloaded, do nothing
+        if self._indirect and self._value is not None:
+            mz.scheme_free_immobile_box(self._value)
+            
     def __str__(self):
-        return "<SCM %s>" % self.value
+        if self._indirect:
+            return "<SCM => @%x>" % self._value[0].value
+        return "<SCM @%x>" % self._value.value
     def __repr__(self):
         return self.__str__()
-
+                
 from _ctypes import Py_INCREF, Py_DECREF, PyObj_FromPtr
 def PyObj_del(scm):
     """\
@@ -97,7 +126,7 @@ class VM(object):
         env = VM.profiles.get(profile, None)
         if not env:
             raise ProfileNotFoundError("No such profile %s" % profile)
-        self._module = mz.scheme_eval_string(env, global_env)
+        self._module = mz.scheme_eval_string(env, global_env_ref)
 
     def ensure_namespace(meth):
         """\
@@ -186,8 +215,8 @@ class VM(object):
         "Convert a Python value to a Scheme value."
         if type(val) is bool:
             if val is True:
-                return mz.scheme_true
-            return mz.scheme_false
+                return mz.scheme_true_ref
+            return mz.scheme_false_ref
         if type(val) is int:
             return mz.scheme_make_integer_value(val)
         if type(val) is long:
@@ -245,7 +274,7 @@ class VM(object):
         
     def fromscheme(self, val, shallow=False):
         "Get a Python value from a Scheme value."
-        if not isinstance(val, SCM):
+        if not isinstance(val, SCMRef):
             raise ArgumentError("Expecting a Scheme value, but get a %s." % val)
 
         if mz.scheme_bool_p(val):
@@ -356,149 +385,14 @@ class VM(object):
 _mzhelper.init_mz()
 global_env = SCM.in_dll(_mzhelper, "global_env")
 
-# global constants
-mz.scheme_true = SCM.in_dll(_mzhelper, "_scheme_true")
-mz.scheme_false = SCM.in_dll(_mzhelper, "_scheme_false")
-mz.scheme_null = SCM.in_dll(_mzhelper, "_scheme_null")
+import init_mz
+init_mz.setup_ctypes(mz, _mzhelper, SCM, SCMRef)
 
-# macros
-mz.scheme_bool_p = _mzhelper.scheme_bool_p
-mz.scheme_false_p = _mzhelper.scheme_false_p
-mz.scheme_fixnum_p = _mzhelper.scheme_fixnum_p
-mz.scheme_fixnum_value = _mzhelper.scheme_fixnum_value
-mz.scheme_bignum_p = _mzhelper.scheme_bignum_p
-mz.scheme_real_p = _mzhelper.scheme_real_p
-mz.scheme_real_value = _mzhelper.scheme_real_value
-mz.scheme_number_p = _mzhelper.scheme_number_p
-mz.scheme_char_string_p = _mzhelper.scheme_char_string_p
-mz.scheme_byte_string_p = _mzhelper.scheme_byte_string_p
-mz.scheme_byte_string_val = _mzhelper.scheme_byte_string_val
-mz.scheme_byte_string_len = _mzhelper.scheme_byte_string_len
-mz.scheme_symbol_p = _mzhelper.scheme_symbol_p
-mz.scheme_symbol_val = _mzhelper.scheme_symbol_val
-mz.scheme_symbol_len = _mzhelper.scheme_symbol_len
-mz.scheme_pair_p = _mzhelper.scheme_pair_p
-mz.scheme_pair_car = _mzhelper.scheme_pair_car
-mz.scheme_pair_cdr = _mzhelper.scheme_pair_cdr
-mz.scheme_null_p = _mzhelper.scheme_null_p
-mz.scheme_procedure_p = _mzhelper.scheme_procedure_p
+mz.scheme_null_ref = SCMRef(mz.scheme_null)
+mz.scheme_false_ref = SCMRef(mz.scheme_false)
+mz.scheme_true_ref = SCMRef(mz.scheme_true)
+global_env_ref = SCMRef(global_env)
 
-# helpers
-mz.PyObj_create = _mzhelper.PyObj_create
-mz.PyObj_p = _mzhelper.PyObj_p
-mz.PyObj_id = _mzhelper.PyObj_id
-mz.scheme_list_p = _mzhelper.scheme_list_p
-mz.scheme_alist_p = _mzhelper.scheme_alist_p
-mz.scheme_get_proc_name = _mzhelper._scheme_get_proc_name
-
-mz.set_current_namespace = _mzhelper.set_current_namespace
-
-mz.catched_scheme_compile = _mzhelper.catched_scheme_compile
-mz.catched_scheme_eval = _mzhelper.catched_scheme_eval
-mz.catched_scheme_apply = _mzhelper.catched_scheme_apply
-
-mz.init_scm_py_call = _mzhelper.init_scm_py_call
-
-# constructors
-mz.scheme_make_integer_value.argtypes = [c_int]
-mz.scheme_make_integer_value.restype = SCM
-mz.scheme_make_double.argtypes = [c_double]
-mz.scheme_make_double.restype = SCM
-mz.scheme_char_string_to_byte_string_locale.argtypes = [SCM]
-mz.scheme_char_string_to_byte_string_locale.restype = SCM
-mz.scheme_make_sized_byte_string_input_port.argtypes = [c_char_p, c_int]
-mz.scheme_make_sized_byte_string_input_port.restype = SCM
-mz.scheme_make_sized_byte_string.argteyps = [c_char_p, c_int, c_int]
-mz.scheme_make_sized_byte_string.restype = SCM
-mz.scheme_intern_exact_symbol.argtypes = [c_char_p, c_int]
-mz.scheme_intern_exact_symbol.restype = SCM
-mz.scheme_make_pair.argtypes = [SCM, SCM]
-mz.scheme_make_pair.restype = SCM
-
-# extractor
-mz.scheme_fixnum_value.argtypes = [SCM]
-mz.scheme_fixnum_value.restype = c_int
-mz.scheme_bignum_to_string.argtypes = [SCM, c_int]
-mz.scheme_bignum_to_string.restype = c_char_p
-mz.scheme_real_value.argtypes = [SCM]
-mz.scheme_real_value.restype = c_double
-mz.scheme_complex_real_part.argtypes = [SCM]
-mz.scheme_complex_real_part.restype = SCM
-mz.scheme_complex_imaginary_part.argtypes = [SCM]
-mz.scheme_complex_imaginary_part.restype = SCM
-mz.scheme_make_complex.argtypes = [SCM, SCM]
-mz.scheme_make_complex.restype = SCM
-mz.scheme_byte_string_val.argtypes = [SCM]
-mz.scheme_byte_string_val.restype = c_void_p
-mz.scheme_byte_string_len.argtypes = [SCM]
-mz.scheme_byte_string_len.restype = c_int
-mz.scheme_symbol_val.argtypes = [SCM]
-mz.scheme_symbol_val.restype = c_void_p
-mz.scheme_symbol_len.argtypes = [SCM]
-mz.scheme_symbol_len.restype = c_int
-mz.scheme_pair_car.argtypes = [SCM]
-mz.scheme_pair_car.restype = SCM
-mz.scheme_pair_cdr.argtypes = [SCM]
-mz.scheme_pair_cdr.restype = SCM
-
-
-# Predicts
-mz.scheme_bool_p.argtypes = [SCM]
-mz.scheme_bool_p.restype = c_int
-mz.scheme_false_p.argtypes = [SCM]
-mz.scheme_false_p.restype = c_int
-mz.scheme_fixnum_p.argtypes = [SCM]
-mz.scheme_fixnum_p.restype = c_int
-mz.scheme_bignum_p.argtypes = [SCM]
-mz.scheme_bignum_p.restype = c_int
-mz.scheme_real_p.argtypes = [SCM]
-mz.scheme_bignum_p.restype = c_int
-mz.scheme_byte_string_p.argtypes = [SCM]
-mz.scheme_byte_string_p.restype = c_int
-mz.scheme_char_string_p.argtypes = [SCM]
-mz.scheme_char_string_p.restype = c_int
-mz.scheme_symbol_p.argtypes = [SCM]
-mz.scheme_symbol_p.restype = c_int
-mz.scheme_pair_p.argtypes = [SCM]
-mz.scheme_pair_p.restype = c_int
-mz.scheme_list_p.argtypes = [SCM]
-mz.scheme_list_p.restype = c_int
-mz.scheme_alist_p.argtypes = [SCM]
-mz.scheme_alist_p.restype = c_int
-mz.scheme_null_p.argtypes = [SCM]
-mz.scheme_null_p.restype = c_int
-mz.scheme_procedure_p.argtypes = [SCM]
-mz.scheme_procedure_p.restype = c_int
-
-# Helper
-mz.scheme_eval_string.argtypes = [c_char_p, SCM]
-mz.scheme_eval_string.restype = SCM
-mz.scheme_read.argteyps = [SCM]
-mz.scheme_read.restype = SCM
-mz.scheme_compile.argtypes = [SCM, SCM, c_int]
-mz.scheme_compile.restype = SCM
-mz.scheme_eval_compiled.argtypes = [SCM, SCM]
-mz.scheme_eval_compiled.restype = SCM
-mz.scheme_gc_ptr_ok.argtypes = [SCM]
-mz.scheme_dont_gc_ptr.argtypes = [SCM]
-mz.scheme_apply_to_list.argtypes = [SCM, SCM]
-mz.scheme_apply_to_list.restype = SCM
-mz.scheme_make_namespace.argtypes = [c_int, c_void_p]
-mz.scheme_make_namespace.restype = SCM
-mz.scheme_lookup_global.argtypes = [SCM, SCM]
-mz.scheme_lookup_global.restype = SCM
-mz.scheme_add_global_symbol.argtypes = [SCM, SCM, SCM]
-mz.scheme_add_global_symbol.restype = None
-
-mz.set_current_namespace.argtypes = [SCM]
-mz.set_current_namespace.restype = None
-
-mz.catched_scheme_compile.argtypes = [c_char_p, c_int, SCM]
-mz.catched_scheme_compile.restype = SCM
-mz.catched_scheme_eval.argtypes = [SCM, SCM]
-mz.catched_scheme_eval.restype = SCM
-mz.catched_scheme_apply.argtypes = [SCM, SCM]
-mz.catched_scheme_apply.restype = SCM
 
 mz.PyObj_create.argtypes = [c_uint, PyObj_finalizer_cfun]
 mz.PyObj_create.restype = PyObj

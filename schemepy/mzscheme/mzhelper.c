@@ -161,6 +161,15 @@ int scheme_false_p(Scheme_Object *o)
 }
 
 /**
+ * fixnum integers are embedded in the pointer as
+ * immediate value instead of a pointer to a Scheme_Object
+ */
+int scheme_immediate_p(Scheme_Object *o)
+{
+    return SCHEME_INTP(o);
+}
+
+/**
  * Number type mapping:
  *
  *    Mz              Py
