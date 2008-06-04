@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<title>The API of Schemepy</title>
+<link rel="stylesheet" href="styles.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="the-api-of-schemepy">
+<h1 class="title">The API of Schemepy</h1>
+
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#schemepy" id="id2">schemepy</a><ul>
+<li><a class="reference internal" href="#vm-backend-profile" id="id3">VM(backend, profile)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vm" id="id4">VM</a><ul>
+<li><a class="reference internal" href="#compile-code" id="id5">compile(code)</a></li>
+<li><a class="reference internal" href="#eval-compiled" id="id6">eval(compiled)</a></li>
+<li><a class="reference internal" href="#type-value" id="id7">type(value)</a></li>
+<li><a class="reference internal" href="#fromscheme-value-shallow" id="id8">fromscheme(value, shallow)</a></li>
+<li><a class="reference internal" href="#toscheme-value-shallow" id="id9">toscheme(value, shallow)</a></li>
+<li><a class="reference internal" href="#apply-proc-args" id="id10">apply(proc, args)</a></li>
+<li><a class="reference internal" href="#define-name-value" id="id11">define(name, value)</a></li>
+<li><a class="reference internal" href="#get-name-default" id="id12">get(name, default)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#exceptions" id="id13">exceptions</a></li>
+</ul>
+</div>
+<div class="section" id="schemepy">
+<h1><a class="toc-backref" href="#id2">schemepy</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">schemepy</span></tt> module manages various backends. Each backend is
+loaded the first when required.</p>
+<div class="section" id="vm-backend-profile">
+<h2><a class="toc-backref" href="#id3">VM(backend, profile)</a></h2>
+<p>Create a VM. Load the specified backend if not loaded yet.</p>
+<p>Params:</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">backend</span></tt>: the default value is <tt class="docutils literal"><span class="pre">None</span></tt>, which means Schemepy
+will find a suitable backend automatically. If the environment
+variable <tt class="docutils literal"><span class="pre">BACKEND</span></tt> is defined and valid, it will be used to select
+the backend. Otherwise, Schemepy will try a list of default backends
+one-by-one until a valid one (ie. there's corresponding native
+Scheme implementation installed in your system) is found. Or else it
+will fall back to the pure-Python Scheme implementation which is
+guaranteed to be always available.</p>
+<p>Here's a list of supported backends:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">guile</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">mzscheme</span></tt></li>
+</ul>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">profile</span></tt>: default is <tt class="docutils literal"><span class="pre">&quot;scheme-report-environment&quot;</span></tt>. Used to
+specify the profile of the VM. Currently supported profiles are:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">scheme-report-environment</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">null-environment</span></tt></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="vm">
+<h1><a class="toc-backref" href="#id4">VM</a></h1>
+<p>A VM object represents a Scheme VM. All communications with the Scheme
+environment are through the VM object.</p>
+<p>Different backend has different VM implementation, but the behavior
+from the user's view should be identical in well-defined situations.</p>
+<div class="section" id="compile-code">
+<h2><a class="toc-backref" href="#id5">compile(code)</a></h2>
+<p>Compile a piece of Scheme code. The code should contain a single
+s-expression (multiple s-expressions can be wrapped with the <tt class="docutils literal"><span class="pre">begin</span></tt>
+form as a single s-expression). In some backend where compiling is not
+supported, this step may involve simple parsing or just return the
+original code.</p>
+<p>The return value is the compiled code, which can be arbitrary type
+depends on the backend.</p>
+</div>
+<div class="section" id="eval-compiled">
+<h2><a class="toc-backref" href="#id6">eval(compiled)</a></h2>
+<p>Evaluate the compiled code. Code should be compiled before evaluating,
+and it should be compiled with the same VM.</p>
+<p>The return value is a Scheme value.</p>
+</div>
+<div class="section" id="type-value">
+<h2><a class="toc-backref" href="#id7">type(value)</a></h2>
+<p>Get the corresponding Python of the Scheme value. Note the returned
+type is not necessarily the type of the Python object converted from
+the Scheme value. In other words, <tt class="docutils literal"><span class="pre">vm.type(val)</span></tt> may not be the same
+to <tt class="docutils literal"><span class="pre">type(vm.fromscheme(val))</span></tt>.</p>
+<p>An example is a value converted from a generic Python object. When
+using the <tt class="docutils literal"><span class="pre">type</span></tt> method, the result will be <tt class="docutils literal"><span class="pre">object</span></tt>. But the
+returned value will be the original object, which might be of any
+type.</p>
+<p>Not all Scheme value are able to be converted to a corresponding
+Python object (refer to the <a class="reference external" href="type-mapping.html">type mapping document</a> for more details). In this case,
+<tt class="docutils literal"><span class="pre">type(None)</span></tt> will be returned.</p>
+</div>
+<div class="section" id="fromscheme-value-shallow">
+<h2><a class="toc-backref" href="#id8">fromscheme(value, shallow)</a></h2>
+<p>Convert a Scheme value to a Python value. When the Scheme value is not
+convertable, a <tt class="docutils literal"><span class="pre">schemepy.exceptions.ConversionError</span></tt> will be
+raised. On what value is convertable and what is the converted result,
+refer to the <a class="reference external" href="type-mapping.html">type mapping document</a>.</p>
+<p>Params:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">value</span></tt>: The Scheme value.</li>
+<li><tt class="docutils literal"><span class="pre">shallow</span></tt>: Default is <tt class="docutils literal"><span class="pre">False</span></tt>. Refer to the <a class="reference external" href="type-mapping.html#shallow-vs-deep">type mapping
+document (shallow vs deep)</a> for
+more information.</li>
+</ul>
+</div>
+<div class="section" id="toscheme-value-shallow">
+<h2><a class="toc-backref" href="#id9">toscheme(value, shallow)</a></h2>
+<p>Convert a Python value to a Scheme value. Every Python object is
+convertable. On the conversion rule of each type of object, refer to
+the <a class="reference external" href="type-mapping.html">type mapping document</a>.</p>
+<p>Params:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">value</span></tt>: The Python value to be converted.</li>
+<li><tt class="docutils literal"><span class="pre">shallow</span></tt>: Default is <tt class="docutils literal"><span class="pre">False</span></tt>. Refer to the <a class="reference external" href="type-mapping.html#shallow-vs-deep">type mapping
+document (shallow vs deep)</a> for
+more information.</li>
+</ul>
+</div>
+<div class="section" id="apply-proc-args">
+<h2><a class="toc-backref" href="#id10">apply(proc, args)</a></h2>
+<p>Call a Scheme procedure.</p>
+<p>Params:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">proc</span></tt>: The Scheme procedure to call.</li>
+<li><tt class="docutils literal"><span class="pre">args</span></tt>: The arguments to the procedure. It should be a (Python) list of
+Scheme values.</li>
+</ul>
+<p>The return value is a Scheme value.</p>
+</div>
+<div class="section" id="define-name-value">
+<h2><a class="toc-backref" href="#id11">define(name, value)</a></h2>
+<p>Define a global variable in the VM.</p>
+<p>Params:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: Can be either a (Python) string or a
+<tt class="docutils literal"><span class="pre">schemepy.types.Symbol</span></tt>. It is the name of the variable to be
+defined.</li>
+<li><tt class="docutils literal"><span class="pre">value</span></tt>: Should be a Scheme value. Used as the value of the
+variable.</li>
+</ul>
+</div>
+<div class="section" id="get-name-default">
+<h2><a class="toc-backref" href="#id12">get(name, default)</a></h2>
+<p>Get the value of a global variable in the VM.</p>
+<p>Params:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">name</span></tt>: The name of the variable to look up. Can be either a
+(Python) string or a <tt class="docutils literal"><span class="pre">schemepy.types.Symbol</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">default</span></tt>: Default is <tt class="docutils literal"><span class="pre">None</span></tt>. It is returned when the variable
+is not defined.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="exceptions">
+<h1><a class="toc-backref" href="#id13">exceptions</a></h1>
+<p>The exceptions raised in Scheme will be caught and re-raised in
+Python. Different backends have different exception hirarchies, but
+Schemepy will (try to) map those exception hirarchies to the Schemepy
+Scheme exception hirarchy.</p>
+<p>All Scheme exceptions are sub-class of
+<tt class="docutils literal"><span class="pre">schemepy.exceptions.SchemeError</span></tt>. They are:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">ScmSystemError</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">ScmNumericalError</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">ScmWrongArgType</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">ScmWrongArgNumber</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">ScmSyntaxError</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">ScmUnboundVariable</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">ScmMiscError</span></tt></li>
+</ul>
+</div>
+</div>
+</body>
+</html>

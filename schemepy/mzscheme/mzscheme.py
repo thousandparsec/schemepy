@@ -344,6 +344,7 @@ class VM(object):
             return Lambda(val, self, shallow)
         if mz.PyObj_p(val):
             return PyObj.get(val)
+        raise ConversionError(self, "Don't know how to convert this type.")
 
     def type(self, val):
         "Get the corresponding Python type of the Scheme value."

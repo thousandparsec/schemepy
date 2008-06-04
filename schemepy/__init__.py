@@ -10,6 +10,8 @@ def VM(backend=None, profile="scheme-report-environment"):
     'backend' can be used to specify the backend wanted to use.
     Currently supported backends include:
      - "guile"
+     - "mzscheme"
+     - "pyscheme"
     Leaving the 'backend' parameter alone the default value (None)
     will let Schemepy find a default backend for you.
 

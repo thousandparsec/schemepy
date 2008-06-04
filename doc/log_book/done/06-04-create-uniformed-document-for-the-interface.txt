@@ -6,3 +6,8 @@ The docstring of each backend is varying. However, the behavior of all
 those functions from the user's view should be identical. Add document
 to describe those behaviors.
 
+
+----------------------------------------------------------------------
+                                               finished at: 2008-06-04
+
+The document is created in api.rst.
