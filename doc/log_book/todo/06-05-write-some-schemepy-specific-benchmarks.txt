@@ -1,0 +1,9 @@
+Write some schemepy-specific benchmarks
+----------------------------------------------------------------------
+                                                planned at: 2008-06-05
+
+The existing benchmarks are good to compare the performance of the 
+different Scheme implementations. We'll also need some benchmarks to
+compare the performance of our backend wrapper. E.g. the performance
+of converting a Scheme value to a Python value and vice versa.
+
