@@ -211,6 +211,13 @@ class VM(object):
         """
         return mz.catched_scheme_eval(code, self._module)
 
+    @ensure_namespace
+    def repl(self):
+        """\
+        Enter a read-eval-print-loop
+        """
+        mz.scheme_apply(mz.scheme_builtin_value("read-eval-print-loop"), 0, None)
+
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
         if type(val) is bool:

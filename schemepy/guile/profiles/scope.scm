@@ -2,5 +2,6 @@
   (let ((m (make-module)))
     (module-define! m 'display display)
     (module-define! m 'newline newline)
+    (module-define! m 'top-repl top-repl)
     (module-use! m base)
     m))

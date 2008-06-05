@@ -131,12 +131,17 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     mz.scheme_eval_compiled.restype = SCMRef
     mz.scheme_apply_to_list.argtypes = [SCMRef, SCMRef]
     mz.scheme_apply_to_list.restype = SCMRef
+    mz.scheme_apply.argtypes = [SCMRef, c_int, POINTER(SCM)]
+    mz.scheme_apply.restype = SCMRef
     mz.scheme_make_namespace.argtypes = [c_int, c_void_p]
     mz.scheme_make_namespace.restype = SCMRef
     mz.scheme_lookup_global.argtypes = [SCMRef, SCMRef]
     mz.scheme_lookup_global.restype = SCMRef
     mz.scheme_add_global_symbol.argtypes = [SCMRef, SCMRef, SCMRef]
     mz.scheme_add_global_symbol.restype = None
+
+    mz.scheme_builtin_value.argtypes = [c_char_p]
+    mz.scheme_builtin_value.restype = SCMRef
     
     mz.scheme_free_immobile_box.argtypes = [POINTER(SCM)]
     mz.scheme_free_immobile_box.restype = None

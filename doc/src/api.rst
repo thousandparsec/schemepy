@@ -152,6 +152,11 @@ Params:
 * ``default``: Default is ``None``. It is returned when the variable
   is not defined.
 
+repl()
+------
+
+Enter the read-eval-print loop. All errors occured will be caught in
+the loop itself so this method will never throw.
 
 exceptions
 ==========

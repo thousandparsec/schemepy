@@ -27,9 +27,10 @@
 <li><a class="reference internal" href="#apply-proc-args" id="id10">apply(proc, args)</a></li>
 <li><a class="reference internal" href="#define-name-value" id="id11">define(name, value)</a></li>
 <li><a class="reference internal" href="#get-name-default" id="id12">get(name, default)</a></li>
+<li><a class="reference internal" href="#repl" id="id13">repl()</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#exceptions" id="id13">exceptions</a></li>
+<li><a class="reference internal" href="#exceptions" id="id14">exceptions</a></li>
 </ul>
 </div>
 <div class="section" id="schemepy">
@@ -162,9 +163,14 @@ variable.</li>
 is not defined.</li>
 </ul>
 </div>
+<div class="section" id="repl">
+<h2><a class="toc-backref" href="#id13">repl()</a></h2>
+<p>Enter the read-eval-print loop. All errors occured will be caught in
+the loop itself so this method will never throw.</p>
+</div>
 </div>
 <div class="section" id="exceptions">
-<h1><a class="toc-backref" href="#id13">exceptions</a></h1>
+<h1><a class="toc-backref" href="#id14">exceptions</a></h1>
 <p>The exceptions raised in Scheme will be caught and re-raised in
 Python. Different backends have different exception hirarchies, but
 Schemepy will (try to) map those exception hirarchies to the Schemepy

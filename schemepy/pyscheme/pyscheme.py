@@ -44,6 +44,9 @@ class VM(object):
         except Exception, e:
             self._parse_error(e)
 
+    def repl(self):
+        self._interp.repl()
+
     def define(self, name, value):
         """Define a variable in Scheme"""
         name = schemepy.types.Symbol(name)

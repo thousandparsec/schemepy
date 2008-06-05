@@ -293,6 +293,11 @@ class VM(object):
         return guile.scm_apply_0(proc, arglist)
 
     @ensure_scope
+    def repl(self):
+        "Enter the read-eval-print loop."
+        guile.scm_c_eval_string("(top-repl)")
+
+    @ensure_scope
     def toscheme(self, val, shallow=False):
         "Convert a Python value to a Scheme value."
         if type(val) is bool:
