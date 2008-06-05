@@ -1,0 +1,8 @@
+Avoid GC crashes
+----------------------------------------------------------------------
+                                                planned at: 2008-06-05
+
+Sometimes the GC (of mzscheme?) will crash the program. Try to find out
+any potential problems. Forcing the GC to run may help diagnose the 
+problem (use scheme_collect_garbage() in mzscheme).
+
