@@ -1,0 +1,102 @@
+Write some schemepy-specific benchmarks
+----------------------------------------------------------------------
+                                                planned at: 2008-06-05
+
+The existing benchmarks are good to compare the performance of the 
+different Scheme implementations. We'll also need some benchmarks to
+compare the performance of our backend wrapper. E.g. the performance
+of converting a Scheme value to a Python value and vice versa.
+
+
+----------------------------------------------------------------------
+                                               finished at: 2008-06-05
+
+Here are the current results. Note that though converting a int in the
+pyscheme backend is just an nop, it is slower than the mzscheme backend.
+That's because the converting is a linear if/elif search. Using a dict
+based direct dispatch may be faster in common cases. But it is not 
+always feasible to use dict direct dispatching. For example, you will
+need to do
+
+  if callable(val):
+      convert val
+
+but there isn't a common key in all callable objects that can be used
+to dispatch it to the routine to convert a callable.
+
+
+The results:
+
+
+rmance of converting integers ---------------------------------------------
+                   user      system        real       total
+guile          0.000470    0.000000    0.000500    0.000970
+mzscheme       0.000160    0.000000    0.000160    0.000320
+pyscheme       0.000480    0.000000    0.000480    0.000960
+
+performance of converting float numbers ----------------------------------------
+                   user      system        real       total
+guile          0.000480    0.000000    0.000480    0.000960
+mzscheme       0.000340    0.000000    0.000340    0.000680
+pyscheme       0.000460    0.000000    0.000470    0.000930
+
+performance of converting big numbers ------------------------------------------
+                   user      system        real       total
+guile          0.001410    0.000020    0.001430    0.002860
+mzscheme       0.000670    0.000010    0.000690    0.001370
+pyscheme       0.000520    0.000000    0.000520    0.001040
+
+performance of converting bool values ------------------------------------------
+                   user      system        real       total
+guile          0.000350    0.000000    0.000350    0.000700
+mzscheme       0.000120    0.000000    0.000110    0.000230
+pyscheme       0.000370    0.000000    0.000380    0.000750
+
+performance of converting strings ----------------------------------------------
+                   user      system        real       total
+guile          0.000550    0.000000    0.000550    0.001100
+mzscheme       0.000500    0.000000    0.000500    0.001000
+pyscheme       0.000500    0.000000    0.000500    0.001000
+
+performance of converting big string -------------------------------------------
+                   user      system        real       total
+guile          0.000640    0.000250    0.000890    0.001780
+mzscheme       0.000400    0.000070    0.000470    0.000940
+pyscheme       0.000510    0.000000    0.000520    0.001030
+
+performance of converting symbols ----------------------------------------------
+                   user      system        real       total
+guile          0.001240    0.000000    0.001240    0.002480
+mzscheme       0.000640    0.000000    0.000650    0.001290
+pyscheme       0.000720    0.000000    0.000740    0.001460
+
+performance of converting cons pairs -------------------------------------------
+                   user      system        real       total
+guile          0.001740    0.000000    0.001750    0.003490
+mzscheme       0.001410    0.000000    0.001410    0.002820
+pyscheme       0.001920    0.000000    0.001930    0.003850
+
+performance of converting lists ------------------------------------------------
+                   user      system        real       total
+guile          0.002290    0.000010    0.002310    0.004610
+mzscheme       0.001800    0.000000    0.001830    0.003630
+pyscheme       0.002740    0.000000    0.002750    0.005490
+
+performance of converting dicts ------------------------------------------------
+                   user      system        real       total
+guile          0.002450    0.000000    0.002500    0.004950
+mzscheme       0.001950    0.000000    0.001960    0.003910
+pyscheme       0.002510    0.000000    0.002520    0.005030
+
+performance of converting callables --------------------------------------------
+                   user      system        real       total
+guile          0.002370    0.000010    0.002370    0.004750
+mzscheme       0.003790    0.000010    0.003810    0.007610
+pyscheme       0.001320    0.000000    0.001330    0.002650
+
+performance of converting objects ----------------------------------------------
+                   user      system        real       total
+guile          0.000610    0.000000    0.000610    0.001220
+mzscheme       0.000990    0.000020    0.001000    0.002010
+pyscheme       0.000490    0.000000    0.000500    0.000990
+

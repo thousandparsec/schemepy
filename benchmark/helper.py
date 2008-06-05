@@ -5,6 +5,7 @@ sys.path.append(
     os.path.join(os.path.dirname(__file__), ".."))
 
 from schemepy import VM
+from schemepy.types import *
 from benchmark import Benchmark
 
 
@@ -15,7 +16,7 @@ def read(file_name):
     return cont
 
 
-BACKENDS = ['guile', 'mzscheme']
+BACKENDS = ['guile', 'mzscheme', 'pyscheme']
 
 def load_backends():
     """\
