@@ -28,12 +28,13 @@ int scm_is_bool(SCM x) {
 	return SCM_BOOLP (x); 
 }
 
-int scm_is_number(SCM x) {
-	return scm_number_p(x) == SCM_BOOL_T;
+int scm_is_fixnum(SCM x)
+{
+    return SCM_IMP(x);
 }
 
-int scm_is_integer(SCM x) {
-	return SCM_INUMP (x);
+int scm_is_number(SCM x) {
+	return scm_number_p(x) == SCM_BOOL_T;
 }
 
 /* FIXME: Is this right? */
@@ -153,14 +154,18 @@ int _scm_is_null(SCM x) {
 	return scm_is_null(x);
 }
 
-#endif
-
 int scm_is_fixnum(SCM x) {
         return SCM_I_INUMP(x);
 }
 
+#endif
+
 int scm_imp(SCM x) {
 	return SCM_IMP(x);
+}
+
+int scm_is_integer(SCM x) {
+        return scm_integer_p(x) == SCM_BOOL_T;
 }
 
 int scm_is_list(SCM x) {

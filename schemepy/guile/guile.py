@@ -422,13 +422,13 @@ class VM(object):
                     return Cons(car, cdr)
         if guile.scm_is_eol(val):
             return []
+        if guile.scm_is_symbol(val):
+            return Symbol(self.fromscheme(guile.scm_symbol_to_string(val)))
         if guile.scm_is_string(val):
             # FIXME: This is leaking memory
             len = c_ulong(0)
             mem = guile.scm_to_locale_stringn(val, pointer(len))
             return string_at(mem, len.value)
-        if guile.scm_is_symbol(val):
-            return Symbol(self.fromscheme(guile.scm_symbol_to_string(val)))
         if guile.scm_is_true(guile.scm_procedure_p(val)):
             smob = guile.scm_procedure_property(val,
                                                 self._scm_py_lambda_identifier)
@@ -474,10 +474,10 @@ class VM(object):
                 return Cons
         if guile.scm_is_eol(val):
             return list
-        if guile.scm_is_string(val):
-            return str
         if guile.scm_is_symbol(val):
             return Symbol
+        if guile.scm_is_string(val):
+            return str
         if guile.scm_is_true(guile.scm_procedure_p(val)):
             smob = guile.scm_procedure_property(val,
                                                 self._scm_py_lambda_identifier)
@@ -640,6 +640,7 @@ if hasattr(_guilehelper, 'scm_from_bool'):
 	guile.scm_from_double = _guilehelper.scm_from_double
 
 	guile.scm_to_locale_string    = _guilehelper.scm_to_locale_string
+        guile.scm_to_locale_stringn    = _guilehelper.scm_to_locale_stringn
 	guile.scm_from_locale_stringn = _guilehelper.scm_from_locale_stringn
 
 	guile.scm_c_real_part = _guilehelper.scm_c_real_part
