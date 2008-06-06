@@ -74,14 +74,6 @@ class ScmNumericalError(SchemeError):
     def __init__(self, message):
         SchemeError.__init__(self, message)
 
-class ScmRangeError(SchemeError):
-    """\
-    Exception raised when the arguments to a procedure do not fall
-    within the accepted domain.
-    """
-    def __init__(self, message):
-        SchemeError.__init__(self, message)
-
 class ScmWrongArgType(SchemeError):
     """\
     Exception raised when an argument to a procedure has the wrong

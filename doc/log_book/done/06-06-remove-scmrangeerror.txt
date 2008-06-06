@@ -7,3 +7,8 @@ this type of error may not available from other backends and this is
 generally not very useful. Remove this exception type and map guile's
 range-error to other exception type.
 
+
+----------------------------------------------------------------------
+                                               finished at: 2008-06-06
+
+Removed. The out-of-range error in guile is mapped to ScmMiscError now.

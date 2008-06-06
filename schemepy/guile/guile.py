@@ -110,8 +110,6 @@ def make_scheme_exception(vm, key, args):
         Error = ScmSystemError
     elif sym == 'numerical-overflow':
         Error = ScmNumericalError
-    elif sym == 'out-of-range':
-        Error = ScmRangeError
     elif sym == 'wrong-type-arg':
         Error = ScmWrongArgType
     elif sym == 'wrong-number-of-args':
