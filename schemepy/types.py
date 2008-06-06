@@ -39,6 +39,11 @@ class Symbol(object):
         raise AttributeError("Can't modify name of a symbol.")
     name = property(get_name, set_name)
 
+    def __str__(self):
+        return "<symbol %s>" % self._name.__repr__()
+    def __repr__(self):
+        return self.__str__()
+
 class Lambda(object):
     "A Lambda object mapping to a Scheme procedure"
 
