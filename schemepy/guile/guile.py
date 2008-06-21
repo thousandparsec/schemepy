@@ -2,6 +2,7 @@ from ctypes.util import find_library
 from ctypes import *
 from schemepy.types import *
 from schemepy.exceptions import *
+from schemepy import tpcl
 import types
 import os.path
 
@@ -215,10 +216,17 @@ class VM(object):
         env = profiles.get(profile)
         if not env:
             raise ProfileNotFoundError("No such profile %s" % profile)
+        post_hook = None
+        if isinstance(env, tuple):
+            env, post_hook = env
+            
         global guileroot
         guile.scm_set_current_module(guileroot)
         self.module = guile.scm_call_1(makescope, env)
         self._init_pyfunc_interface()
+
+        if post_hook:
+            post_hook(self)
 
     def compile(self, code):
         """Compile for guile. Guile doesn't support bytecode yet. So
@@ -598,7 +606,9 @@ makescope        = guile.scm_variable_ref(makescope_symbol)
 guile.scm_c_eval_string("(use-modules (ice-9 r5rs))")
 profiles = {
         "scheme-report-environment" : guile.scm_c_eval_string("(scheme-report-environment 5)"),
-        "null-environment" : guile.scm_c_eval_string("(null-environment 5)")
+        "null-environment" : guile.scm_c_eval_string("(null-environment 5)"),
+        "tpcl-environment" : (guile.scm_c_eval_string("(scheme-report-environment 5)"),
+                              lambda vm: tpcl.setup(vm))
         }
 
 
