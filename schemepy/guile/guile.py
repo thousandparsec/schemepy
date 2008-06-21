@@ -80,14 +80,29 @@ class SCM(c_void_p):
         raise ConversionError(self, "Don't support conversion of a %s, use vm.toscheme instead." % val)
 
 
-def exception_body(src):
+def exception_body_eval(src):
     """\
     The method is used to evaluate a piece of Scheme code where exception
     will be caught safely.
     """
     return guile.scm_eval_string(src).value
+
+def exception_body_apply(arg):
+    """\
+    Apply a function in a context where exception will be caught.
+    """
+    return guile.scm_apply_0(guile.scm_car(arg), guile.scm_cdr(arg)).value
+
+def exception_body_load(path):
+    """\
+    Load a Scheme script in a context where exception will be caught.
+    """
+    return guile.scm_primitive_load(path).value
+
 exception_body_t = CFUNCTYPE(SCM, SCM)
-exception_body = exception_body_t(exception_body)
+exception_body_eval = exception_body_t(exception_body_eval)
+exception_body_apply = exception_body_t(exception_body_apply)
+exception_body_load = exception_body_t(exception_body_load)
 
 def make_scheme_exception(vm, key, args):
     sym = vm.fromscheme(key).name
@@ -176,6 +191,9 @@ guile.scm_eval_string.restype  = SCM
 guile.scm_c_eval_string.argtypes = [c_char_p]
 guile.scm_c_eval_string.restype = SCM
 
+guile.scm_c_primitive_load.argtypes = [c_char_p]
+guile.scm_c_primitive_load.restype = SCM
+
 def scm_py_call(py_callable, shallow, vm, scm_args):
     """\
     This function will be registered to the Scheme world to call a Python
@@ -244,6 +262,18 @@ class VM(object):
             return meth(self, *args, **kw)
         return scoped_meth
 
+    def catch_exception_do(self, action, arg):
+        """\
+        Do action with exception handler. If exception thrown in Guile, catch
+        it and re-throw in Python.
+        """
+        exceptions = []
+        r = guile.scm_internal_catch(guile.scm_bool_t(), action, arg,
+                                     make_exception_handler(self, exceptions), None)
+        if len(exceptions) != 0:
+            raise exceptions[0]
+        return r
+
     @ensure_scope
     def define(self, name, value):
         """\
@@ -275,19 +305,14 @@ class VM(object):
         """\
         Load a scheme script file.
         """
-        guile.scm_primitive_load(self.toscheme(filename))
+        self.catch_exception_do(exception_body_load, self.toscheme(filename))
 
     @ensure_scope
     def eval(self, src):
         """\
         Eval a piece of compiled Scheme code.
         """
-        exceptions = []
-        r = guile.scm_internal_catch(guile.scm_bool_t(), exception_body, self.toscheme(src),
-                                     make_exception_handler(self, exceptions), None)
-        if len(exceptions) != 0:
-            raise exceptions[0]
-        return r
+        return self.catch_exception_do(exception_body_eval, self.toscheme(src))
 
     @ensure_scope
     def apply(self, proc, args):
@@ -302,8 +327,9 @@ class VM(object):
         arglist = guile.scm_eol()
         for arg in reversed(args):
             arglist = guile.scm_cons(arg, arglist)
-            
-        return guile.scm_apply_0(proc, arglist)
+
+        return self.catch_exception_do(exception_body_apply,
+                                       guile.scm_cons(proc, arglist))
 
     @ensure_scope
     def repl(self):
@@ -598,7 +624,7 @@ prettyprint        = guile.scm_variable_ref(prettyprint_symbol)
 import os, os.path
 __file__ = os.path.realpath(__file__)
 __path__ = os.path.dirname(__file__)
-guile.scm_c_primitive_load (os.path.join(__path__, "profiles", "scope.scm"))
+guile.scm_c_primitive_load(os.path.join(__path__, "profiles", "scope.scm"))
 makescope_symbol = guile.scm_c_lookup("make-scope")
 makescope        = guile.scm_variable_ref(makescope_symbol)
 
@@ -709,9 +735,6 @@ guile.scm_display.restype  = None
 guile.scm_newline.argtypes = [SCM]
 guile.scm_display.restype  = None
 
-guile.scm_primitive_load.argtypes = [SCM]
-guile.scm_primitive_load.restype = None
-
 guile.scm_make_smob_type.argtypes = [c_char_p, c_int]
 guile.scm_make_smob_type.restype  = SCMtbits
 guile.scm_set_smob_free.argtypes  = [SCMtbits, PythonSMOB.free_cfunc]
@@ -722,6 +745,9 @@ guile.scm_return_newsmob.argtypes = [SCMtbits, c_void_p]
 guile.scm_return_newsmob.restype  = SCM
 guile.scm_smob_predicate.argtypes = [SCMtbits, SCM]
 guile.scm_smob_predicate.restype  = bool
+
+guile.scm_primitive_load.argtypes = [SCM]
+guile.scm_primitive_load.restype = SCM
 
 guile.scm_c_make_gsubr.argtypes = [c_char_p, c_int, c_int, c_int, c_void_p]
 guile.scm_c_make_gsubr.restype  = SCM
