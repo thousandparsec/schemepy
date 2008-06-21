@@ -42,6 +42,7 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     mz.catched_scheme_compile = _mzhelper.catched_scheme_compile
     mz.catched_scheme_eval = _mzhelper.catched_scheme_eval
     mz.catched_scheme_apply = _mzhelper.catched_scheme_apply
+    mz.catched_scheme_load = _mzhelper.catched_scheme_load
     
     mz.init_scm_py_call = _mzhelper.init_scm_py_call
     
@@ -157,4 +158,6 @@ def setup_ctypes(mz, _mzhelper, SCM, SCMRef):
     mz.catched_scheme_eval.restype = SCMRef
     mz.catched_scheme_apply.argtypes = [SCMRef, SCMRef]
     mz.catched_scheme_apply.restype = SCMRef
+    mz.catched_scheme_load.argtypes = [SCMRef]
+    mz.catched_scheme_load.restype = SCMRef
     

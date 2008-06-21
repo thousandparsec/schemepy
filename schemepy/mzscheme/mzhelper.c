@@ -63,10 +63,12 @@ static const char *catched_apply_proc_code = \
 static Scheme_Object *proc_scheme_compile;
 static Scheme_Object *proc_scheme_eval;
 static Scheme_Object *proc_scheme_apply;
+static Scheme_Object *proc_scheme_load;
 
 static Scheme_Object *do_compile(int argc, Scheme_Object **argv);
 static Scheme_Object *do_eval(int argc, Scheme_Object **argv);
 static Scheme_Object *do_apply(int argc, Scheme_Object **argv);
+static Scheme_Object *do_load(int argc, Scheme_Object **argv);
 
 /**
  * A mzscheme type to hold Python object
@@ -119,6 +121,7 @@ void init_mz()
     scheme_register_extension_global(&proc_scheme_compile, sizeof(Scheme_Object *));
     scheme_register_extension_global(&proc_scheme_eval, sizeof(Scheme_Object *));
     scheme_register_extension_global(&proc_scheme_apply, sizeof(Scheme_Object *));
+    scheme_register_extension_global(&proc_scheme_load, sizeof(Scheme_Object *));
     scheme_register_extension_global(&_scheme_true, sizeof(Scheme_Object *));
     scheme_register_extension_global(&_scheme_false, sizeof(Scheme_Object *));
     scheme_register_extension_global(&_scheme_null, sizeof(Scheme_Object *));
@@ -139,6 +142,7 @@ void init_mz()
     proc_scheme_compile = scheme_make_prim_w_arity(do_compile, "schemepy-do-compile", 2, 2);
     proc_scheme_eval = scheme_make_prim_w_arity(do_eval, "schemepy-do-eval", 2, 2);
     proc_scheme_apply = scheme_make_prim_w_arity(do_apply, "schemepy-do-apply", 2, 2);
+    proc_scheme_load = scheme_lookup_global(scheme_intern_symbol("load"), global_env);
 
     scm_lambda_wrapper = scheme_eval_string(scm_lambda_wrapper_code, global_env);
 
@@ -378,6 +382,13 @@ Scheme_Object *catched_scheme_apply(Scheme_Object *proc, Scheme_Object *args)
     params[1] = proc;
     params[2] = args;
     return scheme_apply(catched_apply_proc, 3, params);
+}
+void catched_scheme_load(Scheme_Object *path)
+{
+    Scheme_Object *params[2];
+    params[0] = proc_scheme_load;
+    params[1] = scheme_byte_string_to_char_string(path);
+    scheme_apply(catched_apply_proc, 2, params);
 }
 
 void set_current_namespace(Scheme_Object *namespace)

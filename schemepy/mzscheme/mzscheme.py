@@ -212,6 +212,16 @@ class VM(object):
         return mz.catched_scheme_eval(code, self._module)
 
     @ensure_namespace
+    @filter_exception
+    def load(self, path):
+        """\
+        Load a Scheme script file.
+        """
+        if type(path) is not str:
+            raise TypeError, "path should be a string"
+        return mz.catched_scheme_load(self.toscheme(path))
+
+    @ensure_namespace
     def repl(self):
         """\
         Enter a read-eval-print-loop
