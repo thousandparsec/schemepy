@@ -263,6 +263,13 @@ class VM(object):
         return guile.scm_variable_ref(guile.scm_lookup(self.toscheme(name)))
 
     @ensure_scope
+    def load(self, filename):
+        """\
+        Load a scheme script file.
+        """
+        guile.scm_primitive_load(self.toscheme(filename))
+
+    @ensure_scope
     def eval(self, src):
         """\
         Eval a piece of compiled Scheme code.
@@ -691,6 +698,9 @@ guile.scm_display.argtypes = [SCM, SCM]
 guile.scm_display.restype  = None
 guile.scm_newline.argtypes = [SCM]
 guile.scm_display.restype  = None
+
+guile.scm_primitive_load.argtypes = [SCM]
+guile.scm_primitive_load.restype = None
 
 guile.scm_make_smob_type.argtypes = [c_char_p, c_int]
 guile.scm_make_smob_type.restype  = SCMtbits
