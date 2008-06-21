@@ -1,0 +1,23 @@
+Handle exception when calling Python from scheme
+----------------------------------------------------------------------
+                                                planned at: 2008-06-02
+
+Both Scheme and Python has exception system. Currently, the exception
+is only handled when calling Scheme from Python. But the behavior is
+still undefined when a Scheme code calls a Python function which then
+raises an exception.
+
+Define the behavior of this problem and write code to handle this.
+
+
+----------------------------------------------------------------------
+                                               finished at: 2008-06-21
+
+Invalid. I finally decided not to handle this problem. When one provide
+a Python callable as a callback to the Scheme world, he should guarantee
+that the callback doesn't raise any exception. This should be true 
+because almost all callbacks are written in C, thus no exception will
+raise.
+
+Dealing with this problem complicate the system quite a bit, and the
+performance may also suck from this.
