@@ -67,6 +67,15 @@ and it should be compiled with the same VM.
 
 The return value is a Scheme value.
 
+load(path)
+----------
+
+Load a Scheme script and evaluate its contents in the top-level
+environment of the VM. The load paths are not searched. ``path`` must
+either be a full path or a path relative to the current directory
+(Note: the *current directory* of the Scheme VM may be different from
+the Python VM).
+
 type(value)
 -----------
 
