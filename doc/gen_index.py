@@ -20,7 +20,7 @@ def git_ensure_on_branch(branch):
             sys.exit(1)
         os.system("git-checkout %s" % branch)
 
-GIT_LOG_FORMAT = "format:%an\n%cr\n%s\n%H\n"
+GIT_LOG_FORMAT = "format:%an\n%ci\n%s\n%H\n"
 def git_get_short_log(n):
     "Get short log of the last n commits."
     logs = os.popen('git-log --pretty="%s" "HEAD~%d"..' %
@@ -37,7 +37,7 @@ def git_gen_html(logs):
     def gen_log(log):
         return "<tr><td>" + log['date'] + \
                "</td><td>" + log['author'] + \
-               "</td><td>" + log['comment'] + \
+               "</td><td class='comment'>" + log['comment'] + \
                "</td><td>" + gen_url(log) + \
                "</td></tr>"
     def gen_url(log):
@@ -97,12 +97,12 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     <h2>Recent commits to the repository</h2>
     %s
     <a href="http://git.thousandparsec.net/gitweb/gitweb.cgi?p=schemepy.git;a=shortlog">more...</a>
-    
-    <ul>
-      <li><a href="http://git.thousandparsec.net/gitweb/gitweb.cgi?p=schemepy.git;a=summary">Recent commits to the repository</a></li>
-      <li><a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a></li>
-      <li><a href="http://pluskid.lifegoo.com/?cat=16">My recent blog posts on Schemepy</a></li>
-    </ul>
+
+    <h2>Recent post to mailing list</h2>
+    <a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a>
+
+    <h2>My recent blog posts on Schemepy</h2>
+    <a href="http://pluskid.lifegoo.com/?cat=16">My recent blog posts on Schemepy</a>
   </body>
 </html>
 """

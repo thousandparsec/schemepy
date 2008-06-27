@@ -179,3 +179,29 @@ div.highlight pre {
     margin: 0;
     padding: 0;
 }
+
+/* git shortlog */
+table.git-shortlog {
+    font-size: 85%;
+    margin: 10px 10px 5px 0;
+    border-collapse: collapse;
+    border: none;
+    border-left: solid 8px #F6F6F0;
+    border-right: solid 8px #F6F6F0;
+}
+
+table.git-shortlog tr {
+    border-bottom: 1px dotted #222222;
+    border-top: none;
+    background-color: #F7F7F7;
+}
+
+table.git-shortlog td {
+    border: none;
+    padding: 2px 7px 2px 8px;
+}
+
+table.git-shortlog td.comment {
+    width: 35em;
+}
+
