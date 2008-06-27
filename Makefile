@@ -25,3 +25,14 @@ test_mzscheme:
 	BACKEND=mzscheme $(TRUNNER)
 
 test: test_guile
+
+
+
+########################################
+# Git tasks
+########################################
+push:
+	doc/gen_index.py
+	git-add doc/index.html
+	GIT_EDITOR=/bin/true git-commit --amend
+	git push
