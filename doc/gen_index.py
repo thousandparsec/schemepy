@@ -99,7 +99,8 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     <a href="http://git.thousandparsec.net/gitweb/gitweb.cgi?p=schemepy.git;a=shortlog">more...</a>
 
     <h2>Recent post to mailing list</h2>
-    <a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a>
+    <a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a><br />
+    <a href="http://www.thousandparsec.net/tp/mailman.php/listinfo/schemepy">Subscribe</a>
 
     <h2>My recent blog posts on Schemepy</h2>
     <a href="http://pluskid.lifegoo.com/?cat=16">My recent blog posts on Schemepy</a>
