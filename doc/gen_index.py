@@ -56,6 +56,7 @@ def git_gen_html(logs):
            '\n</table>'
 
 def git_gen():
+    print "Generating homepage part of git log..."
     git_ensure_on_branch("master")
     logs = git_get_short_log(10)
     return git_gen_html(logs)
@@ -81,9 +82,34 @@ def blog_format(feed):
 
 FEED_ADDR = 'http://pluskid.lifegoo.com/?cat=16&feed=rss2'
 def blog_gen():
+    print "Generating homepage part of blog posts..."
     feed = feedparser.parse(FEED_ADDR)
     return blog_format(feed)
     
+
+########################################
+# Generate mailing list posts
+########################################
+from urllib import urlopen
+from datetime import date
+import re
+
+ML_ADDR_FMT = "http://www.thousandparsec.net/tp/pipermail.php/schemepy/%Y-%B/"
+ML_PATTERN = r'<LI><A HREF="(\d{6}\.html)">([^>]*)\s</A><A NAME="\d\d">&nbsp;</A>\s<I>([^<]*)\s</I>'
+
+def ml_format(base, posts):
+    html = []
+    for post in reversed(posts[-8:]):
+        html.append('<li><a href="' + base + post[0] + '">' + \
+                    post[1] + '</a> <i>' + post[2] + '</i></li>')
+    return '<ul>\n' + '\n'.join(html) + '</ul>'
+
+def ml_gen():
+    print "Generating homepage part of mailing list posts..."
+    base = date.today().strftime(ML_ADDR_FMT)
+    doc = urlopen(base + 'date.html').read()
+    posts = re.findall(ML_PATTERN, doc)
+    return ml_format(base, posts)
 
 ########################################
 # Generate index.html
@@ -125,6 +151,7 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     <a href="http://pluskid.lifegoo.com/?cat=16">more...</a>
 
     <h2>Recent post to mailing list</h2>
+    %s
     <a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a><br />
     <a href="http://www.thousandparsec.net/tp/mailman.php/listinfo/schemepy">Subscribe</a>
 
@@ -135,7 +162,7 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 def gen_index():
     "Generate index.html"
     index = open("doc/index.html", "w")
-    content = TEMPLATE % (git_gen(), blog_gen())
+    content = TEMPLATE % (git_gen(), blog_gen(), ml_gen())
     index.write(content)
     index.close()
 
