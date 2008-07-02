@@ -5,3 +5,9 @@ Add a simple homepage for Schemepy
 A simple one with news (changelog) and links to related documents is
 enough. Refer to libmng-py's homepage for example.
 
+
+----------------------------------------------------------------------
+                                               finished at: 2008-07-02
+
+A script is added to generate the homepage in doc/index.html. It will
+be available at http://schemepy.thousandparsec.net
