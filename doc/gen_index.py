@@ -61,7 +61,29 @@ def git_gen():
     return git_gen_html(logs)
 
 
+########################################
+# Generate Blog summary
+########################################
+import feedparser
 
+def blog_format_entry(entry):
+    "Format a blog entry"
+    return '<h3><a href="' + entry.link + '">' + \
+           entry.title + '</a></h3>' + \
+           '<small>' + entry.updated + '</small>\n' + \
+           '<p>' + entry.summary[:-5] + \
+           '<a href="' + entry.link + '">[...]</a></p>'
+
+def blog_format(feed):
+    "Format blog feed"
+    return '\n'.join([blog_format_entry(entry) \
+                      for entry in feed.entries[0:3]])
+
+FEED_ADDR = 'http://pluskid.lifegoo.com/?cat=16&feed=rss2'
+def blog_gen():
+    feed = feedparser.parse(FEED_ADDR)
+    return blog_format(feed)
+    
 
 ########################################
 # Generate index.html
@@ -98,12 +120,14 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     %s
     <a href="http://git.thousandparsec.net/gitweb/gitweb.cgi?p=schemepy.git;a=shortlog">more...</a>
 
+    <h2>My recent blog posts on Schemepy</h2>
+    %s
+    <a href="http://pluskid.lifegoo.com/?cat=16">more...</a>
+
     <h2>Recent post to mailing list</h2>
     <a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a><br />
     <a href="http://www.thousandparsec.net/tp/mailman.php/listinfo/schemepy">Subscribe</a>
 
-    <h2>My recent blog posts on Schemepy</h2>
-    <a href="http://pluskid.lifegoo.com/?cat=16">My recent blog posts on Schemepy</a>
   </body>
 </html>
 """
@@ -111,7 +135,7 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 def gen_index():
     "Generate index.html"
     index = open("doc/index.html", "w")
-    content = TEMPLATE % (git_gen())
+    content = TEMPLATE % (git_gen(), blog_gen())
     index.write(content)
     index.close()
 
