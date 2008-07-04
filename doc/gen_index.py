@@ -150,7 +150,7 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     %s
     <a href="http://pluskid.lifegoo.com/?cat=16">more...</a>
 
-    <h2>Recent post to mailing list</h2>
+    <h2>Recent posts on mailing list</h2>
     %s
     <a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a><br />
     <a href="http://www.thousandparsec.net/tp/mailman.php/listinfo/schemepy">Subscribe</a>
