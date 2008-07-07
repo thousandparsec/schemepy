@@ -125,6 +125,8 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   </head>
   
   <body>
+    <img src="html/schemepy.png" alt="schemepy"
+         style="float:right;margin:0 17px 5px 10px;" />
     <h1 class="title">Schemepy</h1>
 
     <h1>What is Schemepy?</h1>
