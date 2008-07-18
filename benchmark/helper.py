@@ -16,7 +16,7 @@ def read(file_name):
     return cont
 
 
-BACKENDS = ['guile', 'mzscheme', 'pyscheme']
+BACKENDS = ['guile', 'skime', 'pyscheme']
 
 def load_backends():
     """\
