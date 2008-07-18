@@ -131,7 +131,7 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 
     <h1>What is Schemepy?</h1>
     <p>Schemepy is a Python module that enables you to embed a Scheme
-    interpreter in your program. It support various native Scheme
+    interpreter in your program. It supports various native Scheme
     implementations for speed. A fall back pure-Python implementation
     is also available when no suitable native implementations
     available.</p>
