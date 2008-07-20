@@ -20,7 +20,7 @@ def call_tak(vm):
         scm = vm.apply(vm.get("tak"), [vm.toscheme(x) for x in case[1]])
         assert vm.fromscheme(scm) == case[0]
 
-bm = Benchmark(title="tak benchmark", repeat=3)
+bm = Benchmark(title="tak benchmark", repeat=1)
 for backend in helper.BACKENDS:
     vm = helper.VM(backend=backend)
     vm.eval(vm.compile(code))
