@@ -30,7 +30,6 @@ def allNumbers(numbers):
             return 0
     return 1
 
-
 def schemeAdd(*numbers):
     if len(numbers) == 0: return 0
     if not allNumbers(numbers):
