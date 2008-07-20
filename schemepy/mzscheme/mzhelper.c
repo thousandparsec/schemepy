@@ -202,7 +202,15 @@ int scheme_bignum_p(Scheme_Object *o)
 
 int scheme_real_p(Scheme_Object *o)
 {
+#ifdef SCHEME_COMPLEX_IZIP
     return SCHEME_REALP(o) && ! SCHEME_COMPLEX_IZIP(o);
+#else
+/* Complex numbers with inexact-zero imaginary parts are no longer
+ * considered real (or rational) in v4. see
+ * http://pre.plt-scheme.org/docs/html/release-notes/mzscheme/MzScheme_4.txt
+ */
+    return SCHEME_REALP(o);
+#endif
 }
 double scheme_real_value(Scheme_Object *o)
 {

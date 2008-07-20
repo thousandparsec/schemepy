@@ -25,13 +25,13 @@ def VM(backend=None, profile="scheme-report-environment"):
      - null-environment
     """
     if backend is None:
-        backend = find_backend()
+        backend_mod = find_backend()
     else:
-        backend = get_backend(backend)
-        if backend is None:
+        backend_mod = get_backend(backend)
+        if backend_mod is None:
             raise BackendNotFoundError, "No such backend %s" % backend
 
-    return backend.VM(profile)
+    return backend_mod.VM(profile)
 
 
 # All supported backends. The last one is pure-Python fallback.
