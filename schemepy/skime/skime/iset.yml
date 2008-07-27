@@ -1,0 +1,384 @@
+tags:
+  - ctrl_flow
+  - ctx_switch
+
+# Instructions
+#
+# The opcode is the index of each instruction. Stack before and after
+# instruction is only for documenting purpose. The elements are
+# specified from bottom to top. E.g:
+#
+#   stack_before: [a, b]
+#   stack_after: [b-a]
+#
+# will be
+#		       
+#   +---------+	                  
+#   |    b    |	       	       	  
+#   +---------+   ==>  	+---------+
+#   |    a    |		|   b-a   |
+#   +---------+		+---------+
+#
+
+instructions:
+  -
+    name: ret
+    tags: [ctx_switch, ctrl_flow]
+    desc: Return from a procedure.
+    operands: []
+    stack_before: []
+    stack_after: []
+    code: |
+      pctx = ctx.parent
+      retval = ctx.pop()
+      pctx.push(retval)
+      return pctx
+
+  -
+    name: call
+    tags: [ctx_switch, ctrl_flow]
+    desc: Call a procedure.
+    operands: [argc]
+    stack_before: [..., proc]
+    stack_after: [retval]
+    code: |
+      argc = get_param(ctx, 1)
+      
+      proc = ctx.pop()
+
+      if isinstance(proc, Procedure):
+          proc.check_arity(argc)
+          nctx = Context(proc, proc.env.dup(), ctx)
+
+          for i in range(proc.fixed_argc):
+              nctx.env.assign_local(i, ctx.top(idx=argc-i))
+          if proc.fixed_argc != proc.argc:
+              rest = None
+              for i in range(argc-proc.fixed_argc):
+                  rest = Pair(ctx.top(idx=i+1), rest)
+              nctx.env.assign_local(proc.fixed_argc, rest)
+          ctx.pop_n(argc)
+    
+      elif isinstance(proc, Primitive):
+          proc.check_arity(argc)
+          args = range(argc)
+          for i in range(argc):
+              args[i] = ctx.top(idx=argc-i)
+          ctx.pop_n(argc)
+          ctx.push(proc.call(ctx.vm, *args))
+          nctx = ctx
+
+      else:
+          raise WrongArgType("Not a skime callable: %s" % proc)
+
+      ctx.ip += $(insn_len)
+      return nctx
+
+  -
+    name: tail_call
+    tags: [ctx_switch, ctrl_flow]
+    desc: Call a procedure with tail-call.
+    operands: [argc]
+    stack_before: [..., proc]
+    stack_after: [retval]
+    code: |
+      argc = get_param(ctx, 1)
+      
+      proc = ctx.pop()
+
+      if isinstance(proc, Procedure):
+          proc.check_arity(argc)
+          nctx = Context(proc, proc.env.dup(), ctx.parent)
+
+          for i in range(proc.fixed_argc):
+              nctx.env.assign_local(i, ctx.top(idx=argc-i))
+          if proc.fixed_argc != proc.argc:
+              rest = None
+              for i in range(argc-proc.fixed_argc):
+                  rest = Pair(ctx.top(idx=i+1), rest)
+              nctx.env.assign_local(proc.fixed_argc, rest)
+          ctx.pop_n(argc)
+    
+      elif isinstance(proc, Primitive):
+          proc.check_arity(argc)
+          args = range(argc)
+          for i in range(argc):
+              args[i] = ctx.top(idx=argc-i)
+          ctx.pop_n(argc)
+
+          nctx = ctx.parent
+          nctx.push(proc.call(ctx.vm, *args))
+
+      else:
+          raise WrongArgType("Not a skime callable: %s" % proc)
+
+      ctx.ip += $(insn_len)
+      return nctx
+
+  -
+    name: pop
+    tags: []
+    desc: Pop the value off from the operand stack.
+    operands: []
+    stack_before: [value]
+    stack_after: []
+    code: |
+      ctx.pop()
+
+  -
+    name: push_local
+    tags: []
+    desc: Push value of a local variable to operand stack.
+    operands: [local]
+    stack_before: []
+    stack_after: [value]
+    code: |
+      idx = get_param(ctx, 1)
+      loc = ctx.env.read_local(idx)
+      ctx.push(loc)
+
+  -
+    name: set_local
+    tags: []
+    desc: Pop the stack top and assign it to a local variable.
+    operands: [local]
+    stack_before: [value]
+    stack_after: []
+    code: |
+      idx = get_param(ctx, 1)
+      val = ctx.pop()
+      ctx.env.assign_local(idx, val)
+
+  -
+    name: push_local_depth
+    tags: []
+    desc: Push value of a local in lexical parent to operand stack.
+    operands: [depth, local]
+    stack_before: []
+    stack_after: [value]
+    code: |
+      depth = get_param(ctx, 1)
+      idx = get_param(ctx, 2)
+
+      penv = ctx.env
+      while depth > 0:
+          penv = penv.parent
+          depth -= 1
+      loc = penv.read_local(idx)
+      ctx.push(loc)
+
+  -
+    name: set_local_depth
+    tags: []
+    desc: Pop a value and assign to a local variable of lexical parent.
+    operands: [depth, local]
+    stack_before: [value]
+    stack_after: []
+    code: |
+      depth = get_param(ctx, 1)
+      idx = get_param(ctx, 2)
+      value = ctx.pop()
+
+      penv = ctx.env
+      while depth > 0:
+          penv = penv.parent
+          depth -= 1
+      penv.assign_local(idx, value)
+
+  -
+    name: push_literal
+    tags: []
+    desc: Push a literal to operand stack.
+    operands: [literal]
+    stack_before: []
+    stack_after: [value]
+    code: |
+      idx = get_param(ctx, 1)
+      lit = ctx.form.literals[idx]
+      ctx.push(lit)
+
+  -
+    name: push_0
+    tags: []
+    desc: Push 0 to operand stack.
+    operands: []
+    stack_before: []
+    stack_after: [0]
+    code: |
+      ctx.push(0)
+
+  -
+    name: push_1
+    tags: []
+    desc: Push 1 to operand stack.
+    operands: []
+    stack_before: []
+    stack_after: [0]
+    code: |
+      ctx.push(1)
+
+  -
+    name: push_nil
+    tags: []
+    desc: Push None to oeprand stack.
+    operands: []
+    stack_before: []
+    stack_after: [None]
+    code: |
+      ctx.push(None)
+
+  -
+    name: push_true
+    tags: []
+    desc: Push True to oeprand stack.
+    operands: []
+    stack_before: []
+    stack_after: [True]
+    code: |
+      ctx.push(True)
+
+  -
+    name: push_false
+    tags: []
+    desc: Push False to oeprand stack.
+    operands: []
+    stack_before: []
+    stack_after: [False]
+    code: |
+      ctx.push(False)
+
+  -
+    name: dup
+    tags: []
+    desc: Duplicate the stack top object.
+    operands: []
+    stack_before: []
+    stack_after: [value]
+    code: |
+      ctx.push(ctx.top())
+
+  -
+    name: goto
+    tags: [ctrl_flow]
+    desc: Unconditional jump.
+    operands: [ip]
+    stack_before: []
+    stack_after: []
+    code: |
+      ip = get_param(ctx, 1)
+      ctx.ip = ip
+
+  -
+    name: goto_if_not_false
+    tags: [ctrl_flow]
+    desc: Jump if the stack top is not False.
+    operands: [ip]
+    stack_before: [condition]
+    stack_after: []
+    code: |
+      ip = get_param(ctx, 1)
+      cond = ctx.pop()
+      if cond is not False:
+          ctx.ip = ip
+      else:
+          ctx.ip += $(insn_len)
+
+  -
+    name: goto_if_false
+    tags: [ctrl_flow]
+    desc: Jump if the stack top is False.
+    operands: [ip]
+    stack_before: [condition]
+    stack_after: []
+    code: |
+      ip = get_param(ctx, 1)
+      cond = ctx.pop()
+      if cond is False:
+          ctx.ip = ip
+      else:
+          ctx.ip += $(insn_len)
+
+  -
+    name: fix_lexical
+    tags: []
+    desc: Fix the lexical_parent of an object.
+    operands: []
+    stack_before: [obj]
+    stack_after: [obj]
+    code: |
+      proc = ctx.top()
+      proc.lexical_parent = ctx.env
+
+  -
+    name: fix_lexical_pop
+    tags: []
+    desc: Like fix_literal, but pop the object off after fixing.
+    operands: []
+    stack_before: [obj]
+    stack_after: []
+    code: |
+      proc = ctx.pop()
+      proc.lexical_parent = ctx.env
+
+  -
+    name: fix_lexical_depth
+    tags: []
+    desc: Fix the lexical_parent of an object.
+    operands: [depth]
+    stack_before: [obj]
+    stack_after: [obj]
+    code: |
+      depth = get_param(ctx, 1)
+      proc = ctx.top()
+      env = ctx.env
+      while depth > 0:
+          env = env.parent
+          depth -= 1
+      proc.lexical_parent = env
+
+  -
+    name: dynamic_eval
+    tags: []
+    desc: Evaluate a DynamicClosure and push the result.
+    operands: []
+    stack_before: [dynamic_closure]
+    stack_after: [result]
+    code: |
+      dc = ctx.pop()
+      form = dc.form
+      env = dc.lexical_parent
+      ctx.push(form.eval(env, ctx.vm))
+
+  -
+    name: dynamic_set_local
+    tags: []
+    desc: Assignment of SymbolClosure.
+    operands: [idx]
+    stack_before: [value, sym_closure]
+    stack_after: []
+    code: |
+      idx = get_param(ctx, 1)
+      sym_closure = ctx.pop()
+      value = ctx.pop()
+
+      env = sym_closure.lexical_parent
+      env.assign_local(idx, value)
+
+  -
+    name: dynamic_set_local_depth
+    tags: []
+    desc: Assignment of SymbolClosure.
+    operands: [depth, idx]
+    stack_before: [value, sym_closure]
+    stack_after: []
+    code: |
+      depth = get_param(ctx, 1)
+      idx = get_param(ctx, 2)
+      sym_closure = ctx.pop()
+      value = ctx.pop()
+
+      env = sym_closure.lexical_parent
+      while depth > 0:
+          env = env.parent
+          depth -= 1
+      env.assign_local(idx, value)

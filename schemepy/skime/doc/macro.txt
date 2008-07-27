@@ -1,0 +1,104 @@
+skime support R5RS macros (syntax-rules). Since vector type is
+currently not supported in skime, so vector macros are also not
+supported.
+
+A macro is an instance of SyntaxRules:
+
+  (syntax-rules <literals> <syntax rule> ...)
+
+<literals> is a list of identifiers. <syntax rule> should be of the
+following form:
+
+  (<pattern> <template>)
+
+where <pattern> can be an identifier, a constant or
+
+ - normal list:
+   (<pattern> ...)
+
+ - list with tail capture:
+   (<pattern> <pattern> ... . <pattern>)
+
+ - list with ellipsis:
+   (<pattern> ... <pattern> <ellipsis>)
+
+Matching rules are:
+
+ - a literal listed in <literals> will match "exactly the same thing".
+ - a self-evaluating value will match the same value.
+ - a symbol will match any non-nil expression, except:
+   - the symbol '...' is special, called ellipsis
+   - the symbol '_' is special, the matched result is discarded, and
+     it can appear several times in a macro without causing
+     confliction.
+ - a list will match a list where each element matches.
+ - a pattern followed with an ellipsis will match zero or more
+   instances of the pattern. there will be no more pattern after an
+   ellipsis (like that in R6RS).
+
+Here are some example patterns, corresponding templates and the
+transform result:
+
+== a
+
+can match 1, (1 2 3) or any arbitrary complex non-nil expression.
+
+== (a b c)
+
+will match (1 2 3) or ((1 2) 2 (5 . 6)), etc.
+
+== (a b . c)
+
+when matches (1 2 . 3), a => 1, b => 2, c => 3
+when matches (1 2), a => 1, b => 2, c => ()
+when matches (1 2 3), a => 1, b => 2, c => (3)
+when matches (1 2 3 4), a => 1, b => 2, c => (3 4)
+
+== (a b ...)
+
+when matches (1), a => 1, b => []
+when matches (1 2), a => 1, b => [2]
+when matches (1 2 3), a => 1, b => [2, 3]
+cannot match improper list like (1 . 2) or (1 2 . 3)
+
+--- template: (b ...)
+
+(1) => ()
+(1 2) => (2)
+
+--- template: (a (b ...))
+
+(1) => (1 ())
+(1 2) => (1 (2))
+
+== (a (b c) ...)
+
+--- template: ((b ...) (c ...))
+
+(1) => (() ())
+(1 (2 3) (4 5)) => ((2 4) (3 5))
+
+--- template: ((b c) ...)
+
+(1) => (())
+(1 (2 3)) => ((2 3))
+(1 (2 3) (4 5)) => ((2 3) (4 5))
+
+when matches (1), a => 1, b => [], c => []
+when matches (1 (2 3)), a => 1, b => [2], c => [3]
+when matches (1 (2 3) (4 5)), a => 1, b => [2, 4], c => [3, 5]
+
+== (a (b c ...) ...)
+
+when matches (1), a => 1, b => [], c => []
+when matches (1 (2 3) (4 5)), a => 1, b => [2, 4], c => [[3], [5]]
+when matches (1 (2 3 7) (4 5)), a => 1, b => [2, 4], c => [[3, 7], [5]]
+
+Macros are only defined and transformed at compile time.
+
+In template:
+
+ - macro variable template
+ - constant template (self-evaluating)
+ - literal template (same lexical scoping)
+ - other symbol -> rename
