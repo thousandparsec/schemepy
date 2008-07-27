@@ -1,0 +1,16 @@
+Design a Logo for Schemepy
+----------------------------------------------------------------------
+                                                planned at: 2008-06-03
+
+mithro: maybe a Python snake made out of braces
+        or maybe we could have a snake which has swallowed a bunch of
+	scheme logos
+
+
+----------------------------------------------------------------------
+                                               finished at: 2008-07-27
+
+I designed several logos, which can be found from this blog post:
+    http://pluskid.lifegoo.com/?p=381 
+After discussion, we decide to use the lambda version as the official
+Schemepy logo.
