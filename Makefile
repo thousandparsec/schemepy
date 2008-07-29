@@ -23,6 +23,8 @@ test_pyscheme:
 	BACKEND=pyscheme $(TRUNNER)
 test_mzscheme:
 	BACKEND=mzscheme $(TRUNNER)
+test_skime:
+	BACKEND=skime $(TRUNNER)
 
 test: test_guile
 
