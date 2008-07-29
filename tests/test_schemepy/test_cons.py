@@ -27,14 +27,14 @@ class TestCons(object):
     def test_list(self):
         m1 = common.VM()
 
-        l = Cons(1, [])
+        l = Cons(1, m1.eol)
         scm = m1.toscheme(l)
 
         assert m1.type(scm) == list
         assert m1.fromscheme(scm) == [1]
 
     def test_cons(self):
-        for value, code in [(Cons(1, 2), "`(1 . 2)"),
-                            (Cons("foo", "bar"), '`("foo" . "bar")')]:
+        for value, code in [(Cons(1, 2), "'(1 . 2)"),
+                            (Cons("foo", "bar"), """'("foo" . "bar")""")]:
             yield self.check_eval, code, value
             yield self.check_passthru, value

@@ -3,18 +3,7 @@ import weakref
 from schemepy.exceptions import *
 
 from skime.skime.types.symbol import Symbol
-
-class Cons(object):
-    "A Cons object mapping to a Scheme cons pair"
-    
-    def __init__(self, car, cdr):
-        self.car = car
-        self.cdr = cdr
-
-    def __eq__(self, o):
-        if type(o) is not Cons:
-            return false
-        return self.car == o.car and self.cdr == o.cdr
+from skime.skime.types.pair import Pair as Cons
 
 class Lambda(object):
     "A Lambda object mapping to a Scheme procedure"

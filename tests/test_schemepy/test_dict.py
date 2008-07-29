@@ -25,9 +25,9 @@ class TestDict(object):
 		"""
 		"""
 		dicts = { \
-			'`((1 . 1))' : {1: 1},
-			'`((1 . "Hrm"))' : {1: "Hrm"},
-			'`(("New York" . "Albany"))' : {'New York': 'Albany'},
+			"""'((1 . 1))""" : {1: 1},
+			"""'((1 . "Hrm"))""" : {1: "Hrm"},
+			"""'(("New York" . "Albany"))""" : {'New York': 'Albany'},
 		}
 		for s, value in dicts.items():
 			yield self.check_eval, s, value
