@@ -1,8 +1,0 @@
-Design a Logo for Schemepy
-----------------------------------------------------------------------
-                                                planned at: 2008-06-03
-
-mithro: maybe a Python snake made out of braces
-        or maybe we could have a snake which has swallowed a bunch of
-	scheme logos
-
