@@ -478,7 +478,7 @@ class VM(object):
             return self.fromscheme(smob) # get the original callable
         if guile.scm_smob_predicate(PythonSMOB.tag, val):
             return PythonSMOB.get(val)
-        raise ConversionError(self, "Don't know how to convert this type.")
+        raise ConversionError(val, "Don't know how to convert this type.")
 
     @ensure_scope
     def type(self, val):
