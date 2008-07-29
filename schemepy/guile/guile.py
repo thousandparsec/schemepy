@@ -227,7 +227,6 @@ class VM(object):
     """VM for guile.
     """
 
-    eol = []
     def __init__(self, profile):
         """\
         Create a VM.

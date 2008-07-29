@@ -115,7 +115,6 @@ class VM(object):
     """VM for mzscheme
     """
 
-    eol = []
     profiles = {
         "scheme-report-environment" : "(scheme-report-environment 5)",
         "null-environment" : "(null-environment 5)"

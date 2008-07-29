@@ -20,7 +20,6 @@ class VM(object):
     and parser.
     """
 
-    eol = []
     def __init__(self, profile):
         if profile == "scheme-report-environment":
             interp = scheme.AnalyzingInterpreter()

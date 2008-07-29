@@ -26,13 +26,12 @@ class TestList(object):
 	def test_empty_list(self):
 		m1 = common.VM()
 		a = m1.eval(m1.compile("'()"))
-		# eol might not be a list
-		# assert m1.type(a) == list
-		assert m1.fromscheme(a) == m1.eol
+		assert m1.type(a) == list
+		assert m1.fromscheme(a) == []
 
-		scm = m1.toscheme(m1.eol)
-		# assert m1.type(scm) == list
-		assert m1.fromscheme(scm) == m1.eol
+		scm = m1.toscheme([])
+		assert m1.type(scm) == list
+		assert m1.fromscheme(scm) == []
 
 	def test_list(self):
 		"""
