@@ -100,7 +100,7 @@ def test_sete():
     vm.eval(vm.compile("(define x 42)"))
     vm.eval(vm.compile("(set! x 43)"))
     assert vm.fromscheme(vm.get("x")) == 43
-    assert_raises(ScmUnboundVariable, vm.eval, vm.compile("(set! y 42)"))
+    assert_raises(ScmUnboundVariable, lambda x: vm.eval(vm.compile(x)), "(set! y 42)")
 
 def test_if_simple():
     vm = schemepy.VM()
@@ -385,7 +385,7 @@ def test_let():
                   (x (lambda () 2))) (y)))"""))
     assert vm.fromscheme(w_result) == 1
 
-    assert_raises(ScmUnboundVariable, vm.eval, vm.compile("(let ((y 0) (x y)) x)"))
+    assert_raises(ScmUnboundVariable, lambda x: vm.eval(vm.compile(x)), "(let ((y 0) (x y)) x)")
 
 def test_letrec():
     vm = schemepy.VM()
@@ -409,7 +409,9 @@ def test_letrec():
                      (x (lambda () 2))) (y)))"""))
     assert vm.fromscheme(w_result) == 2
 
-    assert_raises(ScmUnboundVariable, vm.eval, vm.compile("(letrec ((y 0) (x y)) x)"))
+    # This is not portable, using a bound variable with undefined value is not the same
+    # as using an unbound variable.
+    # assert_raises(ScmUnboundVariable, vm.eval, vm.compile("(letrec ((y 0) (x y)) x)"))
 
 def test_letstar():
     #test for (let* ...)
@@ -421,7 +423,7 @@ def test_letstar():
                 z)"""))
     assert vm.fromscheme(w_result) == 42
 
-    assert_raises(ScmUnboundVariable, vm.eval, vm.compile("(let* ((x (+ 1 y)) (y 0)) x)"))
+    assert_raises(ScmUnboundVariable, lambda x: vm.eval(vm.compile(x)), "(let* ((x (+ 1 y)) (y 0)) x)")
 
 def test_numbers():
     vm = schemepy.VM()
