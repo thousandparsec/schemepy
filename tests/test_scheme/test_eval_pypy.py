@@ -494,8 +494,8 @@ def test_lambda_context():
     vm = schemepy.VM()
     vm.eval(vm.compile("""
             (define b (lambda ()
-                        (define lam (lambda () (set! a 42)))
                         (define a 12)
+                        (define lam (lambda () (set! a 42)))
                         (lam)
                         a))
                         """))
