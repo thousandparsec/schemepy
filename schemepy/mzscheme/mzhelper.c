@@ -1,5 +1,9 @@
 #include "scheme.h"
 
+#ifndef SCHEME_COMPLEX_IZIP
+#define MZSCHEME_VERSION_4
+#endif
+
 Scheme_Env *global_env;
 Scheme_Object *sym_base_namespace;
 
@@ -132,14 +136,15 @@ void init_mz()
     scheme_register_extension_global(&scm_py_call, sizeof(Scheme_Object *));
 
     global_env = scheme_basic_env();
-    declare_modules(global_env);
 
     _scheme_true = scheme_true;
     _scheme_false = scheme_false;
     _scheme_null = scheme_null;
 
+#ifdef MZSCHEME_VERSION_4
     sym_base_namespace = scheme_intern_symbol("scheme/base");
     scheme_namespace_require(sym_base_namespace);
+#endif /* MZSCHEME_VERSION_4 */
 
     PyObj_type = scheme_make_type("Python Object");
     GC_register_traversers(PyObj_type, PyObj_size, NULL, NULL, 1, 1);
@@ -208,7 +213,7 @@ int scheme_bignum_p(Scheme_Object *o)
 
 int scheme_real_p(Scheme_Object *o)
 {
-#ifdef SCHEME_COMPLEX_IZIP
+#ifndef MZSCHEME_VERSION_4
     return SCHEME_REALP(o) && ! SCHEME_COMPLEX_IZIP(o);
 #else
 /* Complex numbers with inexact-zero imaginary parts are no longer
