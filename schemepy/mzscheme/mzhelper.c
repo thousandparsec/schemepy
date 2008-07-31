@@ -1,6 +1,7 @@
 #include "scheme.h"
 
 Scheme_Env *global_env;
+Scheme_Object *sym_base_namespace;
 
 /**
  * It's strange that constants from mzscheme.so is different
@@ -126,14 +127,19 @@ void init_mz()
     scheme_register_extension_global(&_scheme_false, sizeof(Scheme_Object *));
     scheme_register_extension_global(&_scheme_null, sizeof(Scheme_Object *));
     scheme_register_extension_global(&global_env, sizeof(Scheme_Env *));
+    scheme_register_extension_global(&sym_base_namespace, sizeof(Scheme_Object *));
     scheme_register_extension_global(&scm_lambda_wrapper, sizeof(Scheme_Object *));
     scheme_register_extension_global(&scm_py_call, sizeof(Scheme_Object *));
 
     global_env = scheme_basic_env();
+    declare_modules(global_env);
 
     _scheme_true = scheme_true;
     _scheme_false = scheme_false;
     _scheme_null = scheme_null;
+
+    sym_base_namespace = scheme_intern_symbol("scheme/base");
+    scheme_namespace_require(sym_base_namespace);
 
     PyObj_type = scheme_make_type("Python Object");
     GC_register_traversers(PyObj_type, PyObj_size, NULL, NULL, 1, 1);
