@@ -9,6 +9,7 @@ from .proc import Procedure
 import errors
 from schemepy.exceptions import *
 from schemepy.lam import Lambda
+from schemepy import tpcl
 
 def dummy():
     pass
@@ -32,10 +33,23 @@ class VM(object):
         Symbol: Symbol
         }
 
+    profiles = {
+        "scheme-report-environment": None,
+        "null-environment": None,
+        "tpcl-environment": lambda vm: tpcl.setup(vm)
+        }
+
     def __init__(self, profile):
-        # TODO: deal with profile
+        try:
+            profile_hook = VM.profiles[profile]
+        except KeyError:
+            raise ProfileNotFoundError("No such profile %s" % profile)
+        
         self.vm = SkimeVM()
         self.compiler = Compiler()
+
+        if profile_hook is not None:
+            profile_hook(self)
 
     def map_exception_deco(meth):
         mapping = {
@@ -63,6 +77,10 @@ class VM(object):
     @map_exception_deco
     def eval(self, compiled):
         return self.vm.run(compiled)
+
+    @map_exception_deco
+    def load(self, path):
+        return self.vm.load(path)
 
     def repl(self):
         pass
