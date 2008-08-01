@@ -5,7 +5,7 @@
   "Converts radians into degrees"
   (* (/ 180 pi)
      rad))
-(define (deg-rad deg)
+(define (deg->rad deg)
   "Converts degrees into radians"
   (* (/ pi 180)
      deg))

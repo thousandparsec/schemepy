@@ -4,7 +4,7 @@
 #include "base.c"
 
 Scheme_Env *global_env;
-Scheme_Object *sym_base_namespace;
+Scheme_Object *tmp_sym;
 
 /**
  * It's strange that constants from mzscheme.so is different
@@ -130,7 +130,7 @@ void init_mz()
     scheme_register_extension_global(&_scheme_false, sizeof(Scheme_Object *));
     scheme_register_extension_global(&_scheme_null, sizeof(Scheme_Object *));
     scheme_register_extension_global(&global_env, sizeof(Scheme_Env *));
-    scheme_register_extension_global(&sym_base_namespace, sizeof(Scheme_Object *));
+    scheme_register_extension_global(&tmp_sym, sizeof(Scheme_Object *));
     scheme_register_extension_global(&scm_lambda_wrapper, sizeof(Scheme_Object *));
     scheme_register_extension_global(&scm_py_call, sizeof(Scheme_Object *));
 
@@ -140,12 +140,11 @@ void init_mz()
     _scheme_false = scheme_false;
     _scheme_null = scheme_null;
 
-
     declare_modules(global_env);
-    sym_base_namespace = scheme_intern_symbol("scheme/base");
-    scheme_namespace_require(sym_base_namespace);
-    sym_base_namespace = scheme_intern_symbol("r5rs");
-    scheme_namespace_require(sym_base_namespace);
+    tmp_sym = scheme_intern_symbol("scheme/base");
+    scheme_namespace_require(tmp_sym);
+    tmp_sym = scheme_intern_symbol("r5rs");
+    scheme_namespace_require(tmp_sym);
 
     PyObj_type = scheme_make_type("Python Object");
     GC_register_traversers(PyObj_type, PyObj_size, NULL, NULL, 1, 1);
@@ -154,7 +153,9 @@ void init_mz()
     proc_scheme_compile = scheme_make_prim_w_arity(do_compile, "schemepy-do-compile", 2, 2);
     proc_scheme_eval = scheme_make_prim_w_arity(do_eval, "schemepy-do-eval", 2, 2);
     proc_scheme_apply = scheme_make_prim_w_arity(do_apply, "schemepy-do-apply", 2, 2);
-    proc_scheme_load = scheme_lookup_global(scheme_intern_symbol("load"), global_env);
+    proc_scheme_load = scheme_make_prim_w_arity(do_load, "schemepy-do-load", 1, 1);
+    /* tmp_sym = scheme_intern_symbol("load"); */
+    /* proc_scheme_load = scheme_lookup_global(tmp_sym, global_env); */
 
     scm_lambda_wrapper = scheme_eval_string(scm_lambda_wrapper_code, global_env);
 
@@ -402,11 +403,19 @@ Scheme_Object *catched_scheme_apply(Scheme_Object *proc, Scheme_Object *args)
     params[2] = args;
     return scheme_apply(catched_apply_proc, 3, params);
 }
+
+Scheme_Object *scheme_load_with_clrd(int argc, Scheme_Object *argv[],
+                                     char *who, int handler_param);
+static Scheme_Object *do_load(int argc, Scheme_Object **argv)
+{
+    scheme_load_with_clrd(argc, argv, "load", MZCONFIG_LOAD_HANDLER);
+    return _scheme_null;
+}
 void catched_scheme_load(Scheme_Object *path)
 {
     Scheme_Object *params[2];
     params[0] = proc_scheme_load;
-    params[1] = scheme_byte_string_to_char_string(path);
+    params[1] = scheme_make_path(SCHEME_BYTE_STR_VAL(path));
     scheme_apply(catched_apply_proc, 2, params);
 }
 

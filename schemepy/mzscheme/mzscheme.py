@@ -2,6 +2,7 @@ from ctypes.util import find_library
 from ctypes import *
 from schemepy.types import *
 from schemepy import exceptions
+from schemepy import tpcl
 import types
 import os.path
 
@@ -117,7 +118,9 @@ class VM(object):
 
     profiles = {
         "scheme-report-environment" : "(scheme-report-environment 5)",
-        "null-environment" : "(null-environment 5)"
+        "null-environment" : "(null-environment 5)",
+        "tpcl-environment" : ("(scheme-report-environment 5)",
+                              lambda vm: tpcl.setup(vm))
         }
     def __init__(self, profile):
         """\
@@ -126,7 +129,14 @@ class VM(object):
         env = VM.profiles.get(profile, None)
         if not env:
             raise ProfileNotFoundError("No such profile %s" % profile)
+        post_hook = None
+        if isinstance(env, tuple):
+            env, post_hook = env
+        
         self._module = mz.scheme_eval_string(env, global_env_ref)
+
+        if post_hook:
+            post_hook(self)
 
     def ensure_namespace(meth):
         """\
