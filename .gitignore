@@ -9,3 +9,4 @@ html
 tp
 *.o
 *.so
+schemepy/mzscheme/base.c

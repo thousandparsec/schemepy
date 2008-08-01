@@ -4,6 +4,10 @@
 #define MZSCHEME_VERSION_4
 #endif
 
+#ifdef MZSCHEME_VERSION_4
+#include "base.c"
+#endif
+
 Scheme_Env *global_env;
 Scheme_Object *sym_base_namespace;
 
@@ -141,8 +145,12 @@ void init_mz()
     _scheme_false = scheme_false;
     _scheme_null = scheme_null;
 
+
 #ifdef MZSCHEME_VERSION_4
+    declare_modules(global_env);
     sym_base_namespace = scheme_intern_symbol("scheme/base");
+    scheme_namespace_require(sym_base_namespace);
+    sym_base_namespace = scheme_intern_symbol("r5rs");
     scheme_namespace_require(sym_base_namespace);
 #endif /* MZSCHEME_VERSION_4 */
 
