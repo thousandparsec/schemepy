@@ -34,9 +34,9 @@ class VM(object):
         }
 
     profiles = {
-        "scheme-report-environment": None,
-        "null-environment": None,
-        "tpcl-environment": lambda vm: tpcl.setup(vm)
+        "minimal": None,
+        "r5rs": None,
+        "tpcl": lambda vm: tpcl.setup(vm)
         }
 
     def __init__(self, profile):

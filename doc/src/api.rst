@@ -30,13 +30,14 @@ Params:
 
   * ``guile``
   * ``mzscheme``
+  * ``skime``
 
-* ``profile``: default is ``"scheme-report-environment"``. Used to
+* ``profile``: default is ``"r5rs"``. Used to
   specify the profile of the VM. Currently supported profiles are:
 
-  * ``scheme-report-environment``
-  * ``null-environment``
-
+  * ``minimal``: A minimal Scheme environment.
+  * ``r5rs``: A R5RS compatible Scheme environment.
+  * ``tpcl``: A Thousand Parsec Component Language compatible environment.
 
 VM
 ==

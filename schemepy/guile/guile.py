@@ -631,9 +631,9 @@ makescope        = guile.scm_variable_ref(makescope_symbol)
 # Profiles
 guile.scm_c_eval_string("(use-modules (ice-9 r5rs))")
 profiles = {
-        "scheme-report-environment" : guile.scm_c_eval_string("(scheme-report-environment 5)"),
-        "null-environment" : guile.scm_c_eval_string("(null-environment 5)"),
-        "tpcl-environment" : (guile.scm_c_eval_string("(scheme-report-environment 5)"),
+        "r5rs" : guile.scm_c_eval_string("(scheme-report-environment 5)"),
+        "minimal" : guile.scm_c_eval_string("(null-environment 5)"),
+        "tpcl" : (guile.scm_c_eval_string("(scheme-report-environment 5)"),
                               lambda vm: tpcl.setup(vm))
         }
 
