@@ -1,9 +1,12 @@
 import os
 from exceptions import BackendNotFoundError
 
-__all__ = ['VM']
+__all__ = ('VM', 'version')
 
-def VM(backend=None, profile="scheme-report-environment"):
+# version is a tuple of major, minor and patch number
+version = (1, 0, 0)
+
+def VM(backend=None, profile="r5rs"):
     """\
     Get a VM.
  
