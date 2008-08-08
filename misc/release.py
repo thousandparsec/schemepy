@@ -23,4 +23,5 @@ for bk in BACKENDS:
 os.chdir("..")
 os.system(("tar czf schemepy-%d.%d.%d.tar.gz schemepy" % schemepy.version) + \
           " --exclude .git --exclude log_book --exclude '*.pyc'" + \
-          " --exclude '*.o' --exclude oldguile")
+          " --exclude '*.o' --exclude oldguile --exclude pyscheme" + \
+          " --exclude .gitignore")

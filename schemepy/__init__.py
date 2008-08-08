@@ -14,7 +14,6 @@ def VM(backend=None, profile="r5rs"):
     Currently supported backends include:
      - "guile"
      - "mzscheme"
-     - "pyscheme"
      - "skime"
     Leaving the 'backend' parameter alone the default value (None)
     will let Schemepy find a default backend for you.
@@ -38,7 +37,7 @@ def VM(backend=None, profile="r5rs"):
 
 
 # All supported backends. The last one is pure-Python fallback.
-SUPPORTED_BACKENDS = ['guile', 'mzscheme', 'pyscheme', 'skime']
+SUPPORTED_BACKENDS = ['guile', 'mzscheme', 'skime']
 
 # A dict of 'backend name' => status
 # 

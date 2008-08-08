@@ -6,6 +6,10 @@ from schemepy import tpcl
 import types
 import os.path
 
+lib = find_library("guile")
+if lib is None:
+    raise RuntimeError("Can't find a guile library to use.")
+
 # Load the helper library which exports the macro's as C functions
 path = os.path.abspath(os.path.join(os.path.split(__file__)[0], "_guilehelper.so"))
 _guilehelper = cdll.LoadLibrary(path)
@@ -13,9 +17,6 @@ _guilehelper = cdll.LoadLibrary(path)
 ver_helper = (_guilehelper.guile_major_version(), _guilehelper.guile_minor_version())
 ver_lib    = {(1, 6): '12', (1, 8): '17'}[ver_helper]
 
-lib = find_library("guile")
-if lib is None:
-    raise RuntimeError("Can't find a guile library to use.")
 if not lib.endswith(ver_lib):
     raise RuntimeError("The found library %s does not match the library the helper was compiled with." % lib)
 
