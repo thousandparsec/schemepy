@@ -2,6 +2,15 @@
 default: test
 
 ########################################
+# Distribution
+########################################
+release:
+	misc/release.py
+
+install:
+	cp -a schemepy /usr/lib/python2.5/site-packages/
+
+########################################
 # Documentation
 ########################################
 DOCC = doc/src/compile-doc.py
@@ -38,3 +47,4 @@ push:
 	git-add doc/index.html
 	GIT_EDITOR=/bin/true git-commit --amend
 	git push
+
