@@ -1,0 +1,11 @@
+Install schemepy is simple -- just copy the schemepy sub-directory
+into your python site-packages directory. Under Linux, you can just
+run `make install' to copy it to 
+
+  /usr/lib/python2.5/site-packages/
+
+Under Windows, you might want to manually copy it to
+
+  C:\Python25\Lib\site-packages
+
+or where you installed Python.

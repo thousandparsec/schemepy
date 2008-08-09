@@ -1,5 +1,5 @@
 schemepy (pronounced Skimpy)
-========================
+============================
 
 This is an reimplimentation of pyscheme using various supportted C scheme
 libraries for speed. If no C scheme libraries are avaliable it will fall back to
@@ -14,17 +14,17 @@ as:
 It is written in pure python using the python-ctypes library. This library comes
 with python2.5 (it can be downloaded for earlier versions of python).
 
-Supported C scheme libraries:
+Planned supporting C scheme libraries(with star already supported):
 	http://community.schemewiki.org/?scheme-faq-standards#implementations
 
-	guile 1.6 and 1.8 	
-	mzscheme 			
+	(*)guile
+	(*)mzscheme 			
 	STklos 				http://www.stklos.org/
 	Chicken 			
 	Elk 				http://sam.zoy.org/elk/
 	
 API
-=========================	
+=========================
 
 import schemepy as scheme
 
