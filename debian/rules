@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode
+# export DH_VERBOSE=1
+
+PYTHON := /usr/bin/python
+
+build:
+	(cd schemepy/guile && make)
+	(cd schemepy/mzscheme && make)
+
+clean:
+	rm schemepy/guile/*.o
+	rm schemepy/mzscheme/*.o
+
+install:
+	dh_testdir
+	dh_installdirs
+	cp -r schemepy /usr/lib/python2.5/site-packages
+	cp -r README doc /usr/share/doc/schemepy
+
+binary-arch: build install
+
+binary: build

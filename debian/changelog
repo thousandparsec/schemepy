@@ -1,0 +1,5 @@
+schemepy (1.0.0-1) unstable; urgency=low
+
+  * Initial Debian packaging
+
+ -- pluskid <pluskid@gmail.com>  Mon, 11 Aug 2008 09:10:11 -0400
