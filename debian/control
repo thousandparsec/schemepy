@@ -2,14 +2,15 @@ Source: schemepy
 Section: python
 Priority: optional
 Maintainer: pluskid <pluskid@gmail.com>
-Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.7.3
+Homepage: http://schemepy.thousandparsec.net
 
 Package: schemepy
-Architecture: all
+Architecture: any
 Depends: python2.5
 Recommends: python-nose, guile-1.8, plt-scheme
-Provides: ${python:Provides}
-Description: Schemepy is a Python module that enables you to embed a
- Scheme interpreter in your program. It supports various native Scheme
- implementations for speed. A fall back pure-Python implementation is
- also available when no suitable native implementations available.
+Description: Schemepy is a Python module to embed Scheme in your app.
+ It supports various native Scheme implementations for speed. A fall
+ back pure-Python implementation is also available when no suitable
+ native implementations available.

@@ -1,46 +1,90 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
 
-# Uncomment this to turn on verbose mode
-# export DH_VERBOSE=1
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
 
-PYTHON := /usr/bin/python
-DESTDIR := debian/tmp
-PYSITE := $(DESTDIR)/usr/lib/python2.5/site-packages
-DOCDIR := $(DESTDIR)/usr/share/doc
 
-build:
-	(cd schemepy/guile && make)
-	(cd schemepy/mzscheme && make)
+PYSITE := debian/schemepy/usr/lib/python2.5/site-packages
 
-clean:
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+
+	touch configure-stamp
+
+
+build: build-stamp
+
+build-stamp: configure-stamp  
+	dh_testdir
+
+	(cd schemepy/guile && $(MAKE))
+	(cd schemepy/mzscheme && $(MAKE))
+	touch $@
+
+clean: 
 	dh_testdir
 	dh_testroot
-	(cd schemepy/guile && make clean)
-	(cd schemepy/mzscheme && make clean)
+	rm -f build-stamp configure-stamp
+
 	find -name '*.pyc' | xargs rm || true
-	dh_clean
+	(cd schemepy/guile && $(MAKE) clean)
+	(cd schemepy/mzscheme && $(MAKE) clean)
 
-install:
-	dh_testdir
-	dh_installdirs
-	mkdir $(PYSITE)/schemepy
-	cp -r schemepy/*.py $(PYSITE)/schemepy
-	cp -r schemepy/{mzscheme,guile,skime,scheme} 
-	cp -r README doc $(DOCDIR)
+	dh_clean 
 
-binary-indep: build
+install: build
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs
-	dh_installdocs README
+	dh_clean -k 
+	dh_installdirs
+
+	mkdir $(PYSITE)/schemepy
+	cp schemepy/*.py $(PYSITE)/schemepy
+	cp -r schemepy/{mzscheme,guile,skime,scheme} $(PYSITE)/schemepy
+
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+#	dh_install
+#	dh_installmenu
+#	dh_installdebconf	
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_python
+#	dh_installinit
+#	dh_installcron
+#	dh_installinfo
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress
 	dh_fixperms
+#	dh_perl
+#	dh_makeshlibs
 	dh_installdeb
+	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
 
-binary-arch: build
-
-binary: binary-indep binary-arch install
-
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure
