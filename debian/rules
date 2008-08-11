@@ -5,21 +5,42 @@
 # export DH_VERBOSE=1
 
 PYTHON := /usr/bin/python
+DESTDIR := debian/tmp
+PYSITE := $(DESTDIR)/usr/lib/python2.5/site-packages
+DOCDIR := $(DESTDIR)/usr/share/doc
 
 build:
 	(cd schemepy/guile && make)
 	(cd schemepy/mzscheme && make)
 
 clean:
-	rm schemepy/guile/*.o
-	rm schemepy/mzscheme/*.o
+	dh_testdir
+	dh_testroot
+	(cd schemepy/guile && make clean)
+	(cd schemepy/mzscheme && make clean)
+	find -name '*.pyc' | xargs rm || true
+	dh_clean
 
 install:
 	dh_testdir
 	dh_installdirs
-	cp -r schemepy /usr/lib/python2.5/site-packages
-	cp -r README doc /usr/share/doc/schemepy
+	mkdir $(PYSITE)/schemepy
+	cp -r schemepy/*.py $(PYSITE)/schemepy
+	cp -r schemepy/{mzscheme,guile,skime,scheme} 
+	cp -r README doc $(DOCDIR)
 
-binary-arch: build install
+binary-indep: build
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installdocs README
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
 
-binary: build
+binary-arch: build
+
+binary: binary-indep binary-arch install
+

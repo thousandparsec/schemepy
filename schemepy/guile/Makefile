@@ -7,4 +7,4 @@ guilehelper.o: guilehelper.c
 	cc -fPIC -c guilehelper.c -g3 -Wall
 
 clean:
-	rm *.o *.so
+	rm *.o *.so || true

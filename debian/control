@@ -6,7 +6,7 @@ Standards-Version: 3.7.2
 
 Package: schemepy
 Architecture: all
-Depends: ${python:Depends}
+Depends: python2.5
 Recommends: python-nose, guile-1.8, plt-scheme
 Provides: ${python:Provides}
 Description: Schemepy is a Python module that enables you to embed a

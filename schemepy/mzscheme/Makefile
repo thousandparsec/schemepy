@@ -8,4 +8,4 @@ base.c:
 	mzc --c-mods base.c ++lib scheme/base ++lib r5rs
 
 clean:
-	rm *.o *.so
+	rm *.o *.so || true
