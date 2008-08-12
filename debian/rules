@@ -34,7 +34,6 @@ clean:
 	dh_testroot
 	rm -f build-stamp configure-stamp
 
-	find -name '*.pyc' | xargs rm || true
 	(cd schemepy/guile && $(MAKE) clean)
 	(cd schemepy/mzscheme && $(MAKE) clean)
 
@@ -53,7 +52,7 @@ install: build
 
 # Build architecture-independent files here.
 binary-indep: build install
-# We have nothing to do by default.
+	python -c 'import compileall; compileall.compile_dir("schemepy")'
 
 # Build architecture-dependent files here.
 binary-arch: build install
