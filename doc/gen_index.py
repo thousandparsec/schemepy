@@ -136,6 +136,20 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     is also available when no suitable native implementations
     available.</p>
 
+    <h1>Download</h1>
+    <ul>
+      <li>
+        <a href="http://www.thousandparsec.net/~pluskid/schemepy-1.0.0.tar.gz">
+        Schemepy 1.0.0 source (any platform)
+        </a>
+      </li>
+      <li>
+        <a href="http://www.thousandparsec.net/~pluskid/schemepy_1.0.0_i386.deb">
+        Schemepy 1.0.0 i386 deb package (Debian and Ubuntu)
+        </a>
+      </li>
+    </ul>
+
     <h1>Document</h1>
     <ul>
       <li><a href="html/api.html">API</a>: The API of Schemepy.</li>
