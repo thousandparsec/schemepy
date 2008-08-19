@@ -52,7 +52,7 @@ install: build
 
 # Build architecture-independent files here.
 binary-indep: build install
-	python -c 'import compileall; compileall.compile_dir("schemepy")'
+# 	nothing here
 
 # Build architecture-dependent files here.
 binary-arch: build install
@@ -72,6 +72,7 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
+	dh_pycentral
 	dh_installman
 	dh_link
 	dh_strip
