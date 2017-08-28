@@ -1,31 +1,32 @@
 schemepy (pronounced Skimpy)
 ============================
 
-This is an reimplimentation of pyscheme using various supportted C scheme
-libraries for speed. If no C scheme libraries are avaliable it will fall back to
-the much slower pyscheme library. 
+This is an reimplementation of pyscheme using various supported C scheme
+libraries for speed. If no C scheme libraries are available it will fall back to
+the much slower pyscheme library.
 
 It was designed to offer faster parsing of Thousand Parsec TPCL programs such
 as:
-	- tpserver-py
-	- tpclient-py*
-	- tpruledev
+ - tpserver-py
+ - tpclient-py*
+ - tpruledev
 
 It is written in pure python using the python-ctypes library. This library comes
 with python2.5 (it can be downloaded for earlier versions of python).
 
-Planned supporting C scheme libraries(with star already supported):
-	http://community.schemewiki.org/?scheme-faq-standards#implementations
+Planned supporting C scheme libraries (bold are already supported):
+http://community.schemewiki.org/?scheme-faq-standards#implementations
 
-	(*)guile
-	(*)mzscheme 			
-	STklos 				http://www.stklos.org/
-	Chicken 			
-	Elk 				http://sam.zoy.org/elk/
-	
+ - [x] **guile**
+ - [x] **mzscheme**
+ - [ ] STklos - http://www.stklos.org/
+ - [ ] Chicken
+ - [ ] Elk - http://sam.zoy.org/elk/
+
 API
 =========================
 
+```python
 import schemepy as scheme
 
 # Create a new scheme compiler A compiler converts text strings into
@@ -96,6 +97,7 @@ vm.install_function(<name>, <python callable>, autoconvert=True)
 #  - dictionary
 <internal scheme object> = scheme.toscheme(<python object>)
 <python object> = scheme.topython(<internal scheme object>)
+```
 
 For further and detailed information of the interface, see
-doc/html/front_end.html.
+[docs/html/front_end.html](docs/html/front_end.html).
