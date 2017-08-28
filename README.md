@@ -100,4 +100,4 @@ vm.install_function(<name>, <python callable>, autoconvert=True)
 ```
 
 For further and detailed information of the interface, see
-[docs/html/front_end.html](docs/html/front_end.html).
+[docs/html/front_end.html](https://thousandparsec.github.io/schemepy/html/front_end.html).
