@@ -41,12 +41,11 @@ def git_gen_html(logs):
                "</td><td>" + gen_url(log) + \
                "</td></tr>"
     def gen_url(log):
-        BASE = "http://git.thousandparsec.net/gitweb/gitweb.cgi?p=schemepy.git;a="
-        params = ["commit;h=%s" % log['hash'],
-                  "commitdiff;h=%s" % log['hash'],
-                  "tree;h=%s;hb=%s" % (log['hash'], log['hash']),
-                  "snapshot;h=%s" % log['hash']]
-        names = ['commit', 'commitdiff', 'tree', 'snapshot']
+        BASE = "http://github.com/thousandparsec/schemepy/"
+        params = ["commit/%s" % log['hash'],
+                  "/tree/%s" % log['hash'],
+                  "/archive/%s.zip" % log['hash']]
+        names = ['commit', 'tree', 'snapshot']
         urls = ['<a href="%s%s">%s</a>' % (BASE, param, name)
                 for param, name in zip(params, names)]
         return ' | '.join(urls)
@@ -160,7 +159,7 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     <h1>News</h1>
     <h2>Recent commits to the repository</h2>
     %s
-    <a href="http://git.thousandparsec.net/gitweb/gitweb.cgi?p=schemepy.git;a=shortlog">more...</a>
+    <a href="https://github.com/thousandparsec/schemepy/commits">more...</a>
 
     <h2>My recent blog posts on Schemepy</h2>
     %s
@@ -168,8 +167,8 @@ TEMPLATE = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 
     <h2>Recent posts on mailing list</h2>
     %s
-    <a href="http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a><br />
-    <a href="http://www.thousandparsec.net/tp/mailman.php/listinfo/schemepy">Subscribe</a>
+    <a href="https://web.archive.org/web/20160323043446/http://www.thousandparsec.net/tp/pipermail.php/schemepy/">Mailing list archives</a><br />
+    <a href="">Subscribe</a>
   </body>
 </html>
 """
